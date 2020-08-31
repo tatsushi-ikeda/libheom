@@ -1,0 +1,12 @@
+set(VER_MAJ     "@PROJECT_VERSION_MAJOR@")
+set(VER_MIN     "@PROJECT_VERSION_MINOR@")
+
+set(SRC_CUR_DIR "@CMAKE_CURRENT_SOURCE_DIR@")
+set(BIN_CUR_DIR "@CMAKE_CURRENT_BINARY_DIR@")
+
+message(STATUS "setup.py: ${PYTHON_COMPILED_MODULE_DIR}")
+
+configure_file(${SRC_CUR_DIR}/setup.py.in setup.py)
+file(INSTALL ${BIN_CUR_DIR}/setup.py
+     DESTINATION ${PYTHON_COMPILED_MODULE_DIR})
+

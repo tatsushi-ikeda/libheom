@@ -1,0 +1,20 @@
+# 
+# LibHEOM, version 0.5
+# Copyright (c) 2019-2020 Tatsushi Ikeda
+# 
+# This library is distributed under BSD 3-Clause License.
+# See LINCENSE.txt for licence.
+# ------------------------------------------------------------------------
+
+from setuptools import setup
+
+setup(
+    name='pylibheom',
+    author='tatsushi-ikeda',
+    author_email='ikeda.tatsushi.37u@kyoto-u.jp',
+    version='@VER_MAJ@.@VER_MIN@',
+    packages=[''],
+    package_data = {'':['@PYTHON_COMPILED_MODULE@']},
+    install_requires=['numpy'],
+    zip_safe=False
+)
