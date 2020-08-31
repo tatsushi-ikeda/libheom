@@ -73,7 +73,6 @@ There are no guarantees about backward compatibility as of now (Version 0.5).
 }
 ```
 
-
 ## Acknowledgments
 <p align="center">
 <a href="https://www.moore.org/"><img src="https://www.moore.org/docs/default-source/Grantee-Resources/foundation-logos/moore-logo-color.jpg?sfvrsn=2" alt="MOORE" height=48 hspace=8></a>
