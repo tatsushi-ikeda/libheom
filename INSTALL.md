@@ -2,9 +2,7 @@
 
 ## Build Binary
 
-The automatic build system maintained by `libheom` is **CMake**. If
-you want to build `libheom` manually, you need to write your own
-building script (See `Makefile.manual`).
+The automatic build system maintained by `libheom` is **CMake**.
 
 ### UNIX
 
@@ -25,7 +23,7 @@ You can use **C++ CMake tools for Windows**, which is installed by default as a 
 You need to run the following commands from **Developer Command Prompt** of Visual Studio.
 
 #### 1. Visual Studio IDE
-Type the following commands from source tree directory to generate Visual Studio solution (`.sln`) and projects (`.vcxproj`):
+Type the following commands from the source tree directory to generate Visual Studio solution (`.sln`) and projects (`.vcxproj`):
 
 ```bash
 mkdir build

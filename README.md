@@ -19,7 +19,7 @@ There are no guarantees about backward compatibility as of now (Version 0.5).
 
 ## TODO
 
-- Write API documentations
+- Write API documentation
 - Update GPU modules which are temporarily disabled
 - Rewrite codes for non-linear spectra calculations which are temporarily removed
 - Implement explicit use of Intel MKL library (low priority)
@@ -82,6 +82,3 @@ There are no guarantees about backward compatibility as of now (Version 0.5).
 
 * This library has been developed and used in [the Scholes group](http://chemlabs.princeton.edu/scholes/) for projects supported by [the Gordon and Betty Moore Foundation](https://www.moore.org/).
 * A prototype of this library was developed for projects supported by [Japan Society for the Promotion of Science](https://www.jsps.go.jp/).
-
-
-****
