@@ -10,11 +10,19 @@ High-level API, including calculations of parameters of HEOM from
 specific spectral density models, is provided in **pyheom** package.
 
 This library is still under development, and some optional functions are not implemented.
-The up-to-date code may be found on GitHub.
 There are no guarantees about backwards compatibility as of now (Version 0.5).
 
 
+## TODO
+
+- Write API documentations
+- Update GPU modules which are temporarily disabled
+- Rewrite codes for non-linear spectra calculations which are temporarily removed
+- Implement explicit use of Intel MKL library (low priority)
+- Implement Fermion version of the HEOM (low priority)
+
 ## Required Packages
+
 - Eigen: 
   [http://eigen.tuxfamily.org](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 
@@ -24,6 +32,7 @@ There are no guarantees about backwards compatibility as of now (Version 0.5).
   [https://numpy.org/](https://numpy.org/)
 
 ## Optional Dependencies
+
 - Compute Unified Device Architecture (CUDA) : [https://developer.nvidia.com/cuda-zone](https://developer.nvidia.com/cuda-zone)
 - cuBLAS &middot; cuSPARSE : [https://developer.nvidia.com/gpu-accelerated-libraries](https://developer.nvidia.com/gpu-accelerated-libraries)
 
@@ -42,7 +51,7 @@ There are no guarantees about backwards compatibility as of now (Version 0.5).
 
 ## Acknowledgments
 <p align="center">
-<a href="https://www.moore.org/"><img src="https://numpy.org/_static/moore.svg" alt="MOORE" height=48 hspace=8></a>
+<a href="https://www.moore.org/"><img src="https://www.moore.org/docs/default-source/Grantee-Resources/foundation-logos/moore-logo-color.jpg?sfvrsn=2" alt="MOORE" height=48 hspace=8></a>
 <a href="https://www.jsps.go.jp/"><img src="https://www.jsps.go.jp/j-grantsinaid/06_jsps_info/g_120612/data/whiteKAKENHIlogoM_jp.jpg" alt="KAKENHI" height=48 hspace=8></a>
 </p>
 
