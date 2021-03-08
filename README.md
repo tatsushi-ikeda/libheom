@@ -14,7 +14,7 @@ High-level API, including calculations of parameters of HEOM from
 specific spectral density models, is provided in [pyheom](https://github.com/tatsushi-ikeda/pyheom) package.
 
 This library is still under development, and some optional functions are not implemented.
-There are no guarantees about backward compatibility as of now (Version 0.5).
+There are no guarantees about backward compatibility as of now (Version 0.5.1).
 
 
 ## TODO
@@ -32,6 +32,7 @@ There are no guarantees about backward compatibility as of now (Version 0.5).
 
 - pybind11:
   [https://github.com/pybind/pybind11](https://github.com/pybind/pybind11)
+
 - numpy:
   [https://numpy.org/](https://numpy.org/)
 

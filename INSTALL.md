@@ -3,6 +3,20 @@
 ## Build Binary
 
 The automatic build system maintained by `libheom` is **CMake**.
+The minimum version of CMake required is 3.0, but some external libraries may require a higher version of CMake.
+
+First you need to install the dependent libraries, Eigen and pybind11.
+
+* Eigen: You need to put the library into 3rdparty/ directory. Make sure that the location of the following file:
+`3rdparty/Eigen/Eigen/Core`
+
+* pybind11: You need to put the library into 3rdparty/ directory. Make sure that the location of the following file:
+`3rdparty/pybind11/include/pybind11/pybind11.h`
+
+These two libraries will be automatically placed by the following command:
+```bash
+git submodule update --init --recursive
+```
 
 ### UNIX
 
