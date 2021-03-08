@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.0)
 
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -6,17 +6,8 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
-project(libheom_dev)
-
-if(POLICY CMP0054)
-  cmake_policy(SET CMP0054 OLD)
-endif()
-if(POLICY CMP0045)
-  cmake_policy(SET CMP0045 OLD)
-endif()  
-
-set(PROJECT_VERSION_MAJOR 0)
-set(PROJECT_VERSION_MINOR 5)
+project(libheom_dev
+        VERSION 0.5.1)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
