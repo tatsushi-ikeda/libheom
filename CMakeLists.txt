@@ -105,6 +105,10 @@ else ()
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
   endif ()
 endif ()
+CHECK_CXX_COMPILER_FLAG("-fabi-version=0" COMPILER_OPT_FABI_VERSION_SUPPORTED)
+if (COMPILER_OPT_FABI_VERSION_SUPPORTED)
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fabi-version=0")
+endif ()
 
 # Detect OpenMP options.
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
