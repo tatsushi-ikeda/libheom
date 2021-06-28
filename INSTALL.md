@@ -3,7 +3,7 @@
 ## Build Binary
 
 The automatic build system maintained by `libheom` is **CMake**.
-The minimum version of CMake required is 3.0, but some external libraries may require a higher version of CMake.
+The minimum version of CMake required is 3.9, but some external libraries may require a higher version of CMake.
 
 First you need to install the dependent libraries, Eigen and pybind11.
 

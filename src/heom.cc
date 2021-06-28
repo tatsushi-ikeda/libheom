@@ -40,6 +40,7 @@ template<typename T>
 void Heom<T>::Initialize() {
   this->size_rho = (this->n_hierarchy+1)*this->n_state*this->n_state;
   this->sub_vector.resize(this->size_rho);
+  this->sub_vector.fill(Zero<T>());
 }
 
 
