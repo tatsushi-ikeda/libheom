@@ -4,6 +4,8 @@
 
 # LibHEOM: Library to Simulate Open Quantum Dynamics based on HEOM Theory
 
+[https://github.com/tatsushi-ikeda/libheom/tree/v0.5](the current stable version is v0.5)
+
 ## Introduction
 
 `libheom` is a cross-platform, open-source library that supports open quantum dynamics simulations based on the hierarchical equations of motion (HEOM) theory.
