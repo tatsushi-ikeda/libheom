@@ -47,7 +47,6 @@ endif()
 # else()
 # endif()
 
-
 if(ENABLE_GPU_PARALLELIZATION)
   target_link_libraries(libheom PRIVATE ${CUDA_LIBRARIES})
 else()
@@ -62,10 +61,10 @@ pybind11_add_module(pylibheom pylibheom.cc)
 target_link_libraries(pylibheom PRIVATE libheom)
 set_property(TARGET pylibheom PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
 
-configure_file(configure_setup_py.cmake.in configure_setup_py.cmake @ONLY)
-add_custom_command(TARGET pylibheom POST_BUILD
-  COMMAND ${CMAKE_COMMAND}
-  -D"PYTHON_COMPILED_MODULE=$<TARGET_FILE_NAME:pylibheom>"
-  -D"PYTHON_COMPILED_MODULE_DIR=$<TARGET_FILE_DIR:pylibheom>"
-  -P configure_setup_py.cmake
-  DEPENDS configure_setup_py.cmake setup.py.in)
+# configure_file(configure_setup_py.cmake.in configure_setup_py.cmake @ONLY)
+# add_custom_command(TARGET pylibheom POST_BUILD
+#   COMMAND ${CMAKE_COMMAND}
+#   -D"PYTHON_COMPILED_MODULE=$<TARGET_FILE_NAME:pylibheom>"
+#   -D"PYTHON_COMPILED_MODULE_DIR=$<TARGET_FILE_DIR:pylibheom>"
+#   -P configure_setup_py.cmake
+#   DEPENDS configure_setup_py.cmake setup.py.in)
