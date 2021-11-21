@@ -4,7 +4,7 @@
 
 # LibHEOM: Library to Simulate Open Quantum Dynamics based on HEOM Theory
 
-[https://github.com/tatsushi-ikeda/libheom/tree/v0.5](The current stable version is v0.5).
+[The current stable version is v0.5](https://github.com/tatsushi-ikeda/libheom/tree/v0.5).
 Master branch could be unstable.
 
 ## Introduction
