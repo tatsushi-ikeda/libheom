@@ -1,45 +1,41 @@
 <p align="center">
-<img src="https://raw.githubusercontent.com/tatsushi-ikeda/libheom/master/etc/libheom_logo_simple.svg" alt="LibHEOM" height=96>
+    <img src="https://raw.githubusercontent.com/tatsushi-ikeda/libheom/master/etc/libheom_logo_simple.svg" alt="LibHEOM" height=96>
 </p>
 
 # LibHEOM: Library to Simulate Open Quantum Dynamics based on HEOM Theory
 
 ## Introduction
 
-`libheom` is a cross-platform, open-source library that supports open
-quantum dynamics simulations based on the hierarchical equations of
-motion (HEOM) theory.  This library provides low-level API to solve
-HEOM written in C++11/CUDA and its Python 3 binding (`pylibheom`).
-High-level API, including calculations of parameters of HEOM from
-specific spectral density models, is provided in [pyheom](https://github.com/tatsushi-ikeda/pyheom) package.
+`libheom` is a cross-platform, open-source library that supports open quantum dynamics simulations based on the hierarchical equations of motion (HEOM) theory.
+This library provides low-level API to solve HEOM written in C++11/CUDA and its Python 3 binding (`pylibheom`).
+High-level API, including calculations of parameters of HEOM from specific spectral density models, is provided in [pyheom](https://github.com/tatsushi-ikeda/pyheom) package.
 
 This library is still under development, and some optional functions are not implemented.
-There are no guarantees about backward compatibility as of now (Version 0.5.1).
-
+There are no guarantees about backward compatibility as of now (Version 0.6.0).
 
 ## TODO
 
-- Write API documentation
-- Update GPU modules which are temporarily disabled
-- Rewrite codes for non-linear spectra calculations which are temporarily removed
-- Implement explicit use of Intel MKL library (low priority)
-- Implement Fermion version of the HEOM (low priority)
+-   Write API documentation
+-   Update GPU modules which are temporarily disabled
+-   Rewrite codes for non-linear spectra calculations which are temporarily removed
+-   Implement explicit use of Intel MKL library (low priority)
+-   Implement Fermion version of the HEOM (low priority)
 
 ## Required Packages
 
-- Eigen: 
-  [http://eigen.tuxfamily.org](http://eigen.tuxfamily.org/index.php?title=Main_Page)
+-   Eigen: 
+    [http://eigen.tuxfamily.org](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 
-- pybind11:
-  [https://github.com/pybind/pybind11](https://github.com/pybind/pybind11)
+-   pybind11:
+    [https://github.com/pybind/pybind11](https://github.com/pybind/pybind11)
 
-- numpy:
-  [https://numpy.org/](https://numpy.org/)
+-   numpy:
+    [https://numpy.org/](https://numpy.org/)
 
 ## Optional Dependencies
 
-- Compute Unified Device Architecture (CUDA) : [https://developer.nvidia.com/cuda-zone](https://developer.nvidia.com/cuda-zone)
-- cuBLAS &middot; cuSPARSE : [https://developer.nvidia.com/gpu-accelerated-libraries](https://developer.nvidia.com/gpu-accelerated-libraries)
+-   Compute Unified Device Architecture (CUDA) : [https://developer.nvidia.com/cuda-zone](https://developer.nvidia.com/cuda-zone)
+-   cuBLAS &middot; cuSPARSE : [https://developer.nvidia.com/gpu-accelerated-libraries](https://developer.nvidia.com/gpu-accelerated-libraries)
 
 ## Installation
 
@@ -48,7 +44,7 @@ There are no guarantees about backward compatibility as of now (Version 0.5.1).
 
 ## Authors
 
-* **Tatsushi Ikeda** (ikeda.tatsushi.37u@kyoto-u.jp)
+-   **Tatsushi Ikeda** (ikeda.tatsushi.37u@kyoto-u.jp)
 
 ## Licence
 
@@ -75,11 +71,13 @@ There are no guarantees about backward compatibility as of now (Version 0.5.1).
 ```
 
 ## Acknowledgments
+
 <p align="center">
-<a href="https://www.moore.org/"><img src="https://www.moore.org/docs/default-source/Grantee-Resources/foundation-logos/moore-logo-color.jpg?sfvrsn=2" alt="MOORE" height=48 hspace=8></a>
-<a href="https://www.jsps.go.jp/"><img src="https://www.jsps.go.jp/j-grantsinaid/06_jsps_info/g_120612/data/whiteKAKENHIlogoM_jp.jpg" alt="KAKENHI" height=48 hspace=8></a>
+    <a href="https://www.jsps.go.jp/"><img src="https://www.jsps.go.jp/j-grantsinaid/06_jsps_info/g_120612/data/whiteKAKENHIlogoM_jp.jpg" alt="KAKENHI" height=48 hspace=8></a>
+    <a href="https://www.moore.org/"><img src="https://www.moore.org/docs/default-source/Grantee-Resources/foundation-logos/moore-logo-color.jpg?sfvrsn=2" alt="MOORE" height=48 hspace=8></a>
 </p>
 
+-   A prototype of this library was developed for projects supported by [Japan Society for the Promotion of Science](https://www.jsps.go.jp/). 
+    The current version is being developed for projects supported by JSPS again.
+-   The version for the above research paper (v0.5) was developed in [the Scholes group](http://chemlabs.princeton.edu/scholes/) for projects supported by [the Gordon and Betty Moore Foundation](https://www.moore.org/).
 
-* This library has been developed and used in [the Scholes group](http://chemlabs.princeton.edu/scholes/) for projects supported by [the Gordon and Betty Moore Foundation](https://www.moore.org/).
-* A prototype of this library was developed for projects supported by [Japan Society for the Promotion of Science](https://www.jsps.go.jp/).
