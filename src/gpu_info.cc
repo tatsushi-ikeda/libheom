@@ -12,11 +12,11 @@
 
 namespace libheom {
 
-int GetGpuDeviceCount() {
+int get_gpu_device_count() {
   return 0;
 }
 
-const std::string GetGpuDeviceName(int device_number) {
+const std::string get_gpu_device_name(int device_number) {
   std::cerr << "[Error] GPU parallerization is not supported." << std::endl;
   std::exit(1);
   return std::string("");

@@ -19,56 +19,56 @@ const bool support_gpu_parallelization = true;
 const bool support_gpu_parallelization = false;
 #endif
 
-// Imaginary unit with given complex type
+// imaginary unit with given complex type
 template <typename T>
-inline constexpr T IUnit();
+inline constexpr T i_unit();
 template <>
-inline constexpr complex128 IUnit<complex128>() { return complex128(0.0 , 1.0 ); }
+inline constexpr complex128 i_unit<complex128>() { return complex128(0.0 , 1.0 ); }
 template <>
-inline constexpr complex64  IUnit<complex64>()  { return complex64 (0.0f, 1.0f); }
+inline constexpr complex64  i_unit<complex64>()  { return complex64 (0.0f, 1.0f); }
 
-// Zero with given type
+// zero with given type
 template <typename T>
-inline constexpr T Zero();
+inline constexpr T zero();
 template <>
-inline constexpr float32    Zero<float32>()    { return 0.0f; }
+inline constexpr float32    zero<float32>()    { return 0.0f; }
 template <>
-inline constexpr float64    Zero<float64>()    { return 0.0;  }
+inline constexpr float64    zero<float64>()    { return 0.0;  }
 template <>
-inline constexpr complex64  Zero<complex64>()  { return complex64 (Zero<float32>()); }
+inline constexpr complex64  zero<complex64>()  { return complex64 (zero<float32>()); }
 template <>
-inline constexpr complex128 Zero<complex128>() { return complex128(Zero<float64>()); }
+inline constexpr complex128 zero<complex128>() { return complex128(zero<float64>()); }
 
-// One with given type
+// one with given type
 template <typename T>
-inline constexpr T One();
+inline constexpr T one();
 template <>
-inline constexpr float32    One<float32>()    { return 1.0f; }
+inline constexpr float32    one<float32>()    { return 1.0f; }
 template <>
-inline constexpr float64    One<float64>()    { return 1.0;  }
+inline constexpr float64    one<float64>()    { return 1.0;  }
 template <>
-inline constexpr complex64  One<complex64>()  { return complex64 (One<float32>()); }
+inline constexpr complex64  one<complex64>()  { return complex64 (one<float32>()); }
 template <>
-inline constexpr complex128 One<complex128>() { return complex128(One<float64>()); }
+inline constexpr complex128 one<complex128>() { return complex128(one<float64>()); }
 
 // Fraction constant with given complex type
 template <typename T>
-inline constexpr T Frac(int num, int denom);
+inline constexpr T frac(int num, int denom);
 template <>
-inline constexpr float32    Frac<float32>    (int num, int den) {
+inline constexpr float32    frac<float32>    (int num, int den) {
   return static_cast<float32>(num)/static_cast<float32>(den);
 }
 template <>
-inline constexpr float64    Frac<float64>    (int num, int den) {
+inline constexpr float64    frac<float64>    (int num, int den) {
   return static_cast<float64>(num)/static_cast<float64>(den);
 }
 template <>
-inline constexpr complex64  Frac<complex64> (int num, int den) {
-  return complex64(Frac<float32>(num, den));
+inline constexpr complex64  frac<complex64> (int num, int den) {
+  return complex64(frac<float32>(num, den));
 }
 template <>
-inline constexpr complex128 Frac<complex128>(int num, int den) {
-  return complex128(Frac<float64>(num, den));
+inline constexpr complex128 frac<complex128>(int num, int den) {
+  return complex128(frac<float64>(num, den));
 }
 
 }

@@ -14,14 +14,14 @@
 
 namespace libheom {
 
-// Heom{H,L}{D,S}{L,H}
+// heom{H,L}{D,S}{L,H}
 
 template<typename T>
-class Heom
-  : public Qme<T> {
+class heom
+  : public qme<T> {
  public:
-  HierarchySpace hs;
-  std::vector<T> jgamma_diag;
+  hierarchy_space hs;
+  std::vector<T>  jgamma_diag;
   std::unique_ptr<Eigen::SparseMatrix<T, Eigen::RowMajor>[]> gamma_offdiag;
   
   std::unique_ptr<Eigen::Matrix<T,Eigen::Dynamic,1>[]> S;
@@ -30,54 +30,54 @@ class Heom
   int n_dim;
   int n_hierarchy;
 
-  void LinearizeDim();
+  void linearize_dim();
   
-  void Initialize();
-  void InitAuxVars(std::function<void(int)> callback);
+  void initialize();
+  void init_aux_vars(std::function<void(int)> callback);
 };
 
 
 template<typename T>
-class HeomL
-   : public Heom<T> {
+class heom_l
+   : public heom<T> {
  public:
   int n_state_liou;
   // Liouville space operators
-  LilMatrix<T> L;
-  std::unique_ptr<LilMatrix<T>[]> Phi;
-  std::unique_ptr<LilMatrix<T>[]> Psi;
-  std::unique_ptr<std::unique_ptr<LilMatrix<T>[]>[]> Theta;
-  std::unique_ptr<LilMatrix<T>[]> Xi;
-  LilMatrix<T> R_heom_0;
+  lil_matrix<T> L;
+  std::unique_ptr<lil_matrix<T>[]> Phi;
+  std::unique_ptr<lil_matrix<T>[]> Psi;
+  std::unique_ptr<std::unique_ptr<lil_matrix<T>[]>[]> Theta;
+  std::unique_ptr<lil_matrix<T>[]> Xi;
+  lil_matrix<T> R_heom_0;
   
-  LilMatrix<T> X;
+  lil_matrix<T> X;
 
-  void InitAuxVars(std::function<void(int)> callback);
+  void init_aux_vars(std::function<void(int)> callback);
 };
 
 
 template<typename T,
-         template <typename, int> class MatrixType,
-         int NumState>
-class HeomLL
-    : public HeomL<T> {
+         template <typename, int> class matrix_type,
+         int num_state>
+class heom_ll
+    : public heom_l<T> {
  public:
-  constexpr static int NumStateLiou = n_state_prod(NumState,NumState);
-  using MatrixLiou = MatrixType<T,NumStateLiou>;
+  constexpr static int num_state_liou = n_state_prod(num_state,num_state);
+  using matrix_liou = matrix_type<T,num_state_liou>;
   
   // Auxiliary variables
-  MatrixLiou L_impl;
-  std::unique_ptr<MatrixLiou[]> Phi_impl;
-  std::unique_ptr<MatrixLiou[]> Psi_impl;
-  std::unique_ptr<MatrixLiou[]> Xi_impl;
-  MatrixLiou R_heom_0_impl;
+  matrix_liou L_impl;
+  std::unique_ptr<matrix_liou[]> Phi_impl;
+  std::unique_ptr<matrix_liou[]> Psi_impl;
+  std::unique_ptr<matrix_liou[]> Xi_impl;
+  matrix_liou R_heom_0_impl;
 
   // std::vector<T> sub_vector;
 
-  void CalcDiff(Ref<DenseVector<T,Eigen::Dynamic>> drho_dt,
-                const Ref<const DenseVector<T,Eigen::Dynamic>>& rho,
-                REAL_TYPE(T) alpha,
-                REAL_TYPE(T) beta) override;
+  void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
+                 const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
+                 REAL_TYPE(T) alpha,
+                 REAL_TYPE(T) beta) override;
 
   // void ConstructCommutator(LilMatrix<T>& x,
   //                          T coef_l,
@@ -86,9 +86,9 @@ class HeomLL
   //                          = [](int) { return; },
   //                          int interval_callback = 1024) override;
   
-  // void ApplyCommutator(Ref<DenseVector<T>>& rho) override;
+  // void ApplyCommutator(ref<dense_vector<T>>& rho) override;
   
-  void InitAuxVars(std::function<void(int)> callback);
+  void init_aux_vars(std::function<void(int)> callback);
 
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -96,36 +96,36 @@ class HeomLL
 
 
 template<typename T,
-         template <typename, int> class MatrixType,
-         int NumState>
-class HeomLH
-    : public HeomL<T> {
+         template <typename, int> class matrix_type,
+         int num_state>
+class heom_lh
+    : public heom_l<T> {
  public:
   // Hierarchical Liouville space operators
-  LilMatrix<T> R_heom;
-  LilMatrix<T> X_hrchy;
+  lil_matrix<T> R_heom;
+  lil_matrix<T> X_hrchy;
 
   // Auxiliary variables
-  MatrixType<T,Eigen::Dynamic> R_heom_impl;
-  MatrixType<T,Eigen::Dynamic> X_hrchy_impl;
+  matrix_type<T,Eigen::Dynamic> R_heom_impl;
+  matrix_type<T,Eigen::Dynamic> X_hrchy_impl;
 
   std::vector<T> sub_vector;
 
-  void CalcDiff(Ref<DenseVector<T,Eigen::Dynamic>> drho_dt,
-                const Ref<const DenseVector<T,Eigen::Dynamic>>& rho,
+  void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
+                const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
                 REAL_TYPE(T) alpha,
                 REAL_TYPE(T) beta) override;
 
-  // void ConstructCommutator(LilMatrix<T>& x,
+  // void ConstructCommutator(lil_matrix<T>& x,
   //                          T coef_l,
   //                          T coef_r,
   //                          std::function<void(int)> callback
   //                          = [](int) { return; },
   //                          int interval_callback = 1024) override;
   
-  // void ApplyCommutator(Ref<DenseVector<T>>& rho) override;
+  // void ApplyCommutator(ref<dense_vector<T>>& rho) override;
   
-  void InitAuxVars(std::function<void(int)> callback);
+  void init_aux_vars(std::function<void(int)> callback);
 
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW

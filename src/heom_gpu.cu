@@ -18,33 +18,33 @@
 namespace libheom {
 
 
-template<typename T, template <typename, int> class MatrixType, int NumState>
-class HeomLHGpuVars {
+template<typename T, template <typename, int> class matrix_type, int num_state>
+class heom_lh_gpu_vars {
  private:
-  HandleGpu handle;
+  handle_gpu handle;
   
-  GPU_MATRIX_TYPE(MatrixType)<T> R_heom_impl;
-  GPU_MATRIX_TYPE(MatrixType)<T> X_hrchy_impl;
+  GPU_MATRIX_TYPE(matrix_type)<T> R_heom_impl;
+  GPU_MATRIX_TYPE(matrix_type)<T> X_hrchy_impl;
   
   thrust::device_vector<GPU_TYPE(T)> rho;
   thrust::device_vector<GPU_TYPE(T)> sub_vector;
 
-  void CalcDiffGpu(
+  void calc_diff_gpu(
       thrust::device_vector<GPU_TYPE(T)>& drho_dt,
       const thrust::device_vector<GPU_TYPE(T)>& rho,
       T alpha,
       T beta);
 
-  friend class HeomLHGpu<T, MatrixType, NumState>;
+  friend class heom_lh_gpu<T, matrix_type, num_state>;
 };
 
-template<typename T, template <typename, int> class MatrixType, int NumState>
-void HeomLHGpu<T, MatrixType, NumState>::InitAuxVars(std::function<void(int)> callback) {
-  HeomLH<T, MatrixType, NumState>::InitAuxVars(callback);
+template<typename T, template <typename, int> class matrix_type, int num_state>
+void heom_lh_gpu<T, matrix_type, num_state>::init_aux_vars(std::function<void(int)> callback) {
+  heom_lh<T, matrix_type, num_state>::init_aux_vars(callback);
 
-  this->gpu.reset(new HeomLHGpuVars<T, MatrixType, NumState>);
+  this->gpu.reset(new heom_lh_gpu_vars<T, matrix_type, num_state>);
   
-  this->gpu->handle.Initialize(device_number);
+  this->gpu->handle.initialize(device_number);
   
   this->gpu->R_heom_impl = this->R_heom_impl;
   this->gpu->rho.resize(this->size_rho);
@@ -58,7 +58,7 @@ void HeomLHGpu<T, MatrixType, NumState>::InitAuxVars(std::function<void(int)> ca
 //      const thrust::device_vector<GPU_TYPE(T)>* x,
 //      thrust::device_vector<GPU_TYPE(T)>& y);
 
-inline void axpy(HandleGpu& handle,
+inline void axpy(handle_gpu& handle,
                  complex64 alpha,
                  const thrust::device_vector<GPU_TYPE(complex64)>& x,
                  thrust::device_vector<GPU_TYPE(complex64)>& y) {
@@ -70,7 +70,7 @@ inline void axpy(HandleGpu& handle,
                           raw_gpu_type_cast<complex64 *>(y.data()), 1));
 }
 
-inline void axpy(HandleGpu& handle,
+inline void axpy(handle_gpu& handle,
                  complex128 alpha,
                  const thrust::device_vector<GPU_TYPE(complex128)>& x,
                  thrust::device_vector<GPU_TYPE(complex128)>& y) {
@@ -83,7 +83,7 @@ inline void axpy(HandleGpu& handle,
 }
 
 
-inline void copy(HandleGpu& handle,
+inline void copy(handle_gpu& handle,
                  const thrust::device_vector<GPU_TYPE(complex64)>& x,
                  thrust::device_vector<GPU_TYPE(complex64)>& y) {
   CUBLAS_CALL(cublasCcopy(handle.cublas,
@@ -93,7 +93,7 @@ inline void copy(HandleGpu& handle,
 }
 
 
-inline void copy(HandleGpu& handle,
+inline void copy(handle_gpu& handle,
                  const thrust::device_vector<GPU_TYPE(complex128)>& x,
                  thrust::device_vector<GPU_TYPE(complex128)>& y) {
   CUBLAS_CALL(cublasZcopy(handle.cublas,
@@ -102,38 +102,38 @@ inline void copy(HandleGpu& handle,
                           raw_gpu_type_cast<complex128 *>(y.data()), 1));
 }
 
-template<typename T, template <typename, int> class MatrixType, int NumState>
-inline void HeomLHGpuVars<T, MatrixType, NumState>::CalcDiffGpu (
+template<typename T, template <typename, int> class matrix_type, int num_state>
+inline void heom_lh_gpu_vars<T, matrix_type, num_state>::calc_diff_gpu (
     thrust::device_vector<GPU_TYPE(T)>& drho_dt,
     const thrust::device_vector<GPU_TYPE(T)>& rho,
     T alpha,
     T beta) {
-  gemvGpu(this->handle, -alpha, this->R_heom_impl, rho, beta, drho_dt);
+  gemv_gpu(this->handle, -alpha, this->R_heom_impl, rho, beta, drho_dt);
 }
 
-template<typename T, template <typename, int> class MatrixType, int NumState>
-void HeomLHGpu<T, MatrixType, NumState>::CalcDiff(
-    Ref<DenseVector<T,Eigen::Dynamic>> drho_dt,
-    const Ref<const DenseVector<T,Eigen::Dynamic>>& rho,
+template<typename T, template <typename, int> class matrix_type, int num_state>
+void heom_lh_gpu<T, matrix_type, num_state>::calc_diff(
+    ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
+    const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
     REAL_TYPE(T) alpha,
     REAL_TYPE(T) beta) {
-  CopyVectorGpu(rho.data(), this->gpu->rho);
+  copy_vector_gpu(rho.data(), this->gpu->rho);
   // thrust::copy_n(reinterpret_cast<const GPU_TYPE(T)*>(rho),
   //                this->gpu->rho.size(),
   //                this->gpu->rho.begin());
-  gpu->CalcDiffGpu(this->gpu->sub_vector,
-                   this->gpu->rho,
-                   alpha,
-                   beta);
-  CopyVectorGpu(this->gpu->sub_vector, drho_dt.data());
+  gpu->calc_diff_gpu(this->gpu->sub_vector,
+                     this->gpu->rho,
+                     alpha,
+                     beta);
+  copy_vector_gpu(this->gpu->sub_vector, drho_dt.data());
 }
 
-template<typename T, template <typename, int> class MatrixType, int NumState>
-void HeomLHGpu<T, MatrixType, NumState>::Evolve1(
-    Ref<DenseVector<T,Eigen::Dynamic>> rho,
+template<typename T, template <typename, int> class matrix_type, int num_state>
+void heom_lh_gpu<T, matrix_type, num_state>::evolve_1(
+    ref<dense_vector<T,Eigen::Dynamic>> rho,
     REAL_TYPE(T) dt) {
   // thrust::host_vector<T> tmp(this->size_rho);
-  gpu->CalcDiffGpu(this->gpu->sub_vector,
+  gpu->calc_diff_gpu(this->gpu->sub_vector,
                    this->gpu->rho,
                    dt,
                    0);
@@ -145,48 +145,48 @@ void HeomLHGpu<T, MatrixType, NumState>::Evolve1(
   // std::exit(1);
   
   axpy(gpu->handle,
-       Frac<T>(1,3),
+       frac<T>(1,3),
        this->gpu->sub_vector,
        this->gpu->rho);
 
-  gpu->CalcDiffGpu(this->gpu->sub_vector,
+  gpu->calc_diff_gpu(this->gpu->sub_vector,
                    this->gpu->rho,
                    dt,
                    -1);
   axpy(gpu->handle,
-       Frac<T>(3,4),
+       frac<T>(3,4),
        this->gpu->sub_vector,
        this->gpu->rho);
   
-  gpu->CalcDiffGpu(this->gpu->sub_vector,
-                   this->gpu->rho,
-                   dt,
-                   -1);
+  gpu->calc_diff_gpu(this->gpu->sub_vector,
+                     this->gpu->rho,
+                     dt,
+                     -1);
   axpy(gpu->handle,
-       Frac<T>(2,3),
+       frac<T>(2,3),
        this->gpu->sub_vector,
        this->gpu->rho);
   
-  gpu->CalcDiffGpu(this->gpu->sub_vector,
-                   this->gpu->rho,
-                   dt,
-                   -1);
+  gpu->calc_diff_gpu(this->gpu->sub_vector,
+                     this->gpu->rho,
+                     dt,
+                     -1);
   axpy(gpu->handle,
-       Frac<T>(1,4),
+       frac<T>(1,4),
        this->gpu->sub_vector,
        this->gpu->rho);
 }
 
-template<typename T, template <typename, int> class MatrixType, int NumState>
-void HeomLHGpu<T, MatrixType, NumState>::Evolve(
-    Ref<DenseVector<T,Eigen::Dynamic>> rho,
+template<typename T, template <typename, int> class matrix_type, int num_state>
+void heom_lh_gpu<T, matrix_type, num_state>::evolve(
+    ref<dense_vector<T,Eigen::Dynamic>> rho,
     REAL_TYPE(T) dt,
     const int steps) {
-  CopyVectorGpu(rho.data(), this->gpu->rho);
+  copy_vector_gpu(rho.data(), this->gpu->rho);
   for (int step = 0; step < steps; ++step) {
-    Evolve1(rho, dt);
+    evolve_1(rho, dt);
   }
-  CopyVectorGpu(this->gpu->rho, rho.data());
+  copy_vector_gpu(this->gpu->rho, rho.data());
 };
 
 
@@ -195,21 +195,21 @@ void HeomLHGpu<T, MatrixType, NumState>::Evolve(
 // Explicit instantiations
 namespace libheom {
 
-#define DECLARE_EXPLICIT_INSTANTIATIONS(T, MatrixType, NumState)        \
-  template class HeomLHGpuVars<T, MatrixType, NumState>;                \
-  template void HeomLHGpu<T, MatrixType, NumState>::InitAuxVars(        \
+#define DECLARE_EXPLICIT_INSTANTIATIONS(T, matrix_type, num_state)        \
+  template class heom_lh_gpu_vars<T, matrix_type, num_state>;                \
+  template void heom_lh_gpu<T, matrix_type, num_state>::init_aux_vars(        \
       std::function<void(int)> callback);                               \
-  template void HeomLHGpu<T, MatrixType, NumState>::CalcDiff(           \
-      Ref<DenseVector<T,Eigen::Dynamic>> drho_dt,                       \
-      const Ref<const DenseVector<T,Eigen::Dynamic>>& rho,              \
+  template void heom_lh_gpu<T, matrix_type, num_state>::calc_diff(           \
+      ref<dense_vector<T,Eigen::Dynamic>> drho_dt,                       \
+      const ref<const dense_vector<T,Eigen::Dynamic>>& rho,              \
       REAL_TYPE(T) alpha,                                               \
       REAL_TYPE(T) beta);                                               \
-  template void HeomLHGpu<T, MatrixType, NumState>::Evolve(             \
-      Ref<DenseVector<T,Eigen::Dynamic>> rho,                           \
+  template void heom_lh_gpu<T, matrix_type, num_state>::evolve(             \
+      ref<dense_vector<T,Eigen::Dynamic>> rho,                           \
       REAL_TYPE(T) dt,                                                  \
       const int steps);                                                 \
-  template void HeomLHGpu<T, MatrixType, NumState>::Evolve1(            \
-      Ref<DenseVector<T,Eigen::Dynamic>> rho,                           \
+  template void heom_lh_gpu<T, matrix_type, num_state>::evolve_1(            \
+      ref<dense_vector<T,Eigen::Dynamic>> rho,                           \
       REAL_TYPE(T) dt);
 
 // DECLARE_EXPLICIT_INSTANTIATIONS(complex64,  DenseMatrix);

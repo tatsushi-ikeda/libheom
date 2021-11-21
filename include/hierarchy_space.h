@@ -15,7 +15,7 @@
 
 namespace libheom {
 
-class HierarchySpace {
+class hierarchy_space {
 public:
   int n_dim;
   std::vector<std::vector<int>> j;
@@ -25,13 +25,13 @@ public:
   int ptr_void;
 };
 
-int AllocateHierarchySpace(HierarchySpace& hs,
-                           int max_depth,
-                           std::function<void(double)> callback
-                           = [](int) { return; },
-                           int interval_callback = 1024,
-                           std::function<bool(std::vector<int>, int)> filter_predicator
-                           = [](std::vector<int> index, int depth) -> bool { return true; });
+int allocate_hierarchy_space(hierarchy_space& hs,
+                             int max_depth,
+                             std::function<void(double)> callback
+                             = [](int) { return; },
+                             int interval_callback = 1024,
+                             std::function<bool(std::vector<int>, int)> filter_predicator
+                             = [](std::vector<int> index, int depth) -> bool { return true; });
 
 }
 

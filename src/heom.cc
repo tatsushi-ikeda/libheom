@@ -19,7 +19,7 @@
 namespace libheom {
 
 template<typename T>
-void Heom<T>::LinearizeDim() {
+void heom<T>::linearize_dim() {
   this->hs.n_dim
       = std::accumulate(this->len_gamma.get(),
                         this->len_gamma.get() + this->n_noise, 0);
@@ -37,20 +37,20 @@ void Heom<T>::LinearizeDim() {
 
 
 template<typename T>
-void Heom<T>::Initialize() {
+void heom<T>::initialize() {
   this->size_rho = (this->n_hierarchy+1)*this->n_state*this->n_state;
   this->sub_vector.resize(this->size_rho);
-  this->sub_vector.fill(Zero<T>());
+  this->sub_vector.fill(zero<T>());
 }
 
 
 template<typename T>
-void Heom<T>::InitAuxVars(std::function<void(int)> callback) {
-  Qme<T>::InitAuxVars(callback);
+void heom<T>::init_aux_vars(std::function<void(int)> callback) {
+  qme<T>::init_aux_vars(callback);
 
   this->jgamma_diag.resize(this->n_hierarchy);
   for (int lidx = 0; lidx < this->n_hierarchy; ++lidx) {
-    this->jgamma_diag[lidx] = Zero<T>();
+    this->jgamma_diag[lidx] = zero<T>();
     for (int u = 0; u < this->n_noise; ++u) {
       for (int k = 0; k < this->len_gamma[u]; ++k) {
         this->jgamma_diag[lidx]
@@ -91,51 +91,51 @@ void Heom<T>::InitAuxVars(std::function<void(int)> callback) {
 }
 
 template<typename T>
-void HeomL<T>::InitAuxVars(std::function<void(int)> callback) {
-  Heom<T>::InitAuxVars(callback);
+void heom_l<T>::init_aux_vars(std::function<void(int)> callback) {
+  heom<T>::init_aux_vars(callback);
   
   this->n_state_liou = this->n_state*this->n_state;
   
-  this->L.SetShape(this->n_state_liou, this->n_state_liou);
-  kron_identity_right(+IUnit<T>(), this->H, Zero<T>(), this->L);
-  kron_identity_left (-IUnit<T>(), this->H, One<T>(),  this->L);
-  this->L.Optimize();
+  this->L.set_shape(this->n_state_liou, this->n_state_liou);
+  kron_identity_right(+i_unit<T>(), this->H, zero<T>(), this->L);
+  kron_identity_left (-i_unit<T>(), this->H, one<T>(),  this->L);
+  this->L.optimize();
   
-  this->Phi.reset(new LilMatrix<T> [this->n_noise]);
-  this->Psi.reset(new LilMatrix<T> [this->n_noise]);
-  this->Theta.reset(new std::unique_ptr<LilMatrix<T>[]> [this->n_noise]);
-  this->Xi.reset(new LilMatrix<T> [this->n_noise]);
+  this->Phi.reset(new lil_matrix<T> [this->n_noise]);
+  this->Psi.reset(new lil_matrix<T> [this->n_noise]);
+  this->Theta.reset(new std::unique_ptr<lil_matrix<T>[]> [this->n_noise]);
+  this->Xi.reset(new lil_matrix<T> [this->n_noise]);
   
   for (int u = 0; u < this->n_noise; ++u) {
-    this->Phi[u].SetShape(this->n_state_liou, this->n_state_liou);
-    kron_identity_right(+IUnit<T>(), this->V[u], Zero<T>(), this->Phi[u]);
-    kron_identity_left (-IUnit<T>(), this->V[u], One<T>(),  this->Phi[u]);
-    this->Phi[u].Optimize();
+    this->Phi[u].set_shape(this->n_state_liou, this->n_state_liou);
+    kron_identity_right(+i_unit<T>(), this->V[u], zero<T>(), this->Phi[u]);
+    kron_identity_left (-i_unit<T>(), this->V[u], one<T>(),  this->Phi[u]);
+    this->Phi[u].optimize();
     
-    this->Psi[u].SetShape(this->n_state_liou, this->n_state_liou);
-    kron_identity_right(Frac<T>(1,1), this->V[u], Zero<T>(), this->Psi[u]);
-    kron_identity_left (Frac<T>(1,1), this->V[u], One<T>(),  this->Psi[u]);
-    this->Psi[u].Optimize();
+    this->Psi[u].set_shape(this->n_state_liou, this->n_state_liou);
+    kron_identity_right(frac<T>(1,1), this->V[u], zero<T>(), this->Psi[u]);
+    kron_identity_left (frac<T>(1,1), this->V[u], one<T>(),  this->Psi[u]);
+    this->Psi[u].optimize();
 
-    this->Theta[u].reset(new LilMatrix<T>[this->len_gamma[u]]);
+    this->Theta[u].reset(new lil_matrix<T>[this->len_gamma[u]]);
     for (int k = 0; k < this->len_gamma[u]; ++k) {
-      this->Theta[u][k].SetShape(this->n_state_liou, this->n_state_liou);
+      this->Theta[u][k].set_shape(this->n_state_liou, this->n_state_liou);
       axpy(+this->S[u].coeff(k), this->Phi[u], this->Theta[u][k]);
       axpy(-this->A[u].coeff(k), this->Psi[u], this->Theta[u][k]);
-      this->Theta[u][k].Optimize();
+      this->Theta[u][k].optimize();
     }
 
-    this->Xi[u].SetShape(this->n_state_liou, this->n_state_liou);
-    gemm(-this->S_delta[u], this->Phi[u], this->Phi[u], Zero<T>(), this->Xi[u]);
-    this->Xi[u].Optimize();
+    this->Xi[u].set_shape(this->n_state_liou, this->n_state_liou);
+    gemm(-this->S_delta[u], this->Phi[u], this->Phi[u], zero<T>(), this->Xi[u]);
+    this->Xi[u].optimize();
   }
 
-  this->R_heom_0.SetShape(this->n_state_liou, this->n_state_liou);
-  axpy(One<T>(), this->L, this->R_heom_0);
+  this->R_heom_0.set_shape(this->n_state_liou, this->n_state_liou);
+  axpy(one<T>(), this->L, this->R_heom_0);
   for (int u = 0; u < this->n_noise; ++u) {
-    axpy(One<T>(), this->Xi[u], this->R_heom_0);
+    axpy(one<T>(), this->Xi[u], this->R_heom_0);
   }
-  // this->L.Optimize();
+  // this->L.optimize();
 
   // std::ofstream os("tmp2.dat");
 
@@ -159,35 +159,35 @@ void HeomL<T>::InitAuxVars(std::function<void(int)> callback) {
 
 
 template<typename T,
-         template<typename, int> class MatrixType,
-         int NumState>
-void HeomLL<T, MatrixType, NumState>::InitAuxVars(
+         template<typename, int> class matrix_type,
+         int num_state>
+void heom_ll<T, matrix_type, num_state>::init_aux_vars(
     std::function<void(int)> callback) {
-  HeomL<T>::InitAuxVars(callback);
+  heom_l<T>::init_aux_vars(callback);
 
-  this->L.template Dump<NumStateLiou>(this->L_impl);
+  this->L.template dump<num_state_liou>(this->L_impl);
 
-  // this->L_impl= static_cast<MatrixType<T>>(this->L);
+  // this->L_impl= static_cast<matrix_type<T>>(this->L);
 
-  this->Phi_impl.reset(new MatrixLiou [this->n_noise]);
-  this->Psi_impl.reset(new MatrixLiou [this->n_noise]);
-  this->Xi_impl.reset(new MatrixLiou [this->n_noise]);
+  this->Phi_impl.reset(new matrix_liou [this->n_noise]);
+  this->Psi_impl.reset(new matrix_liou [this->n_noise]);
+  this->Xi_impl.reset(new matrix_liou [this->n_noise]);
 
   for (int u = 0; u < this->n_noise; ++u) {
-    this->Phi[u].template Dump<NumStateLiou>(this->Phi_impl[u]);
-    this->Psi[u].template Dump<NumStateLiou>(this->Psi_impl[u]);
-    this->Xi[u].template Dump<NumStateLiou>(this->Xi_impl[u]);
+    this->Phi[u].template dump<num_state_liou>(this->Phi_impl[u]);
+    this->Psi[u].template dump<num_state_liou>(this->Psi_impl[u]);
+    this->Xi[u].template dump<num_state_liou>(this->Xi_impl[u]);
   }
-  this->R_heom_0.template Dump<NumStateLiou>(this->R_heom_0_impl);
+  this->R_heom_0.template dump<num_state_liou>(this->R_heom_0_impl);
 }
 
 
 template<typename T,
-         template<typename, int> class MatrixType,
-         int NumState>
-void HeomLL<T, MatrixType, NumState>::CalcDiff(
-    Ref<DenseVector<T,Eigen::Dynamic>> drho_dt,
-    const Ref<const DenseVector<T,Eigen::Dynamic>>& rho,
+         template<typename, int> class matrix_type,
+         int num_state>
+void heom_ll<T, matrix_type, num_state>::calc_diff(
+    ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
+    const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
     REAL_TYPE(T) alpha,
     REAL_TYPE(T) beta) {
   auto n_hierarchy    = this->n_hierarchy;
@@ -206,15 +206,15 @@ void HeomLL<T, MatrixType, NumState>::CalcDiff(
   auto& sigma         = this->sigma;
   const auto ptr_void = this->hs.ptr_void;
 
-  DenseVector<T,NumStateLiou> tmp(this->n_state_liou);
-  DenseVector<T,NumStateLiou> tmp_Phi(this->n_state_liou);
-  DenseVector<T,NumStateLiou> tmp_Psi(this->n_state_liou);
+  dense_vector<T,num_state_liou> tmp(this->n_state_liou);
+  dense_vector<T,num_state_liou> tmp_Phi(this->n_state_liou);
+  dense_vector<T,num_state_liou> tmp_Psi(this->n_state_liou);
 
   for (int lidx = 0; lidx < n_hierarchy; ++lidx) {
     // auto rho_n     = rho.block(lidx*n_state_liou,0,n_state_liou,1);
     // auto drho_dt_n = drho_dt.block(lidx*n_state_liou,0,n_state_liou,1);
-    auto rho_n     = Block<NumStateLiou,1>::value(rho, lidx*n_state_liou,0,n_state_liou,1);
-    auto drho_dt_n = Block<NumStateLiou,1>::value(drho_dt, lidx*n_state_liou,0,n_state_liou,1);
+    auto rho_n     = block<num_state_liou,1>::value(rho, lidx*n_state_liou,0,n_state_liou,1);
+    auto drho_dt_n = block<num_state_liou,1>::value(drho_dt, lidx*n_state_liou,0,n_state_liou,1);
 
     // 0 terms
     // drho_dt_n      = beta*drho_dt_n;
@@ -237,7 +237,7 @@ void HeomLL<T, MatrixType, NumState>::CalcDiff(
           int lidx_m1j, lidx_m1jp1k;
           if ((lidx_m1j = ptr_m1[lidx][lk_u[jj]]) != ptr_void
               && (lidx_m1jp1k = ptr_p1[lidx_m1j][lk_u[k]]) != ptr_void)  {
-            auto rho_m1jp1k = Block<NumStateLiou,1>::value(
+            auto rho_m1jp1k = block<num_state_liou,1>::value(
                 rho, lidx_m1jp1k*n_state_liou,0,n_state_liou,1);
             auto k_float = static_cast<REAL_TYPE(T)>(j[lidx][lk_u[k]]);
             auto j_float = static_cast<REAL_TYPE(T)>(j[lidx][lk_u[jj]]);
@@ -255,7 +255,7 @@ void HeomLL<T, MatrixType, NumState>::CalcDiff(
       // +1 terms
       for (int k = 0; k < len_gamma_u; ++k) {
         int lidx_p1 = ptr_p1[lidx][lk_u[k]];
-        auto rho_np1 = Block<NumStateLiou,1>::value(rho, lidx_p1*n_state_liou,0,n_state_liou,1);
+        auto rho_np1 = block<num_state_liou,1>::value(rho, lidx_p1*n_state_liou,0,n_state_liou,1);
         auto j_float = static_cast<REAL_TYPE(T)>(j[lidx][lk_u[k]]);
         tmp_Phi.noalias() += sigma_u.coeff(k)*std::sqrt(j_float + 1)*rho_np1;
       }
@@ -263,10 +263,10 @@ void HeomLL<T, MatrixType, NumState>::CalcDiff(
       // -1 terms
       for (int k = 0; k < len_gamma_u; ++k) {
         int lidx_m1 = ptr_m1[lidx][lk_u[k]];
-        auto rho_nm1 = Block<NumStateLiou,1>::value(rho, lidx_m1*n_state_liou,0,n_state_liou,1);
+        auto rho_nm1 = block<num_state_liou,1>::value(rho, lidx_m1*n_state_liou,0,n_state_liou,1);
         auto j_float = static_cast<REAL_TYPE(T)>(j[lidx][lk_u[k]]);
         tmp_Phi.noalias() += std::sqrt(j_float)*S_u.coeff(k)*rho_nm1;
-        if (A_u.coeff(k) != Zero<T>()) {
+        if (A_u.coeff(k) != zero<T>()) {
           tmp_Psi.noalias() -= std::sqrt(j_float)*A_u.coeff(k)*rho_nm1;
         }
       }
@@ -281,10 +281,10 @@ void HeomLL<T, MatrixType, NumState>::CalcDiff(
 
 
 // template<typename T,
-// template<typename, int> class MatrixType,
+// template<typename, int> class matrix_type,
 //   int NumState>
-// void HeomLL<T, MatrixType>::ConstructCommutator(
-//     LilMatrix<T>& x,
+// void heom_ll<T, matrix_type>::ConstructCommutator(
+//     lil_matrix<T>& x,
 //     T coeff_l,
 //     T coeff_r,
 //     std::function<void(int)> callback,
@@ -293,9 +293,9 @@ void HeomLL<T, MatrixType, NumState>::CalcDiff(
 
 
 // template<typename T,
-//   template<typename, int> class MatrixType,
+//   template<typename, int> class matrix_type,
 // int NumState>
-// void HeomLL<T, MatrixType>::ApplyCommutator(Ref<DenseVector<T>> rho) {
+// void heom_ll<T, matrix_type>::ApplyCommutator(ref<dense_vector<T>> rho) {
 // }
 
 
@@ -305,12 +305,12 @@ void HeomLL<T, MatrixType, NumState>::CalcDiff(
 
 
 template<typename T,
-         template<typename, int> class MatrixType,
-         int NumState>
-void HeomLH<T, MatrixType, NumState>::InitAuxVars(std::function<void(int)> callback) {
-  HeomL<T>::InitAuxVars(callback);
+         template<typename, int> class matrix_type,
+         int num_state>
+void heom_lh<T, matrix_type, num_state>::init_aux_vars(std::function<void(int)> callback) {
+  heom_l<T>::init_aux_vars(callback);
   
-  R_heom.SetShape(this->n_hierarchy*this->n_state_liou, this->n_hierarchy*this->n_state_liou);
+  R_heom.set_shape(this->n_hierarchy*this->n_state_liou, this->n_hierarchy*this->n_state_liou);
   
   for (int lidx = 0; lidx < this->n_hierarchy; ++lidx) {
     // if (lidx % interval_callback == 0) {
@@ -329,8 +329,8 @@ void HeomLH<T, MatrixType, NumState>::InitAuxVars(std::function<void(int)> callb
               T val = Theta_kv.second;
               val *= std::sqrt(static_cast<REAL_TYPE(T)>(this->hs.j[lidx][this->lk[u][k]]));
               // val *= static_cast<REAL_TYPE(T)>(this->hs.j[lidx][this->lk[u][k]]);
-              if (val != Zero<T>()) {
-                this->R_heom.Push(lidx*this->n_state_liou + a,
+              if (val != zero<T>()) {
+                this->R_heom.push(lidx*this->n_state_liou + a,
                                   lidx_m1*this->n_state_liou + b,
                                   val);
               }
@@ -340,7 +340,7 @@ void HeomLH<T, MatrixType, NumState>::InitAuxVars(std::function<void(int)> callb
       }
       
       // 0 terms
-      this->R_heom.Push(lidx*this->n_state_liou + a,
+      this->R_heom.push(lidx*this->n_state_liou + a,
                         lidx*this->n_state_liou + a,
                         this->jgamma_diag[lidx]);
       
@@ -357,7 +357,7 @@ void HeomLH<T, MatrixType, NumState>::InitAuxVars(std::function<void(int)> callb
                 != this->hs.ptr_void)  {
               auto j_float = static_cast<REAL_TYPE(T)>(this->hs.j[lidx][this->lk[u][jj]]);
               auto k_float = static_cast<REAL_TYPE(T)>(this->hs.j[lidx][this->lk[u][k]]);
-              this->R_heom.Push(lidx*this->n_state_liou + a,
+              this->R_heom.push(lidx*this->n_state_liou + a,
                                 lidx_m1jp1k*this->n_state_liou + a,
                                 val*std::sqrt(j_float*(k_float + 1)));
             }
@@ -369,7 +369,7 @@ void HeomLH<T, MatrixType, NumState>::InitAuxVars(std::function<void(int)> callb
         for (auto& R_kv: this->R_heom_0.data[a]) {
           int b = R_kv.first;
           T val = R_kv.second;
-          this->R_heom.Push(lidx*this->n_state_liou + a,
+          this->R_heom.push(lidx*this->n_state_liou + a,
                             lidx*this->n_state_liou + b,
                             val);
         }
@@ -387,8 +387,8 @@ void HeomLH<T, MatrixType, NumState>::InitAuxVars(std::function<void(int)> callb
               T val = Phi_kv.second;
               val *= std::sqrt(static_cast<REAL_TYPE(T)>(this->hs.j[lidx][this->lk[u][k]]+1));
               val *= this->sigma[u].coeff(k);
-              if (val != Zero<T>()) { 
-                this->R_heom.Push(lidx*this->n_state_liou + a,
+              if (val != zero<T>()) { 
+                this->R_heom.push(lidx*this->n_state_liou + a,
                                   lidx_p1*this->n_state_liou + b,
                                   val);
               }
@@ -399,8 +399,8 @@ void HeomLH<T, MatrixType, NumState>::InitAuxVars(std::function<void(int)> callb
     }
   }
 
-  this->R_heom.template Dump<Eigen::Dynamic>(this->R_heom_impl);
-  // this->R_heom_impl = static_cast<MatrixType<T>>(this->R_heom);
+  this->R_heom.template dump<Eigen::Dynamic>(this->R_heom_impl);
+  // this->R_heom_impl = static_cast<matrix_type<T>>(this->R_heom);
 
   // std::ofstream os("tmp3.dat");
   // os << "R_heom" << this->R_heom << std::endl;
@@ -408,11 +408,11 @@ void HeomLH<T, MatrixType, NumState>::InitAuxVars(std::function<void(int)> callb
 
 
 template<typename T,
-         template<typename, int> class MatrixType,
-         int NumState>
-void HeomLH<T, MatrixType, NumState>::CalcDiff(
-    Ref<DenseVector<T,Eigen::Dynamic>> drho_dt,
-    const Ref<const DenseVector<T,Eigen::Dynamic>>& rho,
+         template<typename, int> class matrix_type,
+         int num_state>
+void heom_lh<T, matrix_type, num_state>::calc_diff(
+    ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
+    const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
     REAL_TYPE(T) alpha,
     REAL_TYPE(T) beta) {
   drho_dt = -alpha*this->R_heom_impl*rho + beta*drho_dt;
@@ -422,20 +422,20 @@ void HeomLH<T, MatrixType, NumState>::CalcDiff(
 // template<typename T,
 // template<typename, int> class MatrixType,
 // int NumState>
-// void HeomLH<T, MatrixType>::ConstructCommutator(
-//     LilMatrix<T>& x,
+// void heom_lh<T, MatrixType>::ConstructCommutator(
+//     lil_matrix<T>& x,
 //     T coeff_l,
 //     T coeff_r,
 //     std::function<void(int)> callback,
 //     int interval_callback) {
 //   x = x;
   
-//   this->X.SetShape(this->n_state_liou, this->n_state_liou);
-//   kron_identity_right(coeff_l, x, Zero<T>(), this->X);
-//   kron_identity_left (coeff_r, x, One<T>(), this->X);
-//   this->X.Optimize();
+//   this->X.set_shape(this->n_state_liou, this->n_state_liou);
+//   kron_identity_right(coeff_l, x, zero<T>(), this->X);
+//   kron_identity_left (coeff_r, x, one<T>(), this->X);
+//   this->X.optimize();
 
-//   this->X_hrchy.SetShape(this->n_hierarchy*this->n_state_liou,
+//   this->X_hrchy.set_shape(this->n_hierarchy*this->n_state_liou,
 //                          this->n_hierarchy*this->n_state_liou);
   
 //   for (int lidx = 0; lidx < this->n_hierarchy; ++lidx) {
@@ -463,8 +463,8 @@ void HeomLH<T, MatrixType, NumState>::CalcDiff(
 // template<typename T,
 // template<typename, int> class MatrixType,
 // int NumState>
-// void HeomLH<T, MatrixType>::ApplyCommutator(Ref<DenseVector<T>>& rho) {
-//   gemv(One<T>(), this->X_hrchy_impl, rho, Zero<T>(), this->sub_vector.data());
+// void heom_lh<T, MatrixType>::ApplyCommutator(ref<dense_vector<T>>& rho) {
+//   gemv(one<T>(), this->X_hrchy_impl, rho, zero<T>(), this->sub_vector.data());
 //   copy(this->size_rho, this->sub_vector.data(), rho);
 // }
 
@@ -473,44 +473,45 @@ void HeomLH<T, MatrixType, NumState>::CalcDiff(
 
 // Explicit instantiations
 namespace libheom {
-template void Heom<complex64>::LinearizeDim();
-template void Heom<complex64>::Initialize();
-template void Heom<complex128>::LinearizeDim();
-template void Heom<complex128>::Initialize();
 
-#define DECLARE_EXPLICIT_INSTANTIATIONS(QmeType, T, MatrixType, NumState) \
-  template void QmeType<T, MatrixType, NumState>::InitAuxVars(                   \
+template void heom<complex64>::linearize_dim();
+template void heom<complex64>::initialize();
+template void heom<complex128>::linearize_dim();
+template void heom<complex128>::initialize();
+
+#define DECLARE_EXPLICIT_INSTANTIATIONS(qme_type, T, matrix_type, num_state) \
+  template void qme_type<T, matrix_type, num_state>::init_aux_vars(                   \
       std::function<void(int)> callback);                               \
-  template void QmeType<T, MatrixType, NumState>::CalcDiff(                       \
-      Ref<DenseVector<T, Eigen::Dynamic>> drho_dt, \
-      const Ref<const DenseVector<T, Eigen::Dynamic>>& rho,     \
+  template void qme_type<T, matrix_type, num_state>::calc_diff(                       \
+      ref<dense_vector<T, Eigen::Dynamic>> drho_dt, \
+      const ref<const dense_vector<T, Eigen::Dynamic>>& rho,     \
       REAL_TYPE(T) alpha, REAL_TYPE(T) beta);
-// template void QmeType<T, MatrixType>::ConstructCommutator(            \
-//     LilMatrix<T>& x,                                                  \
+// template void qme_type<T, matrix_type>::ConstructCommutator(            \
+//     lil_matrix<T>& x,                                                  \
 //     T coeff_l,                                                        \
 //     T coeff_r,                                                        \
 //     std::function<void(int)> callback,                                \
 //     int interval_callback);                                           \
-// template void QmeType<T, MatrixType>::ApplyCommutator(Ref<DenseVector<T>> rho);
+// template void qme_type<T, matrix_type>::ApplyCommutator(ref<dense_vector<T>> rho);
 
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLL, complex64,  DenseMatrix, Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLL, complex64,  CsrMatrix,   Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLL, complex128, DenseMatrix, Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLL, complex128, CsrMatrix,   Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex64,  dense_matrix, Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex64,  csr_matrix,   Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex128, dense_matrix, Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex128, csr_matrix,   Eigen::Dynamic);
 
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLH, complex64,  DenseMatrix, Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLH, complex64,  CsrMatrix,   Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLH, complex128, DenseMatrix, Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLH, complex128, CsrMatrix,   Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex64,  dense_matrix, Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex64,  csr_matrix,   Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex128, dense_matrix, Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex128, csr_matrix,   Eigen::Dynamic);
 
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLL, complex64,  DenseMatrix, 2);
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLL, complex64,  CsrMatrix,   2);
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLL, complex128, DenseMatrix, 2);
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLL, complex128, CsrMatrix,   2);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex64,  dense_matrix, 2);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex64,  csr_matrix,   2);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex128, dense_matrix, 2);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex128, csr_matrix,   2);
 
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLH, complex64,  DenseMatrix, 2);
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLH, complex64,  CsrMatrix,   2);
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLH, complex128, DenseMatrix, 2);
-DECLARE_EXPLICIT_INSTANTIATIONS(HeomLH, complex128, CsrMatrix,   2);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex64,  dense_matrix, 2);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex64,  csr_matrix,   2);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex128, dense_matrix, 2);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex128, csr_matrix,   2);
 
 }

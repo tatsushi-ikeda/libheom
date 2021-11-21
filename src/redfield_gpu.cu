@@ -17,42 +17,42 @@
 
 namespace libheom {
 
-template<typename T, template <typename, int> class MatrixType, int NumState>
-class RedfieldHGpuVars {
+template<typename T, template <typename, int> class matrix_type, int num_state>
+class redfield_h_gpu_vars {
  private:
-  HandleGpu handle;
+  handle_gpu handle;
   
-  GPU_MATRIX_TYPE(MatrixType)<T> H_impl;
-  std::unique_ptr<GPU_MATRIX_TYPE(MatrixType)<T>[]> V_impl;
-  std::unique_ptr<GPU_MATRIX_TYPE(MatrixType)<T>[]> Lambda_impl;
-  std::unique_ptr<GPU_MATRIX_TYPE(MatrixType)<T>[]> Lambda_dagger_impl;
+  GPU_MATRIX_TYPE(matrix_type)<T> H_impl;
+  std::unique_ptr<GPU_MATRIX_TYPE(matrix_type)<T>[]> V_impl;
+  std::unique_ptr<GPU_MATRIX_TYPE(matrix_type)<T>[]> Lambda_impl;
+  std::unique_ptr<GPU_MATRIX_TYPE(matrix_type)<T>[]> Lambda_dagger_impl;
   
   thrust::device_vector<GPU_TYPE(T)> rho;
   thrust::device_vector<GPU_TYPE(T)> sub_vector;
   thrust::device_vector<GPU_TYPE(T)> tmp_vector;
 
-  void CalcDiffGpu(RedfieldHGpu<T, MatrixType, NumState>& obj,
-                   thrust::device_vector<GPU_TYPE(T)>& drho_dt,
-                   const thrust::device_vector<GPU_TYPE(T)>& rho,
-                   T alpha,
-                   T beta);
+  void calc_diff_gpu(redfield_h_gpu<T, matrix_type, num_state>& obj,
+                     thrust::device_vector<GPU_TYPE(T)>& drho_dt,
+                     const thrust::device_vector<GPU_TYPE(T)>& rho,
+                     T alpha,
+                     T beta);
 
-  friend class RedfieldHGpu<T, MatrixType, NumState>;
+  friend class redfield_h_gpu<T, matrix_type, num_state>;
 };
 
-template<typename T, template <typename, int> class MatrixType, int NumState>
-void RedfieldHGpu<T, MatrixType, NumState>::InitAuxVars(std::function<void(int)> callback) {
-  RedfieldH<T, MatrixType, NumState>::InitAuxVars(callback);
+template<typename T, template <typename, int> class matrix_type, int num_state>
+void redfield_h_gpu<T, matrix_type, num_state>::init_aux_vars(std::function<void(int)> callback) {
+  redfield_h<T, matrix_type, num_state>::init_aux_vars(callback);
 
-  this->gpu.reset(new RedfieldHGpuVars<T, MatrixType, NumState>);
+  this->gpu.reset(new redfield_h_gpu_vars<T, matrix_type, num_state>);
   
   this->gpu->handle.Initialize(device_number);
 
   this->gpu->H_impl = this->H_impl;
   
-  this->gpu->V_impl.reset(new GPU_MATRIX_TYPE(MatrixType)<T>[this->n_noise]);
-  this->gpu->Lambda_impl.reset(new GPU_MATRIX_TYPE(MatrixType)<T>[this->n_noise]);
-  this->gpu->Lambda_dagger_impl.reset(new GPU_MATRIX_TYPE(MatrixType)<T>[this->n_noise]);
+  this->gpu->V_impl.reset(new GPU_MATRIX_TYPE(matrix_type)<T>[this->n_noise]);
+  this->gpu->Lambda_impl.reset(new GPU_MATRIX_TYPE(matrix_type)<T>[this->n_noise]);
+  this->gpu->Lambda_dagger_impl.reset(new GPU_MATRIX_TYPE(matrix_type)<T>[this->n_noise]);
   for (int s = 0; s < this->n_noise; ++s) {
     this->gpu->V_impl[s]      = this->V_impl[s];
     this->gpu->Lambda_impl[s] = this->Lambda_impl[s];
@@ -64,7 +64,7 @@ void RedfieldHGpu<T, MatrixType, NumState>::InitAuxVars(std::function<void(int)>
   this->gpu->tmp_vector.resize(this->size_rho);
 }
 
-inline void axpy (HandleGpu& handle,
+inline void axpy (handle_gpu& handle,
                   complex64 alpha,
                   const thrust::device_vector<GPU_TYPE(complex64)>& x,
                   thrust::device_vector<GPU_TYPE(complex64)>& y) {
@@ -77,7 +77,7 @@ inline void axpy (HandleGpu& handle,
 }
 
 
-inline void axpy(HandleGpu& handle,
+inline void axpy(handle_gpu& handle,
                  complex128 alpha,
                  const thrust::device_vector<GPU_TYPE(complex128)>& x,
                  thrust::device_vector<GPU_TYPE(complex128)>& y) {
@@ -90,7 +90,7 @@ inline void axpy(HandleGpu& handle,
 }
 
 
-inline void copy(HandleGpu& handle,
+inline void copy(handle_gpu& handle,
                  const thrust::device_vector<GPU_TYPE(complex64)>& x,
                  thrust::device_vector<GPU_TYPE(complex64)>& y) {
   CUBLAS_CALL(cublasCcopy(handle.cublas,
@@ -100,7 +100,7 @@ inline void copy(HandleGpu& handle,
 }
 
 
-inline void copy(HandleGpu& handle,
+inline void copy(handle_gpu& handle,
                  const thrust::device_vector<GPU_TYPE(complex128)>& x,
                  thrust::device_vector<GPU_TYPE(complex128)>& y) {
   CUBLAS_CALL(cublasZcopy(handle.cublas,
@@ -110,97 +110,97 @@ inline void copy(HandleGpu& handle,
 }
 
 
-template<typename T, template <typename, int> class MatrixType, int NumState>
-inline void RedfieldHGpuVars<T, MatrixType, NumState>::CalcDiffGpu(
-    RedfieldHGpu<T, MatrixType, NumState>& obj,
+template<typename T, template <typename, int> class matrix_type, int num_state>
+inline void redfield_h_gpu_vars<T, matrix_type, num_state>::calc_diff_gpu(
+    redfield_h_gpu<T, matrix_type, num_state>& obj,
     thrust::device_vector<GPU_TYPE(T)>& drho_dt_raw,
     const thrust::device_vector<GPU_TYPE(T)>& rho_raw,
     const T alpha,
     const T beta) {
-  DenseMatrixGpuWrapper<T>      drho_dt(obj.n_state, obj.n_state, &drho_dt_raw[0]);
-  ConstDenseMatrixGpuWrapper<T> rho(obj.n_state, obj.n_state, &rho_raw[0]);
-  DenseMatrixGpuWrapper<T>      tmp(obj.n_state, obj.n_state, &this->tmp_vector[0]);
-  gemmGpu(this->handle, -alpha*IUnit<T>(), this->H_impl, rho, static_cast<T>(beta), drho_dt);
-  gemmGpu(this->handle, +alpha*IUnit<T>(), rho, this->H_impl, static_cast<T>(1), drho_dt);
+  dense_matrix_gpu_wrapper<T>       drho_dt(obj.n_state, obj.n_state, &drho_dt_raw[0]);
+  const_dense_matrix_gpu_wrapper<T> rho(obj.n_state, obj.n_state, &rho_raw[0]);
+  dense_matrix_gpu_wrapper<T>       tmp(obj.n_state, obj.n_state, &this->tmp_vector[0]);
+  gemm_gpu(this->handle, -alpha*i_unit<T>(), this->H_impl, rho, static_cast<T>(beta), drho_dt);
+  gemm_gpu(this->handle, +alpha*i_unit<T>(), rho, this->H_impl, static_cast<T>(1), drho_dt);
   for (int s = 0; s < obj.n_noise; ++s) {
-    gemmGpu(this->handle, +IUnit<T>(), this->Lambda_impl[s], rho,  static_cast<T>(0), tmp);
-    gemmGpu(this->handle, -IUnit<T>(), rho, this->Lambda_dagger_impl[s],  static_cast<T>(1), tmp);
-    gemmGpu(this->handle, +alpha*IUnit<T>(), this->V_impl[s], tmp, static_cast<T>(1), drho_dt);
-    gemmGpu(this->handle, -alpha*IUnit<T>(), tmp, this->V_impl[s], static_cast<T>(1), drho_dt);
+    gemm_gpu(this->handle, +i_unit<T>(), this->Lambda_impl[s], rho,  static_cast<T>(0), tmp);
+    gemm_gpu(this->handle, -i_unit<T>(), rho, this->Lambda_dagger_impl[s],  static_cast<T>(1), tmp);
+    gemm_gpu(this->handle, +alpha*i_unit<T>(), this->V_impl[s], tmp, static_cast<T>(1), drho_dt);
+    gemm_gpu(this->handle, -alpha*i_unit<T>(), tmp, this->V_impl[s], static_cast<T>(1), drho_dt);
   }
 }
 
-template<typename T, template <typename, int> class MatrixType, int NumState>
-void RedfieldHGpu<T, MatrixType, NumState>::CalcDiff(
-    Ref<DenseVector<T,Eigen::Dynamic>> drho_dt,
-    const Ref<const DenseVector<T,Eigen::Dynamic>>& rho,
+template<typename T, template <typename, int> class matrix_type, int num_state>
+void redfield_h_gpu<T, matrix_type, num_state>::calc_diff(
+    ref<DenseVector<T,Eigen::Dynamic>> drho_dt,
+    const ref<const DenseVector<T,Eigen::Dynamic>>& rho,
     REAL_TYPE(T) alpha,
     REAL_TYPE(T) beta) {
-  CopyVectorGpu(rho.data(), this->gpu->rho);
-  gpu->CalcDiffGpu(*this,
+  copy_vector_gpu(rho.data(), this->gpu->rho);
+  gpu->calc_diff_gpu(*this,
                    this->gpu->sub_vector,
                    this->gpu->rho,
                    alpha,
                    beta);
-  CopyVectorGpu(this->gpu->sub_vector, drho_dt.data());
+  copy_vector_gpu(this->gpu->sub_vector, drho_dt.data());
   
 }
 
-template<typename T, template <typename, int> class MatrixType, int NumState>
-void RedfieldHGpu<T, MatrixType, NumState>::Evolve1(
-    Ref<DenseVector<T,Eigen::Dynamic>> rho,
+template<typename T, template <typename, int> class matrix_type, int num_state>
+void redfield_h_gpu<T, matrix_type, num_state>::evolve_1(
+    ref<DenseVector<T,Eigen::Dynamic>> rho,
     REAL_TYPE(T) dt) {
-  gpu->CalcDiffGpu(*this,
+  gpu->calc_diff_gpu(*this,
                    this->gpu->sub_vector,
                    this->gpu->rho,
                    dt,
                    0);
   axpy(gpu->handle,
-       Frac<T>(1,3),
+       frac<T>(1,3),
        this->gpu->sub_vector,
        this->gpu->rho);
 
-  gpu->CalcDiffGpu(*this,
+  gpu->calc_diff_gpu(*this,
                         this->gpu->sub_vector,
                         this->gpu->rho,
                         dt,
                         -1);
   axpy(gpu->handle,
-       Frac<T>(3,4),
+       frac<T>(3,4),
        this->gpu->sub_vector,
        this->gpu->rho);
   
-  gpu->CalcDiffGpu(*this,
+  gpu->calc_diff_gpu(*this,
                         this->gpu->sub_vector,
                         this->gpu->rho,
                         dt,
                         -1);
   axpy(gpu->handle,
-       Frac<T>(2,3),
+       frac<T>(2,3),
        this->gpu->sub_vector,
        this->gpu->rho);
   
-  gpu->CalcDiffGpu(*this,
+  gpu->calc_diff_gpu(*this,
                         this->gpu->sub_vector,
                         this->gpu->rho,
                         dt,
                         -1);
   axpy(gpu->handle,
-       Frac<T>(1,4),
+       frac<T>(1,4),
        this->gpu->sub_vector,
        this->gpu->rho);
 }
 
-template<typename T, template <typename, int> class MatrixType, int NumState>
-void RedfieldHGpu<T, MatrixType, NumState>::Evolve(
-    Ref<DenseVector<T,Eigen::Dynamic>> rho,
+template<typename T, template <typename, int> class matrix_type, int num_state>
+void redfield_h_gpu<T, matrix_type, num_state>::evolve(
+    ref<DenseVector<T,Eigen::Dynamic>> rho,
     REAL_TYPE(T) dt,
     const int steps){
-  CopyVectorGpu(rho.data(), this->gpu->rho);
+  copy_vector_gpu(rho.data(), this->gpu->rho);
   for (int step = 0; step < steps; ++step) {
-    Evolve1(rho, dt);
+    evolve_1(rho, dt);
   }
-  CopyVectorGpu(this->gpu->rho, rho.data());
+  copy_vector_gpu(this->gpu->rho, rho.data());
 };
 
 }
@@ -208,26 +208,26 @@ void RedfieldHGpu<T, MatrixType, NumState>::Evolve(
 // Explicit instantiations
 namespace libheom {
 
-#define DECLARE_EXPLICIT_INSTANTIATIONS(T, MatrixType, NumState)        \
-  template class RedfieldHGpuVars<T, MatrixType, NumState>;             \
-  template void RedfieldHGpu<T, MatrixType, NumState>::InitAuxVars(     \
+#define DECLARE_EXPLICIT_INSTANTIATIONS(T, matrix_type, num_state)        \
+  template class redfield_h_gpu_vars<T, matrix_type, num_state>;             \
+  template void redfield_h_gpu<T, matrix_type, num_state>::init_aux_vars(     \
       std::function<void(int)> callback);                               \
-  template void RedfieldHGpu<T, MatrixType, NumState>::CalcDiff(        \
-      Ref<DenseVector<T,Eigen::Dynamic>> drho_dt,                       \
-      const Ref<const DenseVector<T,Eigen::Dynamic>>& rho,              \
+  template void redfield_h_gpu<T, matrix_type, num_state>::calc_diff(        \
+      ref<DenseVector<T,Eigen::Dynamic>> drho_dt,                       \
+      const ref<const DenseVector<T,Eigen::Dynamic>>& rho,              \
       REAL_TYPE(T) alpha,                                               \
       REAL_TYPE(T) beta);                                               \
-  template void RedfieldHGpu<T, MatrixType, NumState>::Evolve(          \
-      Ref<DenseVector<T,Eigen::Dynamic>> rho,                           \
+  template void redfield_h_gpu<T, matrix_type, num_state>::evolve(          \
+      ref<DenseVector<T,Eigen::Dynamic>> rho,                           \
       REAL_TYPE(T) dt,                                                  \
       const int steps);                                                 \
-  template void RedfieldHGpu<T, MatrixType, NumState>::Evolve1(         \
-      Ref<DenseVector<T,Eigen::Dynamic>> rho,                           \
+  template void redfield_h_gpu<T, matrix_type, num_state>::evolve_1(         \
+      ref<DenseVector<T,Eigen::Dynamic>> rho,                           \
       REAL_TYPE(T) dt);
 
-DECLARE_EXPLICIT_INSTANTIATIONS(complex64,  DenseMatrix, Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(complex64,  CsrMatrix,   Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(complex128, DenseMatrix, Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(complex128, CsrMatrix,   Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(complex64,  dense_matrix, Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(complex64,  csr_matrix,   Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(complex128, dense_matrix, Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(complex128, csr_matrix,   Eigen::Dynamic);
 }
 

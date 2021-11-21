@@ -13,9 +13,9 @@
 
 namespace libheom {
 
-int GetGpuDeviceCount();
-const std::string GetGpuDeviceName(int device_number);
-void SetGpuDevice(int selected);
+int get_gpu_device_count();
+const std::string get_gpu_device_name(int device_number);
+void set_gpu_device(int selected);
 
 }
 

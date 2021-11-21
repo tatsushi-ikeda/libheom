@@ -11,7 +11,7 @@
 namespace libheom {
 
 template <>
-void CsrMatrix<complex64>::Aux::Init(CsrMatrix<complex64>& mat) {
+void csr_matrix<complex64>::aux::init(csr_matrix<complex64>& mat) {
 #if __INTEL_MKL__ >= 12
   mkl_sparse_c_create_csr(&handle,
                           SPARSE_INDEX_BASE_ZERO,
@@ -26,7 +26,7 @@ void CsrMatrix<complex64>::Aux::Init(CsrMatrix<complex64>& mat) {
 
 
 template <>
-void CsrMatrix<complex128>::Aux::Init(CsrMatrix<complex128>& mat) {
+void csr_matrix<complex128>::aux::init(csr_matrix<complex128>& mat) {
 #if __INTEL_MKL__ >= 12
   mkl_sparse_z_create_csr(&handle,
                           SPARSE_INDEX_BASE_ZERO,
@@ -40,13 +40,13 @@ void CsrMatrix<complex128>::Aux::Init(CsrMatrix<complex128>& mat) {
 }
 
 template<typename T>
-CsrMatrix<T>::~CsrMatrix() {
-  FinAux();
+csr_matrix<T>::~csr_matrix() {
+  fin_aux();
 };
 
 }
 
 namespace libheom {
-template class CsrMatrix<complex64>;
-template class CsrMatrix<complex128>;
+template class csr_matrix<complex64>;
+template class csr_matrix<complex128>;
 }

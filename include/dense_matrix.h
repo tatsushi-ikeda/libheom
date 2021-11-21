@@ -24,15 +24,15 @@
 namespace libheom {
 
 template<typename T>
-using Ref = Eigen::Ref<T>;
+using ref = Eigen::Ref<T>;
 
 template<typename T,
          int N>
-using DenseVector = Eigen::Matrix<T,N,1,Eigen::ColMajor>;
+using dense_vector = Eigen::Matrix<T,N,1,Eigen::ColMajor>;
 
 template<typename T,
          int N>
-using DenseMatrix = Eigen::Matrix<T,N,N,Eigen::ColMajor>;
+using dense_matrix = Eigen::Matrix<T,N,N,Eigen::ColMajor>;
 
 
 }

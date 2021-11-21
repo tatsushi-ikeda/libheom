@@ -14,43 +14,43 @@
 namespace libheom {
 
 template<typename T>
-class Redfield
-    : public Qme<T> {
+class redfield
+    : public qme<T> {
  public:
-  LilMatrix<T> Z;
+  lil_matrix<T> Z;
   std::unique_ptr<bool[]> use_corr_func;
   std::unique_ptr<std::function<T(REAL_TYPE(T))>[]> corr_func;
-  std::unique_ptr<LilMatrix<T>[]> Lambda;
+  std::unique_ptr<lil_matrix<T>[]> Lambda;
   std::vector<T> sub_vector;  
   
-  void InitAuxVars(std::function<void(int)> callback);
+  void init_aux_vars(std::function<void(int)> callback);
 };
 
 
 template<typename T,
-         template <typename, int> class MatrixType,
-         int NumState>
-class RedfieldH
-    : public Redfield<T> {
+         template <typename, int> class matrix_type,
+         int num_state>
+class redfield_h
+    : public redfield<T> {
  public:
-  using MatrixHilb = MatrixType<T,NumState>;
+  using matrix_hilb = matrix_type<T,num_state>;
   
-  MatrixHilb H_impl;
-  std::unique_ptr<MatrixHilb[]> V_impl;
-  std::unique_ptr<MatrixHilb[]> Lambda_impl;
-  std::unique_ptr<MatrixHilb[]> Lambda_dagger_impl;
-  MatrixHilb X_impl;
+  matrix_hilb H_impl;
+  std::unique_ptr<matrix_hilb[]> V_impl;
+  std::unique_ptr<matrix_hilb[]> Lambda_impl;
+  std::unique_ptr<matrix_hilb[]> Lambda_dagger_impl;
+  matrix_hilb X_impl;
 
   // std::vector<T> tmp_vector;
 
-  void InitAuxVars(std::function<void(int)> callback);
+  void init_aux_vars(std::function<void(int)> callback);
 
-  void CalcDiff(Ref<DenseVector<T,Eigen::Dynamic>> drho_dt,
-                const Ref<const DenseVector<T,Eigen::Dynamic>>& rho,
-                REAL_TYPE(T) alpha,
-                REAL_TYPE(T) beta) override;
+  void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
+                 const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
+                 REAL_TYPE(T) alpha,
+                 REAL_TYPE(T) beta) override;
   
-  // void ConstructCommutator(LilMatrix<T>& x,
+  // void ConstructCommutator(lil_matrix<T>& x,
   //                          T coef_l,
   //                          T coef_r,
   //                          std::function<void(int)> callback
@@ -65,33 +65,33 @@ class RedfieldH
 
 
 template<typename T,
-         template <typename,int> class MatrixType,
-         int NumState>
-class RedfieldL
-    : public Redfield<T> {
+         template <typename,int> class matrix_type,
+         int num_state>
+class redfield_l
+    : public redfield<T> {
  public:
-  constexpr static int NumStateLiou = n_state_prod(NumState,NumState);
-  using MatrixLiou = MatrixType<T,NumStateLiou>;
+  constexpr static int num_state_liou = n_state_prod(num_state,num_state);
+  using matrix_liou = matrix_type<T,num_state_liou>;
   int n_state_liou;
 
-  LilMatrix<T> L;
-  std::unique_ptr<LilMatrix<T>[]> Phi;
-  std::unique_ptr<LilMatrix<T>[]> Theta;
-  LilMatrix<T> R_redfield;
+  lil_matrix<T> L;
+  std::unique_ptr<lil_matrix<T>[]> Phi;
+  std::unique_ptr<lil_matrix<T>[]> Theta;
+  lil_matrix<T> R_redfield;
   
-  MatrixLiou R_redfield_impl;
-  MatrixLiou X_impl;
+  matrix_liou R_redfield_impl;
+  matrix_liou X_impl;
 
   // std::vector<T> tmp_vector;
 
-  void InitAuxVars(std::function<void(int)> callback);
+  void init_aux_vars(std::function<void(int)> callback);
 
-  void CalcDiff(Ref<DenseVector<T,Eigen::Dynamic>> drho_dt,
-                const Ref<const DenseVector<T,Eigen::Dynamic>>& rho,
+  void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
+                const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
                 REAL_TYPE(T) alpha,
                 REAL_TYPE(T) beta) override;
   
-  // void ConstructCommutator(LilMatrix<T>& x,
+  // void ConstructCommutator(lil_matrix<T>& x,
   //                          T coef_l,
   //                          T coef_r,
   //                          std::function<void(int)> callback
@@ -103,7 +103,6 @@ class RedfieldL
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
-
 
 }
 

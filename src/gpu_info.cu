@@ -25,23 +25,23 @@ void init_cuda_driver() {
   }
 }
 
-int GetGpuDeviceCount() {
+int get_gpu_device_count() {
   int result;
   init_cuda_driver();
   cudaGetDeviceCount(&result);
   return result;
 }
 
-const std::string GetGpuDeviceName(int device_number) {
+const std::string get_gpu_device_name(int device_number) {
   cudaDeviceProp devprop;
   init_cuda_driver();
   CUDA_CALL(cudaGetDeviceProperties(&devprop, device_number));
   return std::string(devprop.name);
 }
 
-void SetGpuDevice(int selected)
+void set_gpu_device(int selected)
 {
-  int num_dev = GetGpuDeviceCount();
+  int num_dev = get_gpu_device_count();
   if (num_dev == 0) {
     std::cerr << "[Error] NVIDIA GPU unit is not found." << std::endl;
     std::exit(1);

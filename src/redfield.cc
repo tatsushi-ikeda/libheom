@@ -23,7 +23,7 @@ namespace libheom {
 // The exponent is +1j*omega*t.
 template<typename T>
 inline T correlation(
-    Redfield<T>& rf,
+    redfield<T>& rf,
     int u,
     REAL_TYPE(T) omega) {
 
@@ -34,31 +34,31 @@ inline T correlation(
     Eigen::SparseMatrix<T, Eigen::RowMajor> I(rf.len_gamma[u],rf.len_gamma[u]);
     I.setIdentity();
     Eigen::SparseLU<Eigen::SparseMatrix<T, Eigen::RowMajor>> solver;
-    solver.compute(rf.gamma[u] - IUnit<T>()*omega*I);
+    solver.compute(rf.gamma[u] - i_unit<T>()*omega*I);
     if (solver.info() != Eigen::Success) {
       std::cerr << "[Error] LU decomposition failed. " << std::endl;
       std::exit(1);
-      return Zero<T>();
+      return zero<T>();
     }
-    return static_cast<T>(rf.sigma[u].transpose()*(rf.s[u] + IUnit<T>()*rf.a[u])*solver.solve(rf.phi_0[u])) + rf.S_delta[u];
+    return static_cast<T>(rf.sigma[u].transpose()*(rf.s[u] + i_unit<T>()*rf.a[u])*solver.solve(rf.phi_0[u])) + rf.S_delta[u];
     
   }
 }
 
 
 template<typename T>
-void Redfield<T>::InitAuxVars(std::function<void(int)> callback) {
-  Qme<T>::InitAuxVars(callback);
+void redfield<T>::init_aux_vars(std::function<void(int)> callback) {
+  qme<T>::init_aux_vars(callback);
   
-  this->Lambda.reset(new LilMatrix<T>[this->n_noise]);
+  this->Lambda.reset(new lil_matrix<T>[this->n_noise]);
   for (int s = 0; s < this->n_noise; ++s) {
-    this->Lambda[s].SetShape(this->n_state, this->n_state);
+    this->Lambda[s].set_shape(this->n_state, this->n_state);
     for (auto& V_ijv : this->V[s].data) {
       int i = V_ijv.first;
       for (auto& V_jv: V_ijv.second) {
         int j = V_jv.first;
         T val = V_jv.second;
-        if (val != Zero<T>()) {
+        if (val != zero<T>()) {
           REAL_TYPE(T) omega_ji;
           try {
             omega_ji = std::real(this->H.data[j][j] - this->H.data[i][i]);
@@ -75,163 +75,163 @@ void Redfield<T>::InitAuxVars(std::function<void(int)> callback) {
 
 
 //========================================================================
-// Redfield Module by using Hilbert space expression
+// redfield Module by using Hilbert space expression
 //========================================================================
 
 
 template<typename T,
-         template <typename, int> class MatrixType,
-         int NumState>
-void RedfieldH<T, MatrixType, NumState>::InitAuxVars(
+         template <typename, int> class matrix_type,
+         int num_state>
+void redfield_h<T, matrix_type, num_state>::init_aux_vars(
     std::function<void(int)> callback) {
-  Redfield<T>::InitAuxVars(callback);
+  redfield<T>::init_aux_vars(callback);
 
-  this->H.template Dump<NumState>(this->H_impl);
+  this->H.template dump<num_state>(this->H_impl);
 
-  this->V_impl.reset(new MatrixHilb[this->n_noise]);
-  this->Lambda_impl.reset(new MatrixHilb[this->n_noise]);
-  this->Lambda_dagger_impl.reset(new MatrixHilb[this->n_noise]);
+  this->V_impl.reset(new matrix_hilb[this->n_noise]);
+  this->Lambda_impl.reset(new matrix_hilb[this->n_noise]);
+  this->Lambda_dagger_impl.reset(new matrix_hilb[this->n_noise]);
   
   for (int s = 0; s < this->n_noise; ++s) {
-    this->V[s].template Dump<NumState>(this->V_impl[s]);
-    this->Lambda[s].template Dump<NumState>(this->Lambda_impl[s]);
-    auto tmp = this->Lambda[s].HermiteConjugate();
-    tmp.template Dump<NumState>(this->Lambda_dagger_impl[s]);
+    this->V[s].template dump<num_state>(this->V_impl[s]);
+    this->Lambda[s].template dump<num_state>(this->Lambda_impl[s]);
+    auto tmp = this->Lambda[s].hermite_conjugate();
+    tmp.template dump<num_state>(this->Lambda_dagger_impl[s]);
   }
 }
 
 
-// template<typename T, template <typename> class MatrixType>
-// void RedfieldH<T, MatrixType>::ConstructCommutator(
-//     LilMatrix<T>& x,
+// template<typename T, template <typename> class matrix_type>
+// void redfield_h<T, matrix_type>::ConstructCommutator(
+//     lil_matrix<T>& x,
 //     T coef_l,
 //     T coef_r,
 //     std::function<void(int)> callback,
 //     int interval_callback) {
-//   this->X_impl = static_cast<MatrixType<T>>(this->x);
+//   this->X_impl = static_cast<matrix_type<T>>(this->x);
 //   this->coef_l_X = coef_l;
 //   this->coef_r_X = coef_r;
 // }
 
 
 template<typename T,
-         template <typename, int> class MatrixType,
-         int NumState>
-void RedfieldH<T, MatrixType, NumState>::CalcDiff(
-    Ref<DenseVector<T,Eigen::Dynamic>> drho_dt_raw,
-    const Ref<const DenseVector<T,Eigen::Dynamic>>& rho_raw,
+         template <typename, int> class matrix_type,
+         int num_state>
+void redfield_h<T, matrix_type, num_state>::calc_diff(
+    ref<dense_vector<T,Eigen::Dynamic>> drho_dt_raw,
+    const ref<const dense_vector<T,Eigen::Dynamic>>& rho_raw,
     REAL_TYPE(T) alpha,
     REAL_TYPE(T) beta) {
   auto n_state = this->n_state;
   
-  auto rho     = Eigen::Map<const DenseMatrix<T,NumState>>(rho_raw.data(),n_state,n_state);
-  auto drho_dt = Eigen::Map<DenseMatrix<T,NumState>>(drho_dt_raw.data(),n_state,n_state);
-  DenseMatrix<T,NumState> tmp(n_state,n_state);
+  auto rho     = Eigen::Map<const dense_matrix<T,num_state>>(rho_raw.data(),n_state,n_state);
+  auto drho_dt = Eigen::Map<dense_matrix<T,num_state>>(drho_dt_raw.data(),n_state,n_state);
+  dense_matrix<T,num_state> tmp(n_state,n_state);
 
   drho_dt *= beta;
-  drho_dt.noalias() += -alpha*IUnit<T>()*this->H_impl*rho;
-  drho_dt.noalias() += +alpha*IUnit<T>()*rho*this->H_impl;
+  drho_dt.noalias() += -alpha*i_unit<T>()*this->H_impl*rho;
+  drho_dt.noalias() += +alpha*i_unit<T>()*rho*this->H_impl;
   
   for (int s = 0; s < this->n_noise; ++s) {
-    tmp.noalias()  = +IUnit<T>()*this->Lambda_impl[s]*rho;
-    tmp.noalias() += -IUnit<T>()*rho*this->Lambda_dagger_impl[s];
-    drho_dt.noalias() += alpha*IUnit<T>()*this->V_impl[s]*tmp;
-    drho_dt.noalias() -= alpha*IUnit<T>()*tmp*this->V_impl[s];
+    tmp.noalias()  = +i_unit<T>()*this->Lambda_impl[s]*rho;
+    tmp.noalias() += -i_unit<T>()*rho*this->Lambda_dagger_impl[s];
+    drho_dt.noalias() += alpha*i_unit<T>()*this->V_impl[s]*tmp;
+    drho_dt.noalias() -= alpha*i_unit<T>()*tmp*this->V_impl[s];
   }
 }
 
 
-// template<typename T, template <typename, int> class MatrixType, int NumState>
-// void RedfieldH<T, MatrixType, NumState>::ApplyCommutator(T* rho_raw) {
+// template<typename T, template <typename, int> class matrix_type, int num_state>
+// void redfield_h<T, matrix_type, num_state>::ApplyCommutator(T* rho_raw) {
 //   DenseMatrixWrapper<T> rho(this->n_state, this->n_state, rho_raw);
 //   DenseMatrixWrapper<T> sub(this->n_state, this->n_state, this->sub_vector.data());
   
-//   gemm(this->coef_l_X, this->X_impl, rho, Zero<T>(), sub);
-//   gemm(this->coef_r_X, rho, this->X_impl, One <T>(), sub);
+//   gemm(this->coef_l_X, this->X_impl, rho, zero<T>(), sub);
+//   gemm(this->coef_r_X, rho, this->X_impl, one <T>(), sub);
 // }
 
 
 //========================================================================
-// Redfield Module by using Liouville space expression
+// redfield Module by using Liouville space expression
 //========================================================================
 
 
 template<typename T,
-         template <typename, int> class MatrixType,
-         int NumState>
-void RedfieldL<T, MatrixType, NumState>::InitAuxVars(
+         template <typename, int> class matrix_type,
+         int num_state>
+void redfield_l<T, matrix_type, num_state>::init_aux_vars(
     std::function<void(int)> callback) {
-  Redfield<T>::InitAuxVars(callback);
+  redfield<T>::init_aux_vars(callback);
   
   this->n_state_liou = this->n_state*this->n_state;
   
-  this->L.SetShape(this->n_state_liou, this->n_state_liou);
-  kron_identity_right(+IUnit<T>(), this->H, Zero<T>(), this->L);
-  kron_identity_left (-IUnit<T>(), this->H, One<T>(), this->L);
+  this->L.set_shape(this->n_state_liou, this->n_state_liou);
+  kron_identity_right(+i_unit<T>(), this->H, zero<T>(), this->L);
+  kron_identity_left (-i_unit<T>(), this->H, one<T>(), this->L);
   
-  this->Phi.  reset(new LilMatrix<T>[this->n_noise]);
-  this->Theta.reset(new LilMatrix<T>[this->n_noise]);
+  this->Phi.  reset(new lil_matrix<T>[this->n_noise]);
+  this->Theta.reset(new lil_matrix<T>[this->n_noise]);
   
   for (int s = 0; s < this->n_noise; ++s){
-    this->Phi[s].SetShape(this->n_state_liou, this->n_state_liou);
-    kron_identity_right(+IUnit<T>(), this->V[s], Zero<T>(), this->Phi[s]);
-    kron_identity_left (-IUnit<T>(), this->V[s], One<T>(),  this->Phi[s]);
+    this->Phi[s].set_shape(this->n_state_liou, this->n_state_liou);
+    kron_identity_right(+i_unit<T>(), this->V[s], zero<T>(), this->Phi[s]);
+    kron_identity_left (-i_unit<T>(), this->V[s], one<T>(),  this->Phi[s]);
 
-    this->Theta[s].SetShape(this->n_state_liou, this->n_state_liou);
-    kron_identity_right(+IUnit<T>(), this->Lambda[s],
-                        Zero<T>(), this->Theta[s]);
-    kron_identity_left (-IUnit<T>(), this->Lambda[s].HermiteConjugate(),
-                        One<T>(),  this->Theta[s]);
+    this->Theta[s].set_shape(this->n_state_liou, this->n_state_liou);
+    kron_identity_right(+i_unit<T>(), this->Lambda[s],
+                        zero<T>(), this->Theta[s]);
+    kron_identity_left (-i_unit<T>(), this->Lambda[s].hermite_conjugate(),
+                        one<T>(),  this->Theta[s]);
   }
 
-  this->R_redfield.SetShape(this->n_state_liou, this->n_state_liou);
-  axpy(One<T>(), this->L, this->R_redfield);
+  this->R_redfield.set_shape(this->n_state_liou, this->n_state_liou);
+  axpy(one<T>(), this->L, this->R_redfield);
   for (int s = 0; s < this->n_noise; ++s) {
-    gemm(-One<T>(), this->Phi[s], this->Theta[s], One<T>(), this->R_redfield);
+    gemm(-one<T>(), this->Phi[s], this->Theta[s], one<T>(), this->R_redfield);
   }
-  this->R_redfield.Optimize();
+  this->R_redfield.optimize();
 
-  R_redfield.template Dump<NumStateLiou>(this->R_redfield_impl);
+  R_redfield.template dump<num_state_liou>(this->R_redfield_impl);
 }
 
 
-// template<typename T, template <typename> class MatrixType>
-// void RedfieldL<T, MatrixType>::ConstructCommutator(
-//     LilMatrix<T>& x,
+// template<typename T, template <typename> class matrix_type>
+// void redfield_l<T, matrix_type>::ConstructCommutator(
+//     lil_matrix<T>& x,
 //     T coef_l,
 //     T coef_r,
 //     std::function<void(int)> callback,
 //     int interval_callback) {
-//   this->X_impl = static_cast<MatrixType<T>>(this->x);
+//   this->X_impl = static_cast<matrix_type<T>>(this->x);
 //   this->coef_l_X = coef_l;
 //   this->coef_r_X = coef_r;
 // }
 
 
 template<typename T,
-         template <typename, int> class MatrixType,
-         int NumState>
-void RedfieldL<T, MatrixType, NumState>::CalcDiff(
-    Ref<DenseVector<T,Eigen::Dynamic>> drho_dt_raw,
-    const Ref<const DenseVector<T,Eigen::Dynamic>>& rho_raw,
+         template <typename, int> class matrix_type,
+         int num_state>
+void redfield_l<T, matrix_type, num_state>::calc_diff(
+    ref<dense_vector<T,Eigen::Dynamic>> drho_dt_raw,
+    const ref<const dense_vector<T,Eigen::Dynamic>>& rho_raw,
     REAL_TYPE(T) alpha,
     REAL_TYPE(T) beta) {
   auto n_state_liou   = this->n_state_liou;
-  auto rho     = Block<NumStateLiou,1>::value(rho_raw, 0,0,n_state_liou,1);
-  auto drho_dt = Block<NumStateLiou,1>::value(drho_dt_raw,0,0,n_state_liou,1);
+  auto rho     = block<num_state_liou,1>::value(rho_raw, 0,0,n_state_liou,1);
+  auto drho_dt = block<num_state_liou,1>::value(drho_dt_raw,0,0,n_state_liou,1);
 
   drho_dt *= beta;
   drho_dt.noalias() += -alpha*this->R_redfield_impl*rho;
 }
 
 
-// template<typename T, template <typename, int> class MatrixType, int NumState>
-// void RedfieldL<T, MatrixType, NumState>::ApplyCommutator(T* rho_raw) {
+// template<typename T, template <typename, int> class matrix_type, int num_state>
+// void redfield_l<T, matrix_type, num_state>::ApplyCommutator(T* rho_raw) {
 //   DenseMatrixWrapper<T> rho(this->n_state, this->n_state, rho_raw);
 //   DenseMatrixWrapper<T> sub(this->n_state, this->n_state, this->sub_vector.data());
   
-//   gemm(this->coef_l_X, this->X_impl, rho, Zero<T>(), sub);
-//   gemm(this->coef_r_X, rho, this->X_impl, One <T>(), sub);
+//   gemm(this->coef_l_X, this->X_impl, rho, zero<T>(), sub);
+//   gemm(this->coef_r_X, rho, this->X_impl, one <T>(), sub);
 // }
 
 
@@ -240,39 +240,39 @@ void RedfieldL<T, MatrixType, NumState>::CalcDiff(
 // Explicit instantiations
 namespace libheom {
 
-#define DECLARE_EXPLICIT_INSTANTIATIONS(QmeType, T, MatrixType, NumState) \
-  template void QmeType<T, MatrixType, NumState>::InitAuxVars(                   \
+#define DECLARE_EXPLICIT_INSTANTIATIONS(qme_type, T, matrix_type, num_state) \
+  template void qme_type<T, matrix_type, num_state>::init_aux_vars(                   \
       std::function<void(int)> callback);                               \
-  template void QmeType<T, MatrixType, NumState>::CalcDiff(                       \
-      Ref<DenseVector<T, Eigen::Dynamic>> drho_dt, \
-      const Ref<const DenseVector<T, Eigen::Dynamic>>& rho,     \
+  template void qme_type<T, matrix_type, num_state>::calc_diff(                       \
+      ref<dense_vector<T, Eigen::Dynamic>> drho_dt, \
+      const ref<const dense_vector<T, Eigen::Dynamic>>& rho,     \
       REAL_TYPE(T) alpha, REAL_TYPE(T) beta);
-// template void QmeType<T, MatrixType>::ConstructCommutator(            \
-//     LilMatrix<T>& x,                                                  \
+// template void qme_type<T, matrix_type>::ConstructCommutator(            \
+//     lil_matrix<T>& x,                                                  \
 //     T coef_l,                                                         \
 //     T coef_r,                                                         \
 //     std::function<void(int)> callback,                                \
 //     int interval_callback);                                           \
-// template void QmeType<T, MatrixType>::ApplyCommutator(Ref<DenseVector<T>> rho);
+// template void qme_type<T, matrix_type>::ApplyCommutator(ref<dense_vector<T>> rho);
 
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldH, complex64,  DenseMatrix, Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldH, complex64,  CsrMatrix,   Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldH, complex128, DenseMatrix, Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldH, complex128, CsrMatrix,   Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_h, complex64,  dense_matrix, Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_h, complex64,  csr_matrix,   Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_h, complex128, dense_matrix, Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_h, complex128, csr_matrix,   Eigen::Dynamic);
 
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldL, complex64,  DenseMatrix, Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldL, complex64,  CsrMatrix,   Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldL, complex128, DenseMatrix, Eigen::Dynamic);
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldL, complex128, CsrMatrix,   Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex64,  dense_matrix, Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex64,  csr_matrix,   Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex128, dense_matrix, Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex128, csr_matrix,   Eigen::Dynamic);
 
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldH, complex64,  DenseMatrix, 2);
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldH, complex64,  CsrMatrix,   2);
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldH, complex128, DenseMatrix, 2);
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldH, complex128, CsrMatrix,   2);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_h, complex64,  dense_matrix, 2);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_h, complex64,  csr_matrix,   2);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_h, complex128, dense_matrix, 2);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_h, complex128, csr_matrix,   2);
 
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldL, complex64,  DenseMatrix, 2);
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldL, complex64,  CsrMatrix,   2);
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldL, complex128, DenseMatrix, 2);
-DECLARE_EXPLICIT_INSTANTIATIONS(RedfieldL, complex128, CsrMatrix,   2);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex64,  dense_matrix, 2);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex64,  csr_matrix,   2);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex128, dense_matrix, 2);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex128, csr_matrix,   2);
 
 }

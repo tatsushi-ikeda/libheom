@@ -27,32 +27,32 @@ constexpr inline int n_state_prod(int a, int b) {
 
 template <int P, int Q,
           bool static_flag = ((P != Eigen::Dynamic) && (Q != Eigen::Dynamic))>
-class Block {
+class block {
  public:
-  template<typename MatrixType>
-  static inline Eigen::Block<MatrixType,P,Q> value(MatrixType& matrix, int i, int j, int p, int q) {
+  template<typename matrix_type>
+  static inline Eigen::Block<matrix_type,P,Q> value(matrix_type& matrix, int i, int j, int p, int q) {
     return matrix.template block<P,Q>(i,j);
   }
 };
 
 template <int P, int Q>
-class Block<P, Q, false> {
+class block<P, Q, false> {
  public:
-  template<typename MatrixType>
-  static inline Eigen::Block<MatrixType> value(MatrixType& matrix, int i, int j, int p, int q) {
+  template<typename matrix_type>
+  static inline Eigen::Block<matrix_type> value(matrix_type& matrix, int i, int j, int p, int q) {
     return matrix.block(i,j,p,q);
   }
 };
 
 
 template<typename T>
-class Qme {
+class qme {
 public:
   int n_state;
-  LilMatrix<T> H;
+  lil_matrix<T> H;
   
   int n_noise;
-  std::unique_ptr<LilMatrix<T>[]> V;
+  std::unique_ptr<lil_matrix<T>[]> V;
   
   std::unique_ptr<std::unique_ptr<int[]>[]> lk;
 
@@ -66,50 +66,50 @@ public:
 
   T coef_l_X;
   T coef_r_X;
-  LilMatrix<T> x;
+  lil_matrix<T> x;
 
   int size_rho;
 
-  DenseVector<T,Eigen::Dynamic> sub_vector;
+  dense_vector<T,Eigen::Dynamic> sub_vector;
   
-  void AllocateNoise(int n_noise);
-  void Initialize();
-  void Finalize();
+  void allocate_noise(int n_noise);
+  void initialize();
+  void finalize();
 
-  void TimeEvolution(Ref<DenseVector<T,Eigen::Dynamic>> rho,
-                     REAL_TYPE(T) dt__unit,
-                     REAL_TYPE(T) dt,
-                     int interval,
-                     int count,
-                     std::function<void(REAL_TYPE(T))> callback);
+  void time_evolution(ref<dense_vector<T,Eigen::Dynamic>> rho,
+                      REAL_TYPE(T) dt__unit,
+                      REAL_TYPE(T) dt,
+                      int interval,
+                      int count,
+                      std::function<void(REAL_TYPE(T))> callback);
 
-  virtual void CalcDiff(Ref<DenseVector<T,Eigen::Dynamic>> drho_dt,
-                        const Ref<const DenseVector<T,Eigen::Dynamic>>& rho,
-                        REAL_TYPE(T) alpha,
-                        REAL_TYPE(T) beta) = 0;
-
-  virtual void Evolve(Ref<DenseVector<T,Eigen::Dynamic>> rho,
+  virtual void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
+                         const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
+                         REAL_TYPE(T) alpha,
+                         REAL_TYPE(T) beta) = 0;
+  
+  virtual void evolve(ref<dense_vector<T,Eigen::Dynamic>> rho,
                       REAL_TYPE(T) dt,
                       const int steps);
 
-  virtual void Evolve1(Ref<DenseVector<T,Eigen::Dynamic>> rho,
+  virtual void evolve_1(ref<dense_vector<T,Eigen::Dynamic>> rho,
                        REAL_TYPE(T) dt);
   
-  // virtual void ConstructCommutator(LilMatrix<T>& x,
+  // virtual void ConstructCommutator(lil_matrix<T>& x,
   //                                  T coef_l,
   //                                  T coef_r,
   //                                  std::function<void(int)> callback
   //                                  = [](int) { return; },
   //                                  int interval_callback = 1024) = 0;
   
-  // virtual void ApplyCommutator(Eigen::Ref<DenseVector<T>> rho) = 0;
+  // virtual void ApplyCommutator(Eigen::ref<dense_vector<T>> rho) = 0;
 
-  void InitAuxVars(std::function<void(int)> callback) {};
+  void init_aux_vars(std::function<void(int)> callback) {};
 
-  Qme()                      = default;
-  Qme(const Qme&)            = delete;
-  Qme& operator=(const Qme&) = delete;
-  virtual ~Qme()             = default;
+  qme()                      = default;
+  qme(const qme&)            = delete;
+  qme& operator=(const qme&) = delete;
+  virtual ~qme()             = default;
 };
 
 }

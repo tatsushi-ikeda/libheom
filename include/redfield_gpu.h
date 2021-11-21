@@ -15,23 +15,23 @@
 
 namespace libheom {
 
-template<typename T, template <typename, int> class MatrixType, int NumState>
-class RedfieldHGpuVars;
+template<typename T, template <typename, int> class matrix_type, int num_state>
+class redfield_h_gpu_vars;
 
-template<typename T, template <typename, int> class MatrixType, int NumState>
-class RedfieldHGpu
-    : public RedfieldH<T, MatrixType, NumState> {
+template<typename T, template <typename, int> class matrix_type, int num_state>
+class redfield_h_gpu
+    : public redfield_h<T, matrix_type, num_state> {
 public:
-  void CalcDiff(Ref<DenseVector<T,Eigen::Dynamic>> drho_dt,
-                const Ref<const DenseVector<T,Eigen::Dynamic>>& rho,
-                REAL_TYPE(T) alpha,
-                REAL_TYPE(T) beta) override;
+  void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
+                 const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
+                 REAL_TYPE(T) alpha,
+                 REAL_TYPE(T) beta) override;
 
-  void Evolve(Ref<DenseVector<T,Eigen::Dynamic>> rho,
+  void evolve(ref<dense_vector<T,Eigen::Dynamic>> rho,
               REAL_TYPE(T) dt,
               const int steps);
 
-  void Evolve1(Ref<DenseVector<T,Eigen::Dynamic>> rho,
+  void evolve_1(ref<dense_vector<T,Eigen::Dynamic>> rho,
                REAL_TYPE(T) dt);
   
   // void construct_commutator
@@ -45,13 +45,13 @@ public:
   // void apply_commutator
   // /**/(T* rho);
   
-  void SetDeviceNumber(int device_number);
+  void set_device_number(int device_number);
   
-  void InitAuxVars(std::function<void(int)> callback);
+  void init_aux_vars(std::function<void(int)> callback);
 
   int device_number = -1;
 
-  std::shared_ptr<RedfieldHGpuVars<T, MatrixType, NumState>> gpu;
+  std::shared_ptr<redfield_h_gpu_vars<T, matrix_type, num_state>> gpu;
 };
 
 }

@@ -16,9 +16,9 @@
 
 namespace libheom {
 
-class ShapePrinter {
+class shape_printer {
 public:
-  ShapePrinter(const std::tuple<int, int>& shape) :
+  shape_printer(const std::tuple<int, int>& shape) :
     data(shape)
   {}
   const std::tuple<int, int>& data;
@@ -26,13 +26,13 @@ public:
 
 std::ostream& operator <<
 /**/(std::ostream& out,
-     const ShapePrinter& printer);
+     const shape_printer& printer);
 
 
 template <typename T>
-class VectorPrinter {
+class vector_printer {
 public:
-  VectorPrinter(const std::vector<T>& vec) :
+  vector_printer(const std::vector<T>& vec) :
     data(vec)
   {}
   const std::vector<T>& data;
@@ -41,7 +41,7 @@ public:
 template <typename T>
 std::ostream& operator <<
 /**/(std::ostream& out,
-     const VectorPrinter<T>& printer)
+     const vector_printer<T>& printer)
 {
   std::size_t size = printer.data.size();
   out << "[";

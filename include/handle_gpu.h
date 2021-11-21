@@ -13,14 +13,14 @@
 
 namespace libheom {
 
-class HandleGpu {
+class handle_gpu {
 public:
   int                device_number = 0;
   cusparseHandle_t   cusparse;
   cublasHandle_t     cublas;  
   cusparseMatDescr_t mat_descr;
 
-  void Initialize(int device_number);
+  void initialize(int device_number);
 };
 
 }

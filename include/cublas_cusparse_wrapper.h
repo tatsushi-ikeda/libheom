@@ -17,34 +17,34 @@ namespace libheom {
 
 // general matrix-vector multiplication
 template<typename T,
-         template <typename> class MatrixTypeGpu>
-struct GemvImplGpu {
-  static void func(HandleGpu& handle,
+         template <typename> class matrix_type_gpu>
+struct gemv_impl_gpu {
+  static void func(handle_gpu& handle,
                    T alpha,
-                   const MatrixTypeGpu<T>& A,
+                   const matrix_type_gpu<T>& A,
                    const thrust::device_vector<GPU_TYPE(T)>& B,
                    T beta,
                    thrust::device_vector<GPU_TYPE(T)>& C);
 };
 
 template<typename T,
-         template <typename> class MatrixTypeGpu>
-void gemvGpu(HandleGpu& handle,
+         template <typename> class matrix_type_gpu>
+void gemvGpu(handle_gpu& handle,
              T alpha,
-             const MatrixTypeGpu<T>& A,
+             const matrix_type_gpu<T>& A,
              const thrust::device_vector<GPU_TYPE(T)>& B,
              T beta,
              thrust::device_vector<GPU_TYPE(T)>& C) {
-  GemvImplGpu<T, MatrixTypeGpu>::func(
+  gemv_impl_gpu<T, matrix_type_gpu>::func(
       handle, alpha, A, B, beta, C);
 }
 
 
-template<template <typename> class MatrixTypeGpu>
-struct GemvImplGpu<complex64, MatrixTypeGpu> {
-  static void func(HandleGpu& handle,
+template<template <typename> class matrix_type_gpu>
+struct gemv_impl_gpu<complex64, matrix_type_gpu> {
+  static void func(handle_gpu& handle,
                    complex64 alpha,
-                   const MatrixTypeGpu<complex64>& A,
+                   const matrix_type_gpu<complex64>& A,
                    const thrust::device_vector<GPU_TYPE(complex64)>& B,
                    complex64 beta,
                    thrust::device_vector<GPU_TYPE(complex64)>& C) {
@@ -66,11 +66,11 @@ struct GemvImplGpu<complex64, MatrixTypeGpu> {
 };
 
 
-template<template <typename> class MatrixTypeGpu>
-struct GemvImplGpu<complex128, MatrixTypeGpu> {
-  static void func(HandleGpu& handle,
+template<template <typename> class matrix_type_gpu>
+struct gemv_impl_gpu<complex128, matrix_type_gpu> {
+  static void func(handle_gpu& handle,
                    complex128 alpha,
-                   const MatrixTypeGpu<complex128>& A,
+                   const matrix_type_gpu<complex128>& A,
                    const thrust::device_vector<GPU_TYPE(complex128)>& B,
                    complex128 beta,
                    thrust::device_vector<GPU_TYPE(complex128)>& C) {
@@ -93,10 +93,10 @@ struct GemvImplGpu<complex128, MatrixTypeGpu> {
 
 
 template<>
-struct GemvImplGpu<complex64, CsrMatrixGpu> {
-  static void func(HandleGpu& handle,
+struct gemv_impl_gpu<complex64, csr_matrix_gpu> {
+  static void func(handle_gpu& handle,
                    complex64 alpha,
-                   const CsrMatrixGpu<complex64>& A,
+                   const csr_matrix_gpu<complex64>& A,
                    const thrust::device_vector<GPU_TYPE(complex64)>& B,
                    complex64 beta,
                    thrust::device_vector<GPU_TYPE(complex64)>& C) {
@@ -120,10 +120,10 @@ struct GemvImplGpu<complex64, CsrMatrixGpu> {
 
 
 template<>
-struct GemvImplGpu<complex128, CsrMatrixGpu> {
-  static void func(HandleGpu& handle,
+struct gemv_impl_gpu<complex128, csr_matrix_gpu> {
+  static void func(handle_gpu& handle,
                    complex128 alpha,
-                   const CsrMatrixGpu<complex128>& A,
+                   const csr_matrix_gpu<complex128>& A,
                    const thrust::device_vector<GPU_TYPE(complex128)>& B,
                    complex128 beta,
                    thrust::device_vector<GPU_TYPE(complex128)>& C) {
@@ -148,43 +148,43 @@ struct GemvImplGpu<complex128, CsrMatrixGpu> {
 
 // general matrix-matrix multiplication
 template<typename T,
-         template <typename> class MatrixTypeGpuA,
-         template <typename> class MatrixTypeGpuB,
-         template <typename> class MatrixTypeGpuC>
-struct GemmImplGpu {
-  static void func(HandleGpu& handle,
+         template <typename> class matrix_type_gpu_a,
+         template <typename> class matrix_type_gpu_b,
+         template <typename> class matrix_type_gpu_c>
+struct gemm_impl_gpu {
+  static void func(handle_gpu& handle,
                    T alpha,
-                   const MatrixTypeGpuA<T>& A,
-                   const MatrixTypeGpuB<T>& B,
+                   const matrix_type_gpu_a<T>& A,
+                   const matrix_type_gpu_b<T>& B,
                    T beta,
-                   MatrixTypeGpuC<T>& C);
+                   matrix_type_gpu_c<T>& C);
 };
 
 template<typename T,
-         template <typename> class MatrixTypeGpuA,
-         template <typename> class MatrixTypeGpuB,
-         template <typename> class MatrixTypeGpuC>
-void gemmGpu(HandleGpu& handle,
-             T alpha,
-             const MatrixTypeGpuA<T>& A,
-             const MatrixTypeGpuB<T>& B,
+         template <typename> class matrix_type_gpu_a,
+         template <typename> class matrix_type_gpu_b,
+         template <typename> class matrix_type_gpu_c>
+void gemm_gpu(handle_gpu& handle,
+             T alpha,aff
+             const matrix_type_gpu_a<T>& A,
+             const matrix_type_gpu_b<T>& B,
              T beta,
-             MatrixTypeGpuC<T>& C) {
-  GemmImplGpu<T, MatrixTypeGpuA, MatrixTypeGpuB, MatrixTypeGpuC>::func(
+             matrix_type_gpu_c<T>& C) {
+  gemm_impl_gpu<T, matrix_type_gpu_a, matrix_type_gpu_b, matrix_type_gpu_c>::func(
       handle, alpha, A, B, beta, C);
 }
 
 
-template<template <typename> class MatrixTypeGpuA,
-         template <typename> class MatrixTypeGpuB,
-         template <typename> class MatrixTypeGpuC>
-struct GemmImplGpu<complex64, MatrixTypeGpuA, MatrixTypeGpuB, MatrixTypeGpuC> {
-  static void func(HandleGpu& handle,
+template<template <typename> class matrix_type_gpu_a,
+         template <typename> class matrix_type_gpu_b,
+         template <typename> class matrix_type_gpu_c>
+struct gemm_impl_gpu<complex64, matrix_type_gpu_a, matrix_type_gpu_b, matrix_type_gpu_c> {
+  static void func(handle_gpu& handle,aff
                    complex64 alpha,
-                   const MatrixTypeGpuA<complex64>& A,
-                   const MatrixTypeGpuB<complex64>& B,
+                   const matrix_type_gpu_a<complex64>& A,
+                   const matrix_type_gpu_b<complex64>& B,
                    complex64 beta,
-                   MatrixTypeGpuC<complex64>& C) {
+                   matrix_type_gpu_c<complex64>& C) {
     RAW_GPU_TYPE(complex64) alpha_gpu = raw_gpu_type_cast<complex64>(alpha);
     RAW_GPU_TYPE(complex64) beta_gpu  = raw_gpu_type_cast<complex64>(beta);
     CUBLAS_CALL(cublasCgemm(handle.cublas,
@@ -205,16 +205,16 @@ struct GemmImplGpu<complex64, MatrixTypeGpuA, MatrixTypeGpuB, MatrixTypeGpuC> {
 };
 
 
-template<template <typename> class MatrixTypeGpuA,
-         template <typename> class MatrixTypeGpuB,
-         template <typename> class MatrixTypeGpuC>
-struct GemmImplGpu<complex128, MatrixTypeGpuA, MatrixTypeGpuB, MatrixTypeGpuC> {
-  static void func(HandleGpu& handle,
+template<template <typename> class matrix_type_gpu_a,
+         template <typename> class matrix_type_gpu_b,
+         template <typename> class matrix_type_gpu_c>
+struct gemm_impl_gpu<complex128, matrix_type_gpu_a, matrix_type_gpu_b, matrix_type_gpu_c> {
+  static void func(handle_gpu& handle,
                    complex128 alpha,
-                   const MatrixTypeGpuA<complex128>& A,
-                   const MatrixTypeGpuB<complex128>& B,
+                   const matrix_type_gpu_a<complex128>& A,
+                   const matrix_type_gpu_b<complex128>& B,
                    complex128 beta,
-                   MatrixTypeGpuC<complex128>& C) {
+                   matrix_type_gpu_c<complex128>& C) {
     RAW_GPU_TYPE(complex128) alpha_gpu = raw_gpu_type_cast<complex128>(alpha);
     RAW_GPU_TYPE(complex128) beta_gpu  = raw_gpu_type_cast<complex128>(beta);
     CUBLAS_CALL(cublasZgemm(handle.cublas,
@@ -235,15 +235,15 @@ struct GemmImplGpu<complex128, MatrixTypeGpuA, MatrixTypeGpuB, MatrixTypeGpuC> {
 };
 
 
-template<template <typename> class MatrixTypeGpuB,
-         template <typename> class MatrixTypeGpuC>
-struct GemmImplGpu<complex64, CsrMatrixGpu, MatrixTypeGpuB, MatrixTypeGpuC> {
-  static void func(HandleGpu& handle,
+template<template <typename> class matrix_type_gpu_b,
+         template <typename> class matrix_type_gpu_c>
+struct gemm_impl_gpu<complex64, csr_matrix_gpu, matrix_type_gpu_b, matrix_type_gpu_c> {
+  static void func(handle_gpu& handle,
                    complex64 alpha,
-                   const CsrMatrixGpu<complex64>& A,
-                   const MatrixTypeGpuB<complex64>& B,
+                   const csr_matrix_gpu<complex64>& A,
+                   const matrix_type_gpu_b<complex64>& B,
                    complex64 beta,
-                   MatrixTypeGpuC<complex64>& C) {
+                   matrix_type_gpu_c<complex64>& C) {
     RAW_GPU_TYPE(complex64) alpha_gpu = raw_gpu_type_cast<complex64>(alpha);
     RAW_GPU_TYPE(complex64) beta_gpu  = raw_gpu_type_cast<complex64>(beta);
     CUSPARSE_CALL(cusparseCcsrmm2(handle.cusparse,
@@ -267,15 +267,15 @@ struct GemmImplGpu<complex64, CsrMatrixGpu, MatrixTypeGpuB, MatrixTypeGpuC> {
 };
 
 
-template<template <typename> class MatrixTypeGpuB,
-         template <typename> class MatrixTypeGpuC>
-struct GemmImplGpu<complex128, CsrMatrixGpu, MatrixTypeGpuB, MatrixTypeGpuC> {
-  static void func(HandleGpu& handle,
+template<template <typename> class matrix_type_gpu_b,
+         template <typename> class matrix_type_gpu_c>
+struct gemm_impl_gpu<complex128, csr_matrix_gpu, matrix_type_gpu_b, matrix_type_gpu_c> {
+  static void func(handle_gpu& handle,
                    complex128 alpha,
-                   const CsrMatrixGpu<complex128>& A,
-                   const MatrixTypeGpuB<complex128>& B,
+                   const csr_matrix_gpu<complex128>& A,
+                   const matrix_type_gpu_b<complex128>& B,
                    complex128 beta,
-                   MatrixTypeGpuC<complex128>& C) {
+                   matrix_type_gpu_c<complex128>& C) {
     RAW_GPU_TYPE(complex128) alpha_gpu = raw_gpu_type_cast<complex128>(alpha);
     RAW_GPU_TYPE(complex128) beta_gpu  = raw_gpu_type_cast<complex128>(beta);
     RAW_GPU_TYPE(complex128) zero      = raw_gpu_type_cast<complex128>(Zero<complex128>());
@@ -301,15 +301,15 @@ struct GemmImplGpu<complex128, CsrMatrixGpu, MatrixTypeGpuB, MatrixTypeGpuC> {
 };
 
 
-template<template <typename> class MatrixTypeGpuA,
-         template <typename> class MatrixTypeGpuC>
-struct GemmImplGpu<complex64, MatrixTypeGpuA, CsrMatrixGpu, MatrixTypeGpuC> {
-  static void func(HandleGpu& handle,
+template<template <typename> class matrix_type_gpu_a,
+         template <typename> class matrix_type_gpu_c>
+struct gemm_impl_gpu<complex64, matrix_type_gpu_a, csr_matrix_gpu, matrix_type_gpu_c> {
+  static void func(handle_gpu& handle,
                    complex64 alpha,
-                   const MatrixTypeGpuA<complex64>& A,
-                   const CsrMatrixGpu<complex64>& B,
+                   const matrix_type_gpu_a<complex64>& A,
+                   const csr_matrix_gpu<complex64>& B,
                    complex64 beta,
-                   MatrixTypeGpuC<complex64>& C) {
+                   matrix_type_gpu_c<complex64>& C) {
     RAW_GPU_TYPE(complex64) alpha_gpu = raw_gpu_type_cast<complex64>(alpha);
     RAW_GPU_TYPE(complex64) beta_gpu  = raw_gpu_type_cast<complex64>(beta);
     RAW_GPU_TYPE(complex64) zero      = raw_gpu_type_cast<complex64>(Zero<complex64>());
@@ -376,15 +376,15 @@ struct GemmImplGpu<complex64, MatrixTypeGpuA, CsrMatrixGpu, MatrixTypeGpuC> {
 };
 
 
-template<template <typename> class MatrixTypeGpuA,
-         template <typename> class MatrixTypeGpuC>
-struct GemmImplGpu<complex128, MatrixTypeGpuA, CsrMatrixGpu, MatrixTypeGpuC> {
-  static void func(HandleGpu& handle,
+template<template <typename> class matrix_type_gpu_a,
+         template <typename> class matrix_type_gpu_c>
+struct gemm_impl_gpu<complex128, matrix_type_gpu_a, csr_matrix_gpu, matrix_type_gpu_c> {
+  static void func(handle_gpu& handle,
                    complex128 alpha,
-                   const MatrixTypeGpuA<complex128>& A,
-                   const CsrMatrixGpu<complex128>& B,
+                   const matrix_type_gpu_a<complex128>& A,
+                   const csr_matrix_gpu<complex128>& B,
                    complex128 beta,
-                   MatrixTypeGpuC<complex128>& C) {
+                   matrix_type_gpu_c<complex128>& C) {
     RAW_GPU_TYPE(complex128) alpha_gpu = raw_gpu_type_cast<complex128>(alpha);
     RAW_GPU_TYPE(complex128) beta_gpu  = raw_gpu_type_cast<complex128>(beta);
     RAW_GPU_TYPE(complex128) zero      = raw_gpu_type_cast<complex128>(Zero<complex128>());

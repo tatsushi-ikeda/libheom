@@ -26,7 +26,7 @@ namespace libheom {
 
 template<typename T,
          int N>
-using CsrMatrix = Eigen::SparseMatrix<T, Eigen::RowMajor>;
+using csr_matrix = Eigen::SparseMatrix<T, Eigen::RowMajor>;
 
 }
 

@@ -34,7 +34,7 @@
 namespace libheom {
 
 template<typename T>
-T CalcGcd(T m, T n) {
+T calc_gcd(T m, T n) {
   if (m < n) {
     T swap = m;
     m = n;
@@ -50,35 +50,35 @@ T CalcGcd(T m, T n) {
 
 
 template<typename T>
-T CalcMulticombination(T n, T r) {
+T calc_multicombination(T n, T r) {
   T num, den;
   num = 1;
   den = 1;
   for(T i = 1; i <= r; ++i) {
     num *= n + i - 1;
     den *= i;
-    T gcd = CalcGcd(num, den);
+    T gcd = calc_gcd(num, den);
     num /= gcd;
     den /= gcd;
   }
   return num/den;
 }
 
-long long CalcHierarchyElementCount(int level,
+long long calc_hierarchy_element_count(int level,
                                     int dim) {
-  return CalcMulticombination<long long>(dim + 1, level);
+  return calc_multicombination<long long>(dim + 1, level);
 }
 
 #if ORDER_TYPE == ORIGINAL_ORDER
-void SetHierarchySpaceSub(HierarchySpace& hs,
-                          std::vector<int>& index,
-                          int& lidx,
-                          int k,
-                          int depth,
-                          int max_depth,
-                          std::function<void(int)> callback,
-                          int interval_callback,
-                          std::function<bool(std::vector<int>, int)> filter_predicator) {
+void set_hierarchy_space_sub(hierarchy_space& hs,
+                             std::vector<int>& index,
+                             int& lidx,
+                             int k,
+                             int depth,
+                             int max_depth,
+                             std::function<void(int)> callback,
+                             int interval_callback,
+                             std::function<bool(std::vector<int>, int)> filter_predicator) {
   for (int j_k = 0; j_k <= max_depth - depth; ++j_k) {
     index[k] = j_k;
     int depth_current = j_k + depth;
@@ -89,15 +89,15 @@ void SetHierarchySpaceSub(HierarchySpace& hs,
         hs.j.push_back(index);
         ++lidx;
       } else {
-        SetHierarchySpaceSub(hs,
-                             index,
-                             lidx,
-                             k - 1,
-                             depth_current,
-                             max_depth,
-                             callback,
-                             interval_callback,
-                             filter_predicator);
+        set_hierarchy_space_sub(hs,
+                                index,
+                                lidx,
+                                k - 1,
+                                depth_current,
+                                max_depth,
+                                callback,
+                                interval_callback,
+                                filter_predicator);
       }
     }
   }
@@ -105,11 +105,11 @@ void SetHierarchySpaceSub(HierarchySpace& hs,
 }
 #endif
 
-int AllocateHierarchySpace(HierarchySpace& hs,
-                           int max_depth,
-                           std::function<void(double)> callback,
-                           int interval_callback,
-                           std::function<bool(std::vector<int>, int)> filter_predicator) {
+int allocate_hierarchy_space(hierarchy_space& hs,
+                             int max_depth,
+                             std::function<void(double)> callback,
+                             int interval_callback,
+                             std::function<bool(std::vector<int>, int)> filter_predicator) {
   int n_dim = hs.n_dim;
   
   std::vector<int> index(n_dim);
@@ -123,11 +123,11 @@ int AllocateHierarchySpace(HierarchySpace& hs,
 
   std::fill(index.begin(), index.end(), 0);
 #if   ORDER_TYPE == ORIGINAL_ORDER
-  SetHierarchySpaceSub(hs, index, lidx, n_dim - 1, 0, max_depth, callback, interval_callback, filter_predicator);
+  set_hierarchy_space_sub(hs, index, lidx, n_dim - 1, 0, max_depth, callback, interval_callback, filter_predicator);
 #elif (ORDER_TYPE == BREADTH_FIRST_ORDER) || (ORDER_TYPE == DEPTH_FIRST_ORDER)
   next_element.AUX_STRUCT_PUSH(index);
   k_last_modified.AUX_STRUCT_PUSH(last_modified);
-  long long estimated_max_lidx = CalcHierarchyElementCount(max_depth, n_dim);
+  long long estimated_max_lidx = calc_hierarchy_element_count(max_depth, n_dim);
   
   while (!next_element.empty()) {
     if (lidx % interval_callback == 0) {

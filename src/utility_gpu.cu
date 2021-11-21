@@ -10,7 +10,7 @@
 
 namespace libheom {
 
-// These messages are from https://docs.nvidia.com/cuda/cublas/index.html.
+// The source of these messages is https://docs.nvidia.com/cuda/cublas/index.html.
 std::map<cublasStatus_t,std::string> CUBLAS_ERR_MSG =
   {{
       {CUBLAS_STATUS_SUCCESS,
@@ -36,7 +36,7 @@ std::map<cublasStatus_t,std::string> CUBLAS_ERR_MSG =
     }};
 
 
-// These messages are from https://docs.nvidia.com/cuda/cusparse/index.html.
+// The source of these messages is from https://docs.nvidia.com/cuda/cusparse/index.html.
 std::map<cusparseStatus_t,std::string> CUSPARSE_ERR_MSG =
   {{
       {CUSPARSE_STATUS_SUCCESS,
