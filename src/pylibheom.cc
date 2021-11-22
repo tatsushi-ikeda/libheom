@@ -318,24 +318,57 @@ void set_device_number(qme_type<T, matrix_type, num_state>& obj,
 //   return h.hs.j; 
 // }
 
+
 template<template <typename,
                    template <typename, int> class,
                    int> class qme_type,
          typename T,
          template<typename, int> class matrix_type, 
          int num_state>
-py::class_<qme_type<T, matrix_type, num_state>> declare_qme_binding(py::module m, const char* class_name) {
+py::class_<qme_type<T, matrix_type, num_state>> declare_qme_binding(
+    py::module m,
+    const char* class_name) {
   return py::class_<qme_type<T, matrix_type, num_state>>(m, class_name)
       .def(py::init<>())
-      .def("set_hamiltonian",         &set_hamiltonian      <qme_type, T, matrix_type, num_state>)
-      .def("allocate_noises",         &allocate_noises      <qme_type, T, matrix_type, num_state>)
-      .def("set_noise",               &set_noise            <qme_type, T, matrix_type, num_state>)
-      .def("set_noise_func",          &set_noise_func       <qme_type, T, matrix_type, num_state>)
-      .def("init_aux_vars",           &init_aux_vars        <qme_type, T, matrix_type, num_state>)
-      .def("calc_diff",               &calc_diff            <qme_type, T, matrix_type, num_state>)
+      .def("set_hamiltonian",      &set_hamiltonian<qme_type, T, matrix_type, num_state>)
+      .def("allocate_noises",      &allocate_noises<qme_type, T, matrix_type, num_state>)
+      .def("set_noise",            &set_noise      <qme_type, T, matrix_type, num_state>)
+      .def("init_aux_vars",        &init_aux_vars  <qme_type, T, matrix_type, num_state>)
+      .def("calc_diff",            &calc_diff      <qme_type, T, matrix_type, num_state>)
+      .def("time_evolution",       &time_evolution <qme_type, T, matrix_type, num_state>);
       // .def("construct_commutator", &construct_commutator <qme_type, T, matrix_type>)
       // .def("apply_commutator",     &apply_commutator     <qme_type, T, matrix_type>)
-      .def("time_evolution",          &time_evolution       <qme_type, T, matrix_type, num_state>);
+}
+
+
+template<template <typename,
+                   template <typename, int> class,
+                   int> class redfield_type,
+         typename T,
+         template<typename, int> class matrix_type, 
+         int num_state>
+py::class_<redfield_type<T, matrix_type, num_state>> declare_redfield_binding(
+    py::module m,
+    const char* class_name)
+{
+  return declare_qme_binding<redfield_type, T, matrix_type, num_state>(m, class_name)
+      .def("set_noise_func", &set_noise_func <redfield_type, T, matrix_type, num_state>);
+}
+
+
+template<template <typename,
+                   template <typename, int> class,
+                   int> class heom_type,
+         typename T,
+         template<typename, int> class matrix_type, 
+         int num_state>
+py::class_<heom_type<T, matrix_type, num_state>> declare_heom_binding(
+    py::module m,
+    const char* class_name)
+{
+  return declare_qme_binding<heom_type, T, matrix_type, num_state>(m, class_name)
+      .def("flatten_hierarchy_dimension", &flatten_hierarchy_dimension<heom_type, T, matrix_type, num_state>)
+      .def("allocate_hierarchy_space",    &allocate_hierarchy_space   <heom_type, T, matrix_type, num_state>);
 }
 
 
@@ -353,39 +386,12 @@ py::class_<qme_type<T, matrix_type, num_state>> declare_qme_gpu_binding(
       .def("set_hamiltonian",         &set_hamiltonian        <qme_type, T, matrix_type, num_state>)
       .def("allocate_noises",             &allocate_noises            <qme_type, T, matrix_type, num_state>)
       .def("set_noise",                   &set_noise              <qme_type, T, matrix_type, num_state>)
-      .def("set_noise_func",    &set_noise_func    <qme_type, T, matrix_type, num_state>)
       .def("init_aux_vars",               &init_aux_vars              <qme_type, T, matrix_type, num_state>)
       // .def("construct_commutator",        &construct_commutator       <qme_type, T, matrix_type>)
       // .def("apply_commutator",            &apply_commutator           <qme_type, T, matrix_type>)
       .def("time_evolution",              &time_evolution             <qme_type, T, matrix_type, num_state>)
-      .def("set_device_number",           &set_device_number          <qme_type, T, matrix_type, num_state>);
-}
-
-
-template<template <typename,
-                   template <typename, int> class,
-                   int> class heom_type,
-         typename T,
-         template<typename, int> class matrix_type, 
-         int num_state>
-py::class_<heom_type<T, matrix_type, num_state>> declare_heom_binding(
-    py::module m,
-    const char* class_name) {
-  return py::class_<heom_type<T, matrix_type, num_state>>(m, class_name)
-      .def(py::init<>())
-      .def("set_hamiltonian",             &set_hamiltonian            <heom_type, T, matrix_type, num_state>)
-      .def("allocate_noises",             &allocate_noises            <heom_type, T, matrix_type, num_state>)
-      .def("set_noise",                   &set_noise                  <heom_type, T, matrix_type, num_state>)
-      .def("init_aux_vars",               &init_aux_vars              <heom_type, T, matrix_type, num_state>)
-      .def("calc_diff",                   &calc_diff                  <heom_type, T, matrix_type, num_state>)
-      // .def("construct_commutator",     &construct_commutator       <heom_type, T, matrix_type>)
-      // .def("apply_commutator",         &apply_commutator           <heom_type, T, matrix_type>)
-      .def("time_evolution",              &time_evolution             <heom_type, T, matrix_type, num_state>)
-      .def("flatten_hierarchy_dimension", &flatten_hierarchy_dimension<heom_type, T, matrix_type, num_state>)
-      .def("allocate_hierarchy_space",    &allocate_hierarchy_space   <heom_type, T, matrix_type, num_state>);
-  // return declare_qme_binding<heom_type, T>(m, class_name)
-  //   .def("flatten_hierarchy_dimension", &flatten_hierarchy_dimension<heom_type, T>)
-  //   .def("allocate_hierarchy_space",    &allocate_hierarchy_space   <heom_type, T>);
+      .def("set_device_number",           &set_device_number          <qme_type, T, matrix_type, num_state>)
+      .def("set_noise_func",    &set_noise_func    <qme_type, T, matrix_type, num_state>);
 }
 
 
@@ -428,14 +434,14 @@ PYBIND11_MODULE(pylibheom, m) {
       .def(py::init<int, int, int,
            py::array_t<int>, py::array_t<int>, py::array_t<complex128>>());
     
-  declare_heom_binding<heom_ll,    complex128, dense_matrix, Eigen::Dynamic>(m, "heom_zdll");
-  declare_heom_binding<heom_ll,    complex128, csr_matrix,   Eigen::Dynamic>(m, "heom_zsll");
-  declare_heom_binding<heom_lh,    complex128, dense_matrix, Eigen::Dynamic>(m, "heom_zdlh");
-  declare_heom_binding<heom_lh,    complex128, csr_matrix,   Eigen::Dynamic>(m, "heom_zslh");
-  declare_qme_binding <redfield_h, complex128, dense_matrix, Eigen::Dynamic>(m, "redfield_zdh");
-  declare_qme_binding <redfield_h, complex128, csr_matrix,   Eigen::Dynamic>(m, "redfield_zsh");
-  declare_qme_binding <redfield_l, complex128, dense_matrix, Eigen::Dynamic>(m, "redfield_zdl");
-  declare_qme_binding <redfield_l, complex128, csr_matrix,   Eigen::Dynamic>(m, "redfield_zsl");
+  declare_heom_binding<heom_ll, complex128, dense_matrix, Eigen::Dynamic>(m, "heom_zdll");
+  declare_heom_binding<heom_ll, complex128, csr_matrix,   Eigen::Dynamic>(m, "heom_zsll");
+  declare_heom_binding<heom_lh, complex128, dense_matrix, Eigen::Dynamic>(m, "heom_zdlh");
+  declare_heom_binding<heom_lh, complex128, csr_matrix,   Eigen::Dynamic>(m, "heom_zslh");
+  declare_redfield_binding<redfield_h, complex128, dense_matrix, Eigen::Dynamic>(m, "redfield_zdh");
+  declare_redfield_binding<redfield_h, complex128, csr_matrix,   Eigen::Dynamic>(m, "redfield_zsh");
+  declare_redfield_binding<redfield_l, complex128, dense_matrix, Eigen::Dynamic>(m, "redfield_zdl");
+  declare_redfield_binding<redfield_l, complex128, csr_matrix,   Eigen::Dynamic>(m, "redfield_zsl");
   // declare_heom_binding<heom_ll,    complex128, dense_matrix, 2>(m, "heom_zdll");
   // declare_heom_binding<heom_ll,    complex128, csr_matrix,   2>(m, "heom_zsll");
   // declare_heom_binding<heom_lh,    complex128, dense_matrix, 2>(m, "heom_zdlh");
@@ -447,8 +453,8 @@ PYBIND11_MODULE(pylibheom, m) {
 #ifdef SUPPORT_GPU_PARALLELIZATION
   declare_heom_gpu_binding<heom_lh_gpu,   complex128, dense_matrix, Eigen::Dynamic>(m, "heom_zdlh_gpu");
   declare_heom_gpu_binding<heom_lh_gpu,   complex128, csr_matrix,   Eigen::Dynamic>(m, "heom_zslh_gpu");
-  declare_qme_gpu_binding <redfield_h_gpu,complex128, dense_matrix, Eigen::Dynamic>(m, "redfield_zdh_gpu");
-  declare_qme_gpu_binding <redfield_h_gpu,complex128, csr_matrix,   Eigen::Dynamic>(m, "redfield_zsh_gpu");
+  declare_redfield_gpu_binding <redfield_h_gpu,complex128, dense_matrix, Eigen::Dynamic>(m, "redfield_zdh_gpu");
+  declare_redfield_gpu_binding <redfield_h_gpu,complex128, csr_matrix,   Eigen::Dynamic>(m, "redfield_zsh_gpu");
   // declare_qme_gpu_binding <redfield_l_gpu,complex128, dense_matrix, Eigen::Dynamic>(m, "redfield_zdl_gpu");
   // declare_qme_gpu_binding <redfield_l_gpu,complex128, csr_matrix,   Eigen::Dynamic>(m, "redfield_zsl_gpu");
 #endif
