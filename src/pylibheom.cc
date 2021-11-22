@@ -256,6 +256,23 @@ void init_aux_vars(qme_type<T, matrix_type, num_state>& obj,
 //   obj.apply_commutator(rho.mutable_data());
 // }
 
+template<template <typename,
+                   template <typename, int> class,
+                   int> class qme_type,
+         typename T,
+         template<typename, int> class matrix_type, 
+         int num_state>
+void calc_diff(qme_type<T, matrix_type, num_state>& obj,
+               py::array_t<T> drho_dt,
+               const py::array_t<T> rho,
+               REAL_TYPE(T) alpha,
+               REAL_TYPE(T) beta) {
+  obj.calc_diff(Eigen::Map<dense_vector<T,Eigen::Dynamic>>(drho_dt.mutable_data(), obj.size_rho),
+                Eigen::Map<const dense_vector<T,Eigen::Dynamic>>(rho.data(), obj.size_rho),
+                alpha,
+                beta);
+}
+
 
 template<template <typename,
                    template <typename, int> class,
@@ -310,14 +327,15 @@ template<template <typename,
 py::class_<qme_type<T, matrix_type, num_state>> declare_qme_binding(py::module m, const char* class_name) {
   return py::class_<qme_type<T, matrix_type, num_state>>(m, class_name)
       .def(py::init<>())
-      .def("set_hamiltonian",         &set_hamiltonian        <qme_type, T, matrix_type, num_state>)
-      .def("allocate_noises",         &allocate_noises        <qme_type, T, matrix_type, num_state>)
-      .def("set_noise",               &set_noise              <qme_type, T, matrix_type, num_state>)
-      .def("set_noise_func",          &set_noise_func    <qme_type, T, matrix_type, num_state>)
-      .def("init_aux_vars",           &init_aux_vars           <qme_type, T, matrix_type, num_state>)
-      // .def("construct_commutator", &construct_commutator       <qme_type, T, matrix_type>)
-      // .def("apply_commutator",     &apply_commutator           <qme_type, T, matrix_type>)
-      .def("time_evolution",          &time_evolution             <qme_type, T, matrix_type, num_state>);
+      .def("set_hamiltonian",         &set_hamiltonian      <qme_type, T, matrix_type, num_state>)
+      .def("allocate_noises",         &allocate_noises      <qme_type, T, matrix_type, num_state>)
+      .def("set_noise",               &set_noise            <qme_type, T, matrix_type, num_state>)
+      .def("set_noise_func",          &set_noise_func       <qme_type, T, matrix_type, num_state>)
+      .def("init_aux_vars",           &init_aux_vars        <qme_type, T, matrix_type, num_state>)
+      .def("calc_diff",               &calc_diff            <qme_type, T, matrix_type, num_state>)
+      // .def("construct_commutator", &construct_commutator <qme_type, T, matrix_type>)
+      // .def("apply_commutator",     &apply_commutator     <qme_type, T, matrix_type>)
+      .def("time_evolution",          &time_evolution       <qme_type, T, matrix_type, num_state>);
 }
 
 
@@ -355,12 +373,13 @@ py::class_<heom_type<T, matrix_type, num_state>> declare_heom_binding(
     const char* class_name) {
   return py::class_<heom_type<T, matrix_type, num_state>>(m, class_name)
       .def(py::init<>())
-      .def("set_hamiltonian",         &set_hamiltonian        <heom_type, T, matrix_type, num_state>)
-      .def("allocate_noises",         &allocate_noises            <heom_type, T, matrix_type, num_state>)
-      .def("set_noise",               &set_noise              <heom_type, T, matrix_type, num_state>)
-      .def("init_aux_vars",           &init_aux_vars              <heom_type, T, matrix_type, num_state>)
-      // .def("construct_commutator",        &construct_commutator       <heom_type, T, matrix_type>)
-      // .def("apply_commutator",            &apply_commutator           <heom_type, T, matrix_type>)
+      .def("set_hamiltonian",             &set_hamiltonian            <heom_type, T, matrix_type, num_state>)
+      .def("allocate_noises",             &allocate_noises            <heom_type, T, matrix_type, num_state>)
+      .def("set_noise",                   &set_noise                  <heom_type, T, matrix_type, num_state>)
+      .def("init_aux_vars",               &init_aux_vars              <heom_type, T, matrix_type, num_state>)
+      .def("calc_diff",                   &calc_diff                  <heom_type, T, matrix_type, num_state>)
+      // .def("construct_commutator",     &construct_commutator       <heom_type, T, matrix_type>)
+      // .def("apply_commutator",         &apply_commutator           <heom_type, T, matrix_type>)
       .def("time_evolution",              &time_evolution             <heom_type, T, matrix_type, num_state>)
       .def("flatten_hierarchy_dimension", &flatten_hierarchy_dimension<heom_type, T, matrix_type, num_state>)
       .def("allocate_hierarchy_space",    &allocate_hierarchy_space   <heom_type, T, matrix_type, num_state>);
