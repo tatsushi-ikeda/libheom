@@ -52,7 +52,7 @@ public:
   int n_noise;
   std::unique_ptr<lil_matrix<T>[]> V;
   
-  std::unique_ptr<std::unique_ptr<int[]>[]> lk;
+  std::vector<std::vector<int>> lk;
 
   std::unique_ptr<int[]> len_gamma;
   std::unique_ptr<Eigen::SparseMatrix<T, Eigen::RowMajor>[]> gamma;

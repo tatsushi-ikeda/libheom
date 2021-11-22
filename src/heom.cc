@@ -21,11 +21,11 @@ void heom<T>::linearize_dim() {
   this->hs.n_dim
       = std::accumulate(this->len_gamma.get(),
                         this->len_gamma.get() + this->n_noise, 0);
-  this->lk.reset(new std::unique_ptr<int[]>[this->n_noise]);
+  this->lk.resize(this->n_noise);
   
   int ctr_lk = 0;
   for (int u = 0; u < this->n_noise; ++u) {
-    this->lk[u].reset(new int[this->len_gamma[u]]);
+    this->lk[u].resize(this->len_gamma[u]);
     for (int k = 0; k < this->len_gamma[u]; ++k) {
       this->lk[u][k] = ctr_lk;
       ++ctr_lk;
