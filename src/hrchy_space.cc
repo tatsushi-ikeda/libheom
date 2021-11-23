@@ -90,9 +90,9 @@ void set_hrchy_space_sub(hrchy_space& hs,
                              int estimated_max_lidx,
                              std::function<bool(std::vector<int>, int)> hrchy_filter,
                              bool filter_flag) {
-  for (int j_k = 0; j_k <= max_depth - depth; ++j_k) {
-    index[k] = j_k;
-    int depth_current = j_k + depth;
+  for (int n_k = 0; n_k <= max_depth - depth; ++n_k) {
+    index[k] = n_k;
+    int depth_current = n_k + depth;
     bool pass = (depth <= max_depth) && (!filter_flag || hrchy_filter(index, depth));
     if (pass) {
       if (k == 0) {
@@ -104,8 +104,8 @@ void set_hrchy_space_sub(hrchy_space& hs,
           print_index(index, std::cerr);
           std::cerr << std::endl; 
         }
-        hs.index_book[index] = lidx;
-        hs.j.push_back(index);
+        hs.book[index] = lidx;
+        hs.n.push_back(index);
         ++lidx;
       } else {
         set_hrchy_space_sub(hs,
@@ -159,8 +159,8 @@ int alloc_hrchy_space(hrchy_space& hs,
     last_modified = k_last_modified.AUX_STRUCT_TOP();
     k_last_modified.AUX_STRUCT_POP();
     
-    hs.index_book[index] = lidx;
-    hs.j.push_back(index);
+    hs.book[index] = lidx;
+    hs.n.push_back(index);
     ++lidx;
 #  if   ORDER_TYPE == BREADTH_FIRST_ORDER
     for (int k = last_modified; k < n_dim; ++k) {
@@ -193,20 +193,20 @@ int alloc_hrchy_space(hrchy_space& hs,
   hs.ptr_p1.resize(n_hrchy);
   hs.ptr_m1.resize(n_hrchy);
   for (int lidx = 0; lidx < n_hrchy; ++lidx) {
-    index = hs.j[lidx];
+    index = hs.n[lidx];
     hs.ptr_p1[lidx].resize(n_dim);
     hs.ptr_m1[lidx].resize(n_dim);
     
     for (int k = 0; k < n_dim; ++k) {
       ++index[k];
       try {
-        hs.ptr_p1[lidx][k] = hs.index_book.at(index);
+        hs.ptr_p1[lidx][k] = hs.book.at(index);
       } catch (std::out_of_range&) {
         hs.ptr_p1[lidx][k] = hs.ptr_void;
       }
       index[k] -= 2;
       try {
-        hs.ptr_m1[lidx][k] = hs.index_book.at(index);
+        hs.ptr_m1[lidx][k] = hs.book.at(index);
       } catch (std::out_of_range&) {
         hs.ptr_m1[lidx][k] = hs.ptr_void;
       }

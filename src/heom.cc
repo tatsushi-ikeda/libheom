@@ -46,13 +46,13 @@ template<typename T>
 void heom<T>::init_aux_vars() {
   qme<T>::init_aux_vars();
 
-  this->jgamma_diag.resize(this->n_hrchy);
+  this->ngamma_diag.resize(this->n_hrchy);
   for (int lidx = 0; lidx < this->n_hrchy; ++lidx) {
-    this->jgamma_diag[lidx] = zero<T>();
+    this->ngamma_diag[lidx] = zero<T>();
     for (int u = 0; u < this->n_noise; ++u) {
       for (int k = 0; k < this->len_gamma[u]; ++k) {
-        this->jgamma_diag[lidx]
-            += static_cast<REAL_TYPE(T)>(this->hs.j[lidx][this->lk[u][k]])
+        this->ngamma_diag[lidx]
+            += static_cast<REAL_TYPE(T)>(this->hs.n[lidx][this->lk[u][k]])
             *this->gamma[u].coeff(k,k);
       }
     }
@@ -61,14 +61,14 @@ void heom<T>::init_aux_vars() {
   this->gamma_offdiag.reset(new Eigen::SparseMatrix<T, Eigen::RowMajor>[this->n_noise]);
   for (int u = 0; u < this->n_noise; ++u) {
     std::vector<Eigen::Triplet<T>> list;
-    for (int jj = 0; jj < this->gamma[u].rows(); ++jj) {
-      for (int ptr = this->gamma[u].outerIndexPtr()[jj];
-           ptr < this->gamma[u].outerIndexPtr()[jj+1];
+    for (int j = 0; j < this->gamma[u].rows(); ++j) {
+      for (int ptr = this->gamma[u].outerIndexPtr()[j];
+           ptr < this->gamma[u].outerIndexPtr()[j+1];
            ++ptr) {
         int k = this->gamma[u].innerIndexPtr()[ptr];
         const T& val = this->gamma[u].valuePtr()[ptr];
-        if (jj != k) {
-          list.push_back(Eigen::Triplet<T>(jj,k,val));
+        if (j != k) {
+          list.push_back(Eigen::Triplet<T>(j,k,val));
         }
       }
     }
@@ -191,10 +191,10 @@ void heom_ll<T, matrix_type, num_state>::calc_diff(
   auto n_state_liou   = this->n_state_liou;
   auto n_noise        = this->n_noise;
   auto& R_heom_0_impl = this->R_heom_0_impl;
-  auto& jgamma_diag   = this->jgamma_diag;
+  auto& ngamma_diag   = this->ngamma_diag;
   auto& len_gamma     = this->len_gamma;
   auto& lk            = this->lk;
-  auto& j             = this->hs.j;
+  auto& n             = this->hs.n;
   auto& ptr_m1        = this->hs.ptr_m1;
   auto& ptr_p1        = this->hs.ptr_p1;
   auto& S             = this->S;
@@ -216,7 +216,7 @@ void heom_ll<T, matrix_type, num_state>::calc_diff(
     // 0 terms
     // drho_dt_n      = beta*drho_dt_n;
     tmp.noalias()  = R_heom_0_impl*rho_n;
-    tmp.noalias() += jgamma_diag[lidx]*rho_n;
+    tmp.noalias() += ngamma_diag[lidx]*rho_n;
     
     for (int u = 0; u < n_noise; ++u) {
       auto& lk_u    = lk[u];
@@ -226,19 +226,19 @@ void heom_ll<T, matrix_type, num_state>::calc_diff(
       auto& S_u = S[u];
       auto& A_u = A[u];
 
-      for (int jj = 0; jj < gamma_offdiag_u.rows(); ++jj) {
-        for (int ptr = gamma_offdiag_u.outerIndexPtr()[jj];
-             ptr < gamma_offdiag_u.outerIndexPtr()[jj+1]; ++ptr) {
+      for (int j = 0; j < gamma_offdiag_u.rows(); ++j) {
+        for (int ptr = gamma_offdiag_u.outerIndexPtr()[j];
+             ptr < gamma_offdiag_u.outerIndexPtr()[j+1]; ++ptr) {
           int k = gamma_offdiag_u.innerIndexPtr()[ptr];
           const T& val = gamma_offdiag_u.valuePtr()[ptr];
           int lidx_m1j, lidx_m1jp1k;
-          if ((lidx_m1j = ptr_m1[lidx][lk_u[jj]]) != ptr_void
+          if ((lidx_m1j = ptr_m1[lidx][lk_u[j]]) != ptr_void
               && (lidx_m1jp1k = ptr_p1[lidx_m1j][lk_u[k]]) != ptr_void)  {
             auto rho_m1jp1k = block<num_state_liou,1>::value(
                 rho, lidx_m1jp1k*n_state_liou,0,n_state_liou,1);
-            auto k_float = static_cast<REAL_TYPE(T)>(j[lidx][lk_u[k]]);
-            auto j_float = static_cast<REAL_TYPE(T)>(j[lidx][lk_u[jj]]);
-            tmp.noalias() += val*std::sqrt(j_float*(k_float + 1))*rho_m1jp1k;
+            auto n_k_float = static_cast<REAL_TYPE(T)>(n[lidx][lk_u[k]]);
+            auto n_j_float = static_cast<REAL_TYPE(T)>(n[lidx][lk_u[j]]);
+            tmp.noalias() += val*std::sqrt(n_j_float*(n_k_float + 1))*rho_m1jp1k;
           }
         }
       } 
@@ -253,18 +253,18 @@ void heom_ll<T, matrix_type, num_state>::calc_diff(
       for (int k = 0; k < len_gamma_u; ++k) {
         int lidx_p1 = ptr_p1[lidx][lk_u[k]];
         auto rho_np1 = block<num_state_liou,1>::value(rho, lidx_p1*n_state_liou,0,n_state_liou,1);
-        auto j_float = static_cast<REAL_TYPE(T)>(j[lidx][lk_u[k]]);
-        tmp_Phi.noalias() += sigma_u.coeff(k)*std::sqrt(j_float + 1)*rho_np1;
+        auto n_float = static_cast<REAL_TYPE(T)>(n[lidx][lk_u[k]]);
+        tmp_Phi.noalias() += sigma_u.coeff(k)*std::sqrt(n_float + 1)*rho_np1;
       }
 
       // -1 terms
       for (int k = 0; k < len_gamma_u; ++k) {
         int lidx_m1 = ptr_m1[lidx][lk_u[k]];
         auto rho_nm1 = block<num_state_liou,1>::value(rho, lidx_m1*n_state_liou,0,n_state_liou,1);
-        auto j_float = static_cast<REAL_TYPE(T)>(j[lidx][lk_u[k]]);
-        tmp_Phi.noalias() += std::sqrt(j_float)*S_u.coeff(k)*rho_nm1;
+        auto n_float = static_cast<REAL_TYPE(T)>(n[lidx][lk_u[k]]);
+        tmp_Phi.noalias() += std::sqrt(n_float)*S_u.coeff(k)*rho_nm1;
         if (A_u.coeff(k) != zero<T>()) {
-          tmp_Psi.noalias() -= std::sqrt(j_float)*A_u.coeff(k)*rho_nm1;
+          tmp_Psi.noalias() -= std::sqrt(n_float)*A_u.coeff(k)*rho_nm1;
         }
       }
       
@@ -320,8 +320,8 @@ void heom_lh<T, matrix_type, num_state>::init_aux_vars() {
             for (auto& Theta_kv: this->Theta[u][k].data[a]) {
               int b = Theta_kv.first;
               T val = Theta_kv.second;
-              val *= std::sqrt(static_cast<REAL_TYPE(T)>(this->hs.j[lidx][this->lk[u][k]]));
-              // val *= static_cast<REAL_TYPE(T)>(this->hs.j[lidx][this->lk[u][k]]);
+              val *= std::sqrt(static_cast<REAL_TYPE(T)>(this->hs.n[lidx][this->lk[u][k]]));
+              // val *= static_cast<REAL_TYPE(T)>(this->hs.n[lidx][this->lk[u][k]]);
               if (val != zero<T>()) {
                 this->R_heom.push(lidx*this->n_state_liou + a,
                                   lidx_m1*this->n_state_liou + b,
@@ -335,24 +335,24 @@ void heom_lh<T, matrix_type, num_state>::init_aux_vars() {
       // 0 terms
       this->R_heom.push(lidx*this->n_state_liou + a,
                         lidx*this->n_state_liou + a,
-                        this->jgamma_diag[lidx]);
+                        this->ngamma_diag[lidx]);
       
       for (int u = 0; u < this->n_noise; ++u) {
-        for (int jj = 0; jj < this->gamma_offdiag[u].rows(); ++jj) {
-          for (int ptr = this->gamma_offdiag[u].outerIndexPtr()[jj];
-               ptr < this->gamma_offdiag[u].outerIndexPtr()[jj+1]; ++ptr) {
+        for (int j = 0; j < this->gamma_offdiag[u].rows(); ++j) {
+          for (int ptr = this->gamma_offdiag[u].outerIndexPtr()[j];
+               ptr < this->gamma_offdiag[u].outerIndexPtr()[j+1]; ++ptr) {
             int k = this->gamma_offdiag[u].innerIndexPtr()[ptr];
             const T& val = this->gamma_offdiag[u].valuePtr()[ptr];
             int lidx_m1j, lidx_m1jp1k;
-            if ((lidx_m1j = this->hs.ptr_m1[lidx][this->lk[u][jj]])
+            if ((lidx_m1j = this->hs.ptr_m1[lidx][this->lk[u][j]])
                 != this->hs.ptr_void
                 && (lidx_m1jp1k = this->hs.ptr_p1[lidx_m1j][this->lk[u][k]])
                 != this->hs.ptr_void)  {
-              auto j_float = static_cast<REAL_TYPE(T)>(this->hs.j[lidx][this->lk[u][jj]]);
-              auto k_float = static_cast<REAL_TYPE(T)>(this->hs.j[lidx][this->lk[u][k]]);
+              auto n_j_float = static_cast<REAL_TYPE(T)>(this->hs.n[lidx][this->lk[u][j]]);
+              auto n_k_float = static_cast<REAL_TYPE(T)>(this->hs.n[lidx][this->lk[u][k]]);
               this->R_heom.push(lidx*this->n_state_liou + a,
                                 lidx_m1jp1k*this->n_state_liou + a,
-                                val*std::sqrt(j_float*(k_float + 1)));
+                                val*std::sqrt(n_j_float*(n_k_float + 1)));
             }
           }
         }
@@ -378,7 +378,7 @@ void heom_lh<T, matrix_type, num_state>::init_aux_vars() {
             for (auto& Phi_kv: this->Phi[u].data[a]) {
               int b = Phi_kv.first;
               T val = Phi_kv.second;
-              val *= std::sqrt(static_cast<REAL_TYPE(T)>(this->hs.j[lidx][this->lk[u][k]]+1));
+              val *= std::sqrt(static_cast<REAL_TYPE(T)>(this->hs.n[lidx][this->lk[u][k]]+1));
               val *= this->sigma[u].coeff(k);
               if (val != zero<T>()) { 
                 this->R_heom.push(lidx*this->n_state_liou + a,

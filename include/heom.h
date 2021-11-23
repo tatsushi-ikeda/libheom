@@ -19,7 +19,7 @@ class heom
   : public qme<T> {
  public:
   hrchy_space hs;
-  std::vector<T>  jgamma_diag;
+  std::vector<T>  ngamma_diag;
   std::unique_ptr<Eigen::SparseMatrix<T, Eigen::RowMajor>[]> gamma_offdiag;
   
   std::unique_ptr<Eigen::Matrix<T,Eigen::Dynamic,1>[]> S;

@@ -16,10 +16,10 @@ namespace libheom {
 class hrchy_space {
 public:
   int n_dim;
-  std::vector<std::vector<int>> j;
+  std::vector<std::vector<int>> n;
   std::vector<std::vector<int>> ptr_p1;
   std::vector<std::vector<int>> ptr_m1;
-  std::map<std::vector<int>,int> index_book;
+  std::map<std::vector<int>,int> book;
   int ptr_void;
 };
 
