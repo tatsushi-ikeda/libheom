@@ -22,15 +22,15 @@ class heom_lh_gpu
  public:
   void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
                  const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-                 REAL_TYPE(T) alpha,
-                 REAL_TYPE(T) beta) override;
+                 real_t<T> alpha,
+                 real_t<T> beta) override;
 
   void evolve(ref<dense_vector<T,Eigen::Dynamic>> rho,
-              REAL_TYPE(T) dt,
+              real_t<T> dt,
               const int steps);
 
   void evolve_1(ref<dense_vector<T,Eigen::Dynamic>> rho,
-               REAL_TYPE(T) dt);
+               real_t<T> dt);
   
   // void construct_commutator
   // /**/(did_matrix<T>& x,

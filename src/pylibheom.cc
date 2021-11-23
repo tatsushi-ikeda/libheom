@@ -140,7 +140,7 @@ template<template <typename,
 void set_noise_func(qme_type<T, matrix_type, num_state>& obj,
                     int u,
                     coo_matrix<T>& V,
-                    std::function<T(REAL_TYPE(T))> corr) {
+                    std::function<T(real_t<T>)> corr) {
   if (V.rows != V.cols) {
     throw std::runtime_error("[Error] Noise operator must be a square matrix");
   }
@@ -153,7 +153,7 @@ void set_noise_func(qme_type<T, matrix_type, num_state>& obj,
   if (!obj.use_corr_func) {
     obj.use_corr_func.reset(new bool [obj.n_noise]);
     std::fill_n(&obj.use_corr_func[0], obj.n_noise, false);
-    obj.corr_func.reset(new std::function<T(REAL_TYPE(T))> [obj.n_noise]);
+    obj.corr_func.reset(new std::function<T(real_t<T>)> [obj.n_noise]);
   }
   obj.use_corr_func[u] = true;
   obj.corr_func[u] = corr;
@@ -268,8 +268,8 @@ template<template <typename,
 void calc_diff(qme_type<T, matrix_type, num_state>& obj,
                py::array_t<T> drho_dt,
                const py::array_t<T> rho,
-               REAL_TYPE(T) alpha,
-               REAL_TYPE(T) beta) {
+               real_t<T> alpha,
+               real_t<T> beta) {
   obj.calc_diff(Eigen::Map<dense_vector<T,Eigen::Dynamic>>(drho_dt.mutable_data(), obj.size_rho),
                 Eigen::Map<const dense_vector<T,Eigen::Dynamic>>(rho.data(), obj.size_rho),
                 alpha,

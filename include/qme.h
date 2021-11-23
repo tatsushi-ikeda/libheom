@@ -75,23 +75,23 @@ public:
   void fin();
 
   void solve(ref<dense_vector<T,Eigen::Dynamic>> rho,
-             REAL_TYPE(T) dt__unit,
-             REAL_TYPE(T) dt,
+             real_t<T> dt__unit,
+             real_t<T> dt,
              int interval,
              int count,
-             std::function<void(REAL_TYPE(T))> callback);
+             std::function<void(real_t<T>)> callback);
 
   virtual void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
                          const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-                         REAL_TYPE(T) alpha,
-                         REAL_TYPE(T) beta) = 0;
+                         real_t<T> alpha,
+                         real_t<T> beta) = 0;
   
   virtual void evolve(ref<dense_vector<T,Eigen::Dynamic>> rho,
-                      REAL_TYPE(T) dt,
+                      real_t<T> dt,
                       const int steps);
 
   virtual void evolve_1(ref<dense_vector<T,Eigen::Dynamic>> rho,
-                       REAL_TYPE(T) dt);
+                        real_t<T> dt);
   
   // virtual void ConstructCommutator(lil_matrix<T>& x,
   //                                  T coef_l,

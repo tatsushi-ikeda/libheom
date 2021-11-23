@@ -17,7 +17,7 @@ class redfield
  public:
   lil_matrix<T> Z;
   std::unique_ptr<bool[]> use_corr_func;
-  std::unique_ptr<std::function<T(REAL_TYPE(T))>[]> corr_func;
+  std::unique_ptr<std::function<T(real_t<T>)>[]> corr_func;
   std::unique_ptr<lil_matrix<T>[]> Lambda;
   std::vector<T> sub_vector;  
   
@@ -45,8 +45,8 @@ class redfield_h
 
   void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
                  const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-                 REAL_TYPE(T) alpha,
-                 REAL_TYPE(T) beta) override;
+                 real_t<T> alpha,
+                 real_t<T> beta) override;
   
   // void ConstructCommutator(lil_matrix<T>& x,
   //                          T coef_l,
@@ -86,8 +86,8 @@ class redfield_l
 
   void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
                 const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-                REAL_TYPE(T) alpha,
-                REAL_TYPE(T) beta) override;
+                real_t<T> alpha,
+                real_t<T> beta) override;
   
   // void ConstructCommutator(lil_matrix<T>& x,
   //                          T coef_l,

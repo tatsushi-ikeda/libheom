@@ -17,7 +17,8 @@ typedef std::complex<float> complex64;
 typedef double float64;
 typedef std::complex<double> complex128;
 
-#define REAL_TYPE(T) typename T::value_type
+template<typename T>
+using real_t = typename T::value_type;
 
 }
 

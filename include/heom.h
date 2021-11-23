@@ -74,8 +74,8 @@ class heom_ll
 
   void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
                  const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-                 REAL_TYPE(T) alpha,
-                 REAL_TYPE(T) beta) override;
+                 real_t<T> alpha,
+                 real_t<T> beta) override;
 
   // void ConstructCommutator(LilMatrix<T>& x,
   //                          T coef_l,
@@ -111,8 +111,8 @@ class heom_lh
 
   void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
                 const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-                REAL_TYPE(T) alpha,
-                REAL_TYPE(T) beta) override;
+                real_t<T> alpha,
+                real_t<T> beta) override;
 
   // void ConstructCommutator(lil_matrix<T>& x,
   //                          T coef_l,

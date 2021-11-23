@@ -43,11 +43,11 @@ void qme<T>::fin() {
 
 template<typename T>
 void qme<T>::solve(ref<dense_vector<T,Eigen::Dynamic>> rho,
-                           REAL_TYPE(T) dt__unit,
-                           REAL_TYPE(T) dt,
+                           real_t<T> dt__unit,
+                           real_t<T> dt,
                            int interval,
                            int count,
-                           std::function<void(REAL_TYPE(T))> callback) {
+                           std::function<void(real_t<T>)> callback) {
   for (int ctr = 0; ctr < count; ++ctr) {
     callback(ctr*interval*dt__unit);
     evolve(rho, dt, interval);
@@ -56,22 +56,22 @@ void qme<T>::solve(ref<dense_vector<T,Eigen::Dynamic>> rho,
 
 
 template<typename T>
-void qme<T>::evolve_1(ref<dense_vector<T,Eigen::Dynamic>> rho, REAL_TYPE(T) dt) {
+void qme<T>::evolve_1(ref<dense_vector<T,Eigen::Dynamic>> rho, real_t<T> dt) {
   calc_diff(this->sub_vector, rho, dt, 0);
-  rho.noalias() += frac<REAL_TYPE(T)>(1,3)*this->sub_vector;
+  rho.noalias() += frac<real_t<T>>(1,3)*this->sub_vector;
 
   calc_diff(this->sub_vector, rho, dt, -1);
-  rho.noalias() += frac<REAL_TYPE(T)>(3,4)*this->sub_vector;
+  rho.noalias() += frac<real_t<T>>(3,4)*this->sub_vector;
   
   calc_diff(this->sub_vector, rho, dt, -1);
-  rho.noalias() += frac<REAL_TYPE(T)>(2,3)*this->sub_vector;
+  rho.noalias() += frac<real_t<T>>(2,3)*this->sub_vector;
   
   calc_diff(this->sub_vector, rho, dt, -1);
-  rho.noalias() += frac<REAL_TYPE(T)>(1,4)*this->sub_vector;
+  rho.noalias() += frac<real_t<T>>(1,4)*this->sub_vector;
 }
 
 template<typename T>
-void qme<T>::evolve(ref<dense_vector<T,Eigen::Dynamic>> rho, REAL_TYPE(T) dt, const int steps) {
+void qme<T>::evolve(ref<dense_vector<T,Eigen::Dynamic>> rho, real_t<T> dt, const int steps) {
   for (int step = 0; step < steps; ++step) {
     evolve_1(rho, dt);
   }
@@ -88,15 +88,15 @@ namespace libheom {
   template void qme<T>::fin();                                           \
   template void qme<T>::solve(                                        \
       ref<dense_vector<T,Eigen::Dynamic>> rho,                                                    \
-      REAL_TYPE(T) dt__unit,                                                  \
-      REAL_TYPE(T) dt,                                                        \
+      real_t<T> dt__unit,                                                  \
+      real_t<T> dt,                                                        \
       int interval,                                                           \
       int count,                                                              \
-      std::function<void(REAL_TYPE(T))> callback);                            \
+      std::function<void(real_t<T>)> callback);                            \
   template void qme<T>::evolve(ref<dense_vector<T,Eigen::Dynamic>> rho,                           \
-                               REAL_TYPE(T) dt,                         \
+                               real_t<T> dt,                         \
                                const int steps);                              \
-  template void qme<T>::evolve_1(ref<dense_vector<T,Eigen::Dynamic>> rho, REAL_TYPE(T) dt);
+  template void qme<T>::evolve_1(ref<dense_vector<T,Eigen::Dynamic>> rho, real_t<T> dt);
 
 DECLARE_EXPLICIT_INSTANTIATIONS(complex64);
 DECLARE_EXPLICIT_INSTANTIATIONS(complex128);

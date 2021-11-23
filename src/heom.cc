@@ -52,7 +52,7 @@ void heom<T>::init_aux_vars() {
     for (int u = 0; u < this->n_noise; ++u) {
       for (int k = 0; k < this->len_gamma[u]; ++k) {
         this->ngamma_diag[lidx]
-            += static_cast<REAL_TYPE(T)>(this->hs.n[lidx][this->lk[u][k]])
+            += static_cast<real_t<T>>(this->hs.n[lidx][this->lk[u][k]])
             *this->gamma[u].coeff(k,k);
       }
     }
@@ -185,8 +185,8 @@ template<typename T,
 void heom_ll<T, matrix_type, num_state>::calc_diff(
     ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
     const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-    REAL_TYPE(T) alpha,
-    REAL_TYPE(T) beta) {
+    real_t<T> alpha,
+    real_t<T> beta) {
   auto n_hrchy    = this->n_hrchy;
   auto n_state_liou   = this->n_state_liou;
   auto n_noise        = this->n_noise;
@@ -236,8 +236,8 @@ void heom_ll<T, matrix_type, num_state>::calc_diff(
               && (lidx_m1jp1k = ptr_p1[lidx_m1j][lk_u[k]]) != ptr_void)  {
             auto rho_m1jp1k = block<num_state_liou,1>::value(
                 rho, lidx_m1jp1k*n_state_liou,0,n_state_liou,1);
-            auto n_k_float = static_cast<REAL_TYPE(T)>(n[lidx][lk_u[k]]);
-            auto n_j_float = static_cast<REAL_TYPE(T)>(n[lidx][lk_u[j]]);
+            auto n_k_float = static_cast<real_t<T>>(n[lidx][lk_u[k]]);
+            auto n_j_float = static_cast<real_t<T>>(n[lidx][lk_u[j]]);
             tmp.noalias() += val*std::sqrt(n_j_float*(n_k_float + 1))*rho_m1jp1k;
           }
         }
@@ -253,7 +253,7 @@ void heom_ll<T, matrix_type, num_state>::calc_diff(
       for (int k = 0; k < len_gamma_u; ++k) {
         int lidx_p1 = ptr_p1[lidx][lk_u[k]];
         auto rho_np1 = block<num_state_liou,1>::value(rho, lidx_p1*n_state_liou,0,n_state_liou,1);
-        auto n_float = static_cast<REAL_TYPE(T)>(n[lidx][lk_u[k]]);
+        auto n_float = static_cast<real_t<T>>(n[lidx][lk_u[k]]);
         tmp_Phi.noalias() += sigma_u.coeff(k)*std::sqrt(n_float + 1)*rho_np1;
       }
 
@@ -261,7 +261,7 @@ void heom_ll<T, matrix_type, num_state>::calc_diff(
       for (int k = 0; k < len_gamma_u; ++k) {
         int lidx_m1 = ptr_m1[lidx][lk_u[k]];
         auto rho_nm1 = block<num_state_liou,1>::value(rho, lidx_m1*n_state_liou,0,n_state_liou,1);
-        auto n_float = static_cast<REAL_TYPE(T)>(n[lidx][lk_u[k]]);
+        auto n_float = static_cast<real_t<T>>(n[lidx][lk_u[k]]);
         tmp_Phi.noalias() += std::sqrt(n_float)*S_u.coeff(k)*rho_nm1;
         if (A_u.coeff(k) != zero<T>()) {
           tmp_Psi.noalias() -= std::sqrt(n_float)*A_u.coeff(k)*rho_nm1;
@@ -320,8 +320,8 @@ void heom_lh<T, matrix_type, num_state>::init_aux_vars() {
             for (auto& Theta_kv: this->Theta[u][k].data[a]) {
               int b = Theta_kv.first;
               T val = Theta_kv.second;
-              val *= std::sqrt(static_cast<REAL_TYPE(T)>(this->hs.n[lidx][this->lk[u][k]]));
-              // val *= static_cast<REAL_TYPE(T)>(this->hs.n[lidx][this->lk[u][k]]);
+              val *= std::sqrt(static_cast<real_t<T>>(this->hs.n[lidx][this->lk[u][k]]));
+              // val *= static_cast<real_t<T>>(this->hs.n[lidx][this->lk[u][k]]);
               if (val != zero<T>()) {
                 this->R_heom.push(lidx*this->n_state_liou + a,
                                   lidx_m1*this->n_state_liou + b,
@@ -348,8 +348,8 @@ void heom_lh<T, matrix_type, num_state>::init_aux_vars() {
                 != this->hs.ptr_void
                 && (lidx_m1jp1k = this->hs.ptr_p1[lidx_m1j][this->lk[u][k]])
                 != this->hs.ptr_void)  {
-              auto n_j_float = static_cast<REAL_TYPE(T)>(this->hs.n[lidx][this->lk[u][j]]);
-              auto n_k_float = static_cast<REAL_TYPE(T)>(this->hs.n[lidx][this->lk[u][k]]);
+              auto n_j_float = static_cast<real_t<T>>(this->hs.n[lidx][this->lk[u][j]]);
+              auto n_k_float = static_cast<real_t<T>>(this->hs.n[lidx][this->lk[u][k]]);
               this->R_heom.push(lidx*this->n_state_liou + a,
                                 lidx_m1jp1k*this->n_state_liou + a,
                                 val*std::sqrt(n_j_float*(n_k_float + 1)));
@@ -378,7 +378,7 @@ void heom_lh<T, matrix_type, num_state>::init_aux_vars() {
             for (auto& Phi_kv: this->Phi[u].data[a]) {
               int b = Phi_kv.first;
               T val = Phi_kv.second;
-              val *= std::sqrt(static_cast<REAL_TYPE(T)>(this->hs.n[lidx][this->lk[u][k]]+1));
+              val *= std::sqrt(static_cast<real_t<T>>(this->hs.n[lidx][this->lk[u][k]]+1));
               val *= this->sigma[u].coeff(k);
               if (val != zero<T>()) { 
                 this->R_heom.push(lidx*this->n_state_liou + a,
@@ -406,8 +406,8 @@ template<typename T,
 void heom_lh<T, matrix_type, num_state>::calc_diff(
     ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
     const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-    REAL_TYPE(T) alpha,
-    REAL_TYPE(T) beta) {
+    real_t<T> alpha,
+    real_t<T> beta) {
   drho_dt = -alpha*this->R_heom_impl*rho + beta*drho_dt;
 }
 
@@ -477,7 +477,7 @@ template void heom<complex128>::init();
   template void qme_type<T, matrix_type, num_state>::calc_diff(                       \
       ref<dense_vector<T, Eigen::Dynamic>> drho_dt, \
       const ref<const dense_vector<T, Eigen::Dynamic>>& rho,     \
-      REAL_TYPE(T) alpha, REAL_TYPE(T) beta);
+      real_t<T> alpha, real_t<T> beta);
 // template void qme_type<T, matrix_type>::ConstructCommutator(            \
 //     lil_matrix<T>& x,                                                  \
 //     T coeff_l,                                                        \

@@ -23,7 +23,7 @@ template<typename T>
 inline T correlation(
     redfield<T>& rf,
     int u,
-    REAL_TYPE(T) omega) {
+    real_t<T> omega) {
 
   if (rf.use_corr_func && rf.use_corr_func[u]) {
     return rf.corr_func[u](omega);
@@ -57,7 +57,7 @@ void redfield<T>::init_aux_vars() {
         int j = V_jv.first;
         T val = V_jv.second;
         if (val != zero<T>()) {
-          REAL_TYPE(T) omega_ji;
+          real_t<T> omega_ji;
           try {
             omega_ji = std::real(this->H.data[j][j] - this->H.data[i][i]);
           } catch (std::out_of_range&) {
@@ -117,8 +117,8 @@ template<typename T,
 void redfield_h<T, matrix_type, num_state>::calc_diff(
     ref<dense_vector<T,Eigen::Dynamic>> drho_dt_raw,
     const ref<const dense_vector<T,Eigen::Dynamic>>& rho_raw,
-    REAL_TYPE(T) alpha,
-    REAL_TYPE(T) beta) {
+    real_t<T> alpha,
+    real_t<T> beta) {
   auto n_state = this->n_state;
   
   auto rho     = Eigen::Map<const dense_matrix<T,num_state>>(rho_raw.data(),n_state,n_state);
@@ -210,8 +210,8 @@ template<typename T,
 void redfield_l<T, matrix_type, num_state>::calc_diff(
     ref<dense_vector<T,Eigen::Dynamic>> drho_dt_raw,
     const ref<const dense_vector<T,Eigen::Dynamic>>& rho_raw,
-    REAL_TYPE(T) alpha,
-    REAL_TYPE(T) beta) {
+    real_t<T> alpha,
+    real_t<T> beta) {
   auto n_state_liou   = this->n_state_liou;
   auto rho     = block<num_state_liou,1>::value(rho_raw, 0,0,n_state_liou,1);
   auto drho_dt = block<num_state_liou,1>::value(drho_dt_raw,0,0,n_state_liou,1);
@@ -241,7 +241,7 @@ namespace libheom {
   template void qme_type<T, matrix_type, num_state>::calc_diff(                       \
       ref<dense_vector<T, Eigen::Dynamic>> drho_dt, \
       const ref<const dense_vector<T, Eigen::Dynamic>>& rho,     \
-      REAL_TYPE(T) alpha, REAL_TYPE(T) beta);
+      real_t<T> alpha, real_t<T> beta);
 // template void qme_type<T, matrix_type>::ConstructCommutator(            \
 //     lil_matrix<T>& x,                                                  \
 //     T coef_l,                                                         \

@@ -113,8 +113,8 @@ template<typename T, template <typename, int> class matrix_type, int num_state>
 void heom_lh_gpu<T, matrix_type, num_state>::calc_diff(
     ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
     const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-    REAL_TYPE(T) alpha,
-    REAL_TYPE(T) beta) {
+    real_t<T> alpha,
+    real_t<T> beta) {
   copy_vector_gpu(rho.data(), this->gpu->rho);
   // thrust::copy_n(reinterpret_cast<const GPU_TYPE(T)*>(rho),
   //                this->gpu->rho.size(),
@@ -129,7 +129,7 @@ void heom_lh_gpu<T, matrix_type, num_state>::calc_diff(
 template<typename T, template <typename, int> class matrix_type, int num_state>
 void heom_lh_gpu<T, matrix_type, num_state>::evolve_1(
     ref<dense_vector<T,Eigen::Dynamic>> rho,
-    REAL_TYPE(T) dt) {
+    real_t<T> dt) {
   // thrust::host_vector<T> tmp(this->size_rho);
   gpu->calc_diff_gpu(this->gpu->sub_vector,
                    this->gpu->rho,
@@ -178,7 +178,7 @@ void heom_lh_gpu<T, matrix_type, num_state>::evolve_1(
 template<typename T, template <typename, int> class matrix_type, int num_state>
 void heom_lh_gpu<T, matrix_type, num_state>::evolve(
     ref<dense_vector<T,Eigen::Dynamic>> rho,
-    REAL_TYPE(T) dt,
+    real_t<T> dt,
     const int steps) {
   copy_vector_gpu(rho.data(), this->gpu->rho);
   for (int step = 0; step < steps; ++step) {
@@ -200,15 +200,15 @@ namespace libheom {
   template void heom_lh_gpu<T, matrix_type, num_state>::calc_diff(           \
       ref<dense_vector<T,Eigen::Dynamic>> drho_dt,                       \
       const ref<const dense_vector<T,Eigen::Dynamic>>& rho,              \
-      REAL_TYPE(T) alpha,                                               \
-      REAL_TYPE(T) beta);                                               \
+      real_t<T> alpha,                                               \
+      real_t<T> beta);                                               \
   template void heom_lh_gpu<T, matrix_type, num_state>::evolve(             \
       ref<dense_vector<T,Eigen::Dynamic>> rho,                           \
-      REAL_TYPE(T) dt,                                                  \
+      real_t<T> dt,                                                  \
       const int steps);                                                 \
   template void heom_lh_gpu<T, matrix_type, num_state>::evolve_1(            \
       ref<dense_vector<T,Eigen::Dynamic>> rho,                           \
-      REAL_TYPE(T) dt);
+      real_t<T> dt);
 
 // DECLARE_EXPLICIT_INSTANTIATIONS(complex64,  DenseMatrix);
 // DECLARE_EXPLICIT_INSTANTIATIONS(complex64,  CsrMatrix);

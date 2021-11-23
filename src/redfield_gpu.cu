@@ -132,8 +132,8 @@ template<typename T, template <typename, int> class matrix_type, int num_state>
 void redfield_h_gpu<T, matrix_type, num_state>::calc_diff(
     ref<DenseVector<T,Eigen::Dynamic>> drho_dt,
     const ref<const DenseVector<T,Eigen::Dynamic>>& rho,
-    REAL_TYPE(T) alpha,
-    REAL_TYPE(T) beta) {
+    real_t<T> alpha,
+    real_t<T> beta) {
   copy_vector_gpu(rho.data(), this->gpu->rho);
   gpu->calc_diff_gpu(*this,
                    this->gpu->sub_vector,
@@ -147,7 +147,7 @@ void redfield_h_gpu<T, matrix_type, num_state>::calc_diff(
 template<typename T, template <typename, int> class matrix_type, int num_state>
 void redfield_h_gpu<T, matrix_type, num_state>::evolve_1(
     ref<DenseVector<T,Eigen::Dynamic>> rho,
-    REAL_TYPE(T) dt) {
+    real_t<T> dt) {
   gpu->calc_diff_gpu(*this,
                    this->gpu->sub_vector,
                    this->gpu->rho,
@@ -192,7 +192,7 @@ void redfield_h_gpu<T, matrix_type, num_state>::evolve_1(
 template<typename T, template <typename, int> class matrix_type, int num_state>
 void redfield_h_gpu<T, matrix_type, num_state>::evolve(
     ref<DenseVector<T,Eigen::Dynamic>> rho,
-    REAL_TYPE(T) dt,
+    real_t<T> dt,
     const int steps){
   copy_vector_gpu(rho.data(), this->gpu->rho);
   for (int step = 0; step < steps; ++step) {
@@ -213,15 +213,15 @@ namespace libheom {
   template void redfield_h_gpu<T, matrix_type, num_state>::calc_diff(        \
       ref<DenseVector<T,Eigen::Dynamic>> drho_dt,                       \
       const ref<const DenseVector<T,Eigen::Dynamic>>& rho,              \
-      REAL_TYPE(T) alpha,                                               \
-      REAL_TYPE(T) beta);                                               \
+      real_t<T> alpha,                                               \
+      real_t<T> beta);                                               \
   template void redfield_h_gpu<T, matrix_type, num_state>::evolve(          \
       ref<DenseVector<T,Eigen::Dynamic>> rho,                           \
-      REAL_TYPE(T) dt,                                                  \
+      real_t<T> dt,                                                  \
       const int steps);                                                 \
   template void redfield_h_gpu<T, matrix_type, num_state>::evolve_1(         \
       ref<DenseVector<T,Eigen::Dynamic>> rho,                           \
-      REAL_TYPE(T) dt);
+      real_t<T> dt);
 
 DECLARE_EXPLICIT_INSTANTIATIONS(complex64,  dense_matrix, Eigen::Dynamic);
 DECLARE_EXPLICIT_INSTANTIATIONS(complex64,  csr_matrix,   Eigen::Dynamic);
