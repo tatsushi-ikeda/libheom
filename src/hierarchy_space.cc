@@ -63,8 +63,19 @@ T calc_multicombination(T n, T r) {
 }
 
 long long calc_hierarchy_element_count(int level,
-                                    int dim) {
+                                       int dim) {
   return calc_multicombination<long long>(dim + 1, level);
+}
+
+void print_index(std::vector<int>& index, std::ostream& out) {
+  out << "[";
+  if (index.size() > 0) {
+    out << index[0];
+  }
+  for (int k = 1; k < index.size(); ++k) {
+    out << ", " << index[k];
+  }
+  out << "]";
 }
 
 #if ORDER_TYPE == ORIGINAL_ORDER
@@ -76,13 +87,19 @@ void set_hierarchy_space_sub(hierarchy_space& hs,
                              int max_depth,
                              std::function<void(int)> callback,
                              int interval_callback,
-                             std::function<bool(std::vector<int>, int)> filter_predicator) {
+                             std::function<bool(std::vector<int>, int)> hierarchy_filter,
+                             bool filter_flag) {
   for (int j_k = 0; j_k <= max_depth - depth; ++j_k) {
     index[k] = j_k;
     int depth_current = j_k + depth;
-    bool pass = (depth <= max_depth) && filter_predicator(index, depth);
+    bool pass = (depth <= max_depth) && (!filter_flag || hierarchy_filter(index, depth));
     if (pass) {
       if (k == 0) {
+        if (depth == max_depth && filter_flag) {
+          std::cerr << "[Warning]: hierarchy_filter has reached max_depth ";
+          print_index(index, std::cerr);
+          std::cerr << std::endl; 
+        }
         hs.index_book[index] = lidx;
         hs.j.push_back(index);
         ++lidx;
@@ -95,7 +112,8 @@ void set_hierarchy_space_sub(hierarchy_space& hs,
                                 max_depth,
                                 callback,
                                 interval_callback,
-                                filter_predicator);
+                                hierarchy_filter,
+                                filrer_flag);
       }
     }
   }
@@ -107,7 +125,8 @@ int allocate_hierarchy_space(hierarchy_space& hs,
                              int max_depth,
                              std::function<void(double)> callback,
                              int interval_callback,
-                             std::function<bool(std::vector<int>, int)> filter_predicator) {
+                             std::function<bool(std::vector<int>, int)> hierarchy_filter,
+                             bool filter_flag) {
   int n_dim = hs.n_dim;
   
   std::vector<int> index(n_dim);
@@ -121,7 +140,7 @@ int allocate_hierarchy_space(hierarchy_space& hs,
 
   std::fill(index.begin(), index.end(), 0);
 #if   ORDER_TYPE == ORIGINAL_ORDER
-  set_hierarchy_space_sub(hs, index, lidx, n_dim - 1, 0, max_depth, callback, interval_callback, filter_predicator);
+  set_hierarchy_space_sub(hs, index, lidx, n_dim - 1, 0, max_depth, callback, interval_callback, hierarchy_filter, filter_flag);
 #elif (ORDER_TYPE == BREADTH_FIRST_ORDER) || (ORDER_TYPE == DEPTH_FIRST_ORDER)
   next_element.AUX_STRUCT_PUSH(index);
   k_last_modified.AUX_STRUCT_PUSH(last_modified);
@@ -146,8 +165,13 @@ int allocate_hierarchy_space(hierarchy_space& hs,
 #  endif
         ++index[k];
         int depth = std::accumulate(index.begin(), index.end(), 0);
-        bool pass = (depth <= max_depth) && filter_predicator(index, depth);
+        bool pass = (depth <= max_depth) && (!filter_flag || hierarchy_filter(index, depth));
         if (pass) {
+          if (depth == max_depth && filter_flag) {
+            std::cerr << "[Warning]: hierarchy_filter has reached max_depth ";
+            print_index(index, std::cerr);
+            std::cerr << std::endl; 
+         }
           next_element.AUX_STRUCT_PUSH(index);
           k_last_modified.AUX_STRUCT_PUSH(k);
         }

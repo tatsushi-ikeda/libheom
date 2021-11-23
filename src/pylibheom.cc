@@ -190,7 +190,9 @@ template<template <typename,
 int allocate_hierarchy_space(heom_type<T, matrix_type, num_state>& obj,
                              int max_depth,
                              py::function& callback,
-                             int interval_callback) {
+                             int interval_callback,
+                             py::function& filter,
+                             bool filter_flag) {
   obj.n_hierarchy
       = allocate_hierarchy_space(obj.hs,
                                  max_depth,
@@ -198,7 +200,11 @@ int allocate_hierarchy_space(heom_type<T, matrix_type, num_state>& obj,
                                    // std::cout << ":progress " << progress << std::endl;
                                    // callback(progress);
                                  },
-                                 interval_callback);
+                                 interval_callback,
+                                 [&](std::vector<int> index, int depth) -> bool {
+                                   return py::cast<bool>(filter(index, depth, obj.lk));
+                                 },
+                                 filter_flag);
   return obj.n_hierarchy + 1;
 }
 
