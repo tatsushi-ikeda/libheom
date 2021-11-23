@@ -12,14 +12,20 @@ namespace libheom {
 // copy: y = x
 template<typename T,
          template <typename> class matrix_type>
-struct copy_impl {
-  static inline void func(const matrix_type<T>& x,
-                          matrix_type<T>& y);
+struct copy_impl
+{
+  static inline void func
+  /**/(const matrix_type<T>& x,
+       matrix_type<T>& y);
 };
+
+
 template<typename T,
          template <typename> class matrix_type>
-inline void copy(const matrix_type<T>& x,
-                 matrix_type<T>& y) {
+inline void copy
+/**/(const matrix_type<T>& x,
+     matrix_type<T>& y)
+{
   copy_impl<T, matrix_type>::func(x, y);
 }
 
@@ -28,15 +34,21 @@ inline void copy(const matrix_type<T>& x,
 template<typename T,
          typename U,
          template <typename> class matrix_type>
-struct scal_impl {
-  static inline void func(T alpha,
-                          matrix_type<U>& x);
+struct scal_impl
+{
+  static inline void func
+  /**/(T alpha,
+       matrix_type<U>& x);
 };
+
+
 template<typename T,
          typename U,
          template <typename> class matrix_type>
-inline void scal(T alpha,
-                 matrix_type<U>& x) {
+inline void scal
+/**/(T alpha,
+     matrix_type<U>& x)
+{
   scal_impl<T, U, matrix_type>::func(alpha, x);
 }
 
@@ -44,16 +56,22 @@ inline void scal(T alpha,
 // y = alpha*x + y
 template<typename T,
          template <typename> class matrix_type>
-struct axpy_impl {
-  static inline void func(T alpha,
-                          const matrix_type<T>& x,
-                          matrix_type<T>& y);
+struct axpy_impl
+{
+  static inline void func
+  /**/(T alpha,
+       const matrix_type<T>& x,
+       matrix_type<T>& y);
 };
+
+
 template<typename T,
          template <typename> class matrix_type>
-inline void axpy(T alpha,
-                 const matrix_type<T>& x,
-                 matrix_type<T>& y) {
+inline void axpy
+/**/(T alpha,
+     const matrix_type<T>& x,
+     matrix_type<T>& y)
+{
   axpy_impl<T, matrix_type>::func(alpha, x, y);
 }
 
@@ -61,20 +79,26 @@ inline void axpy(T alpha,
 // general matrix-vector multiplication
 template<typename T,
          template <typename> class matrix_type>
-struct gemv_impl {
-  static inline void func(T alpha,
-                          const matrix_type<T>& A,
-                          const T* B,
-                          T beta,
-                          T* C);
+struct gemv_impl
+{
+  static inline void func
+  /**/(T alpha,
+       const matrix_type<T>& A,
+       const T* B,
+       T beta,
+       T* C);
 };
+
+
 template<typename T,
          template <typename> class matrix_type>
-inline void gemv(T alpha,
-          const matrix_type<T>& A,
-          const T* B,
-          T beta,
-          T* C) {
+inline void gemv
+/**/(T alpha,
+     const matrix_type<T>& A,
+     const T* B,
+     T beta,
+     T* C)
+{
   gemv_impl<T, matrix_type>::func(alpha, A, B, beta, C);
 }
 
@@ -84,22 +108,28 @@ template<typename T,
          template <typename> class matrix_type_a,
          template <typename> class matrix_type_b,
          template <typename> class matrix_type_c>
-struct gemm_impl {
-  static inline void func(T alpha,
-                          const matrix_type_a<T>& A,
-                          const matrix_type_b<T>& B,
-                          T beta,
-                          matrix_type_c<T>& C);
+struct gemm_impl
+{
+  static inline void func
+  /**/(T alpha,
+       const matrix_type_a<T>& A,
+       const matrix_type_b<T>& B,
+       T beta,
+       matrix_type_c<T>& C);
 };
+
+
 template<typename T,
          template <typename> class matrix_type_a,
          template <typename> class matrix_type_b,
          template <typename> class matrix_type_c>
-inline void gemm(T alpha,
-                 const matrix_type_a<T>& A,
-                 const matrix_type_b<T>& B,
-                 T beta,
-                 matrix_type_c<T>& C) {
+inline void gemm
+/**/(T alpha,
+     const matrix_type_a<T>& A,
+     const matrix_type_b<T>& B,
+     T beta,
+     matrix_type_c<T>& C)
+{
   gemm_impl<T, matrix_type_a, matrix_type_b, matrix_type_c>::func(alpha, A, B, beta, C);
 }
 

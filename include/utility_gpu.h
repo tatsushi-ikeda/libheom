@@ -13,7 +13,9 @@
 #include <cublas_v2.h>
 #include <cusparse.h>
 
-namespace libheom {
+namespace libheom
+{
+
 #define CUDA_CALL(func)                                                    \
   {                                                                        \
     cudaError_t err = (func);                                              \
@@ -65,6 +67,5 @@ extern std::map<cusparseStatus_t,std::string> CUSPARSE_ERR_MSG;
   }
 
 }
-
 
 #endif

@@ -16,34 +16,49 @@
 namespace libheom {
 
 template<typename T, int N>
-struct copy_impl<T, N, dense_matrix> {
-  static inline void func(const dense_matrix<T, N>& x,
-                          dense_matrix<T, N>& y) {
+struct copy_impl<T, N, dense_matrix>
+{
+  static inline void func
+  /**/(const dense_matrix<T, N>& x,
+       dense_matrix<T, N>& y)
+  {
     y.noalias() = x;
   }
 };
+
 
 template<typename T, int N>
-struct copy_impl<T, N, dense_vector> {
-  static inline void func(const dense_vector<T, N>& x,
-                          dense_vector<T, N>& y) {
+struct copy_impl<T, N, dense_vector>
+{
+  static inline void func
+  /**/(const dense_vector<T, N>& x,
+       dense_vector<T, N>& y)
+  {
     y.noalias() = x;
   }
 };
 
+
 template<typename T, typename U, int N>
-struct scal_impl<T, U, N, dense_matrix> {
-  static inline void func(T alpha, dense_matrix<U, N> x) {
+struct scal_impl<T, U, N, dense_matrix>
+{
+  static inline void func
+  /**/(T alpha,
+       dense_matrix<U, N> x)
+  {
     x.noalias() *= a;
   }
 };
 
 
 template<typename T, int N>
-struct axpy_impl<T, N, dense_matrix> {
-  static inline void func(T alpha,
-                          const dense_matrix<T, N>& x,
-                          dense_matrix<T, N>& y) {
+struct axpy_impl<T, N, dense_matrix>
+{
+  static inline void func
+  /**/(T alpha,
+       const dense_matrix<T, N>& x,
+       dense_matrix<T, N>& y)
+  {
     y.noalias() += a*x;
   }
 };
@@ -51,12 +66,15 @@ struct axpy_impl<T, N, dense_matrix> {
 
 // general matrix-vector multiplication
 template<typename T, int NA, int NB, int NC>
-struct gemv_impl<T, NA, dense_matrix, NB, dense_vector, NC, dense_vector> {
-  static inline void func(T alpha, 
-                          const dense_matrix<T, NA>& A,
-                          const dense_vector<T, NB>& B,
-                          T beta,
-                          dense_vector<T, NC>& C) {
+struct gemv_impl<T, NA, dense_matrix, NB, dense_vector, NC, dense_vector>
+{
+  static inline void func
+  /**/(T alpha, 
+       const dense_matrix<T, NA>& A,
+       const dense_vector<T, NB>& B,
+       T beta,
+       dense_vector<T, NC>& C)
+  {
     C *= beta;
     C.noalias() = alpha*A*B;
   }
@@ -64,12 +82,15 @@ struct gemv_impl<T, NA, dense_matrix, NB, dense_vector, NC, dense_vector> {
 
 
 template<typename T, int NA, int NB, int NC>
-struct gemv_impl<T, NA, csr_matrix, NB, dense_vector, NC, dense_vector> {
-  static inline void func(T alpha, 
-                          const csr_matrix<T, NA>& A,
-                          const dense_vector<T, NB>& B,
-                          T beta,
-                          dense_vector<T, NC>& C) {
+struct gemv_impl<T, NA, csr_matrix, NB, dense_vector, NC, dense_vector>
+{
+  static inline void func
+  /**/(T alpha, 
+       const csr_matrix<T, NA>& A,
+       const dense_vector<T, NB>& B,
+       T beta,
+       dense_vector<T, NC>& C)
+  {
     C *= beta;
     C.noalias() = alpha*A*B;
   }

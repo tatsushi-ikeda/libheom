@@ -14,10 +14,13 @@
 // Note: In order to avoid compile errors caused by the two phase name
 //       lookup rule regarding template class, all class variables in
 //       this source have this-> modifier.
-namespace libheom {
+namespace libheom
+{
 
 template<typename T>
-void heom<T>::linearize() {
+void heom<T>::linearize
+/**/()
+{
   this->hs.n_dim
       = std::accumulate(this->len_gamma.get(),
                         this->len_gamma.get() + this->n_noise, 0);
@@ -35,7 +38,9 @@ void heom<T>::linearize() {
 
 
 template<typename T>
-void heom<T>::init() {
+void heom<T>::init
+/**/()
+{
   this->size_rho = (this->n_hrchy+1)*this->n_state*this->n_state;
   this->sub_vector.resize(this->size_rho);
   this->sub_vector.fill(zero<T>());
@@ -43,7 +48,9 @@ void heom<T>::init() {
 
 
 template<typename T>
-void heom<T>::init_aux_vars() {
+void heom<T>::init_aux_vars
+/**/()
+{
   qme<T>::init_aux_vars();
 
   this->ngamma_diag.resize(this->n_hrchy);
@@ -88,8 +95,11 @@ void heom<T>::init_aux_vars() {
   }
 }
 
+
 template<typename T>
-void heom_l<T>::init_aux_vars() {
+void heom_l<T>::init_aux_vars
+/**/()
+{
   heom<T>::init_aux_vars();
   
   this->n_state_liou = this->n_state*this->n_state;
@@ -152,14 +162,16 @@ void heom_l<T>::init_aux_vars() {
 
 
 //========================================================================
-// HEOM Module by using Liouville space expression
+// HEOM Module (Liouville space expression)
 //========================================================================
 
 
 template<typename T,
          template<typename, int> class matrix_type,
          int num_state>
-void heom_ll<T, matrix_type, num_state>::init_aux_vars() {
+void heom_ll<T, matrix_type, num_state>::init_aux_vars
+/**/()
+{
   heom_l<T>::init_aux_vars();
 
   this->L.template dump<num_state_liou>(this->L_impl);
@@ -182,12 +194,13 @@ void heom_ll<T, matrix_type, num_state>::init_aux_vars() {
 template<typename T,
          template<typename, int> class matrix_type,
          int num_state>
-void heom_ll<T, matrix_type, num_state>::calc_diff(
-    ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
-    const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-    real_t<T> alpha,
-    real_t<T> beta) {
-  auto n_hrchy    = this->n_hrchy;
+void heom_ll<T, matrix_type, num_state>::calc_diff
+/**/(ref<dense_vector<T,Eigen::Dynamic>>              drho_dt,
+     const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
+     real_t<T> alpha,
+     real_t<T> beta)
+{
+  auto n_hrchy        = this->n_hrchy;
   auto n_state_liou   = this->n_state_liou;
   auto n_noise        = this->n_noise;
   auto& R_heom_0_impl = this->R_heom_0_impl;
@@ -297,14 +310,16 @@ void heom_ll<T, matrix_type, num_state>::calc_diff(
 
 
 //========================================================================
-// HEOM Module by using hierarchical-Liouville space expression
+// HEOM Module (hierarchical-Liouville space expression)
 //========================================================================
 
 
 template<typename T,
          template<typename, int> class matrix_type,
          int num_state>
-void heom_lh<T, matrix_type, num_state>::init_aux_vars() {
+void heom_lh<T, matrix_type, num_state>::init_aux_vars
+/**/()
+{
   heom_l<T>::init_aux_vars();
   
   R_heom.set_shape(this->n_hrchy*this->n_state_liou, this->n_hrchy*this->n_state_liou);
@@ -403,11 +418,12 @@ void heom_lh<T, matrix_type, num_state>::init_aux_vars() {
 template<typename T,
          template<typename, int> class matrix_type,
          int num_state>
-void heom_lh<T, matrix_type, num_state>::calc_diff(
-    ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
-    const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-    real_t<T> alpha,
-    real_t<T> beta) {
+void heom_lh<T, matrix_type, num_state>::calc_diff
+/**/(ref<dense_vector<T,Eigen::Dynamic>>              drho_dt,
+     const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
+     real_t<T> alpha,
+     real_t<T> beta)
+{
   drho_dt = -alpha*this->R_heom_impl*rho + beta*drho_dt;
 }
 
@@ -467,16 +483,16 @@ void heom_lh<T, matrix_type, num_state>::calc_diff(
 // Explicit instantiations
 namespace libheom {
 
-template void heom<complex64>::linearize();
-template void heom<complex64>::init();
+template void heom<complex64 >::linearize();
+template void heom<complex64 >::init();
 template void heom<complex128>::linearize();
 template void heom<complex128>::init();
 
 #define DECLARE_EXPLICIT_INSTANTIATIONS(qme_type, T, matrix_type, num_state) \
-  template void qme_type<T, matrix_type, num_state>::init_aux_vars();   \
-  template void qme_type<T, matrix_type, num_state>::calc_diff(                       \
-      ref<dense_vector<T, Eigen::Dynamic>> drho_dt, \
-      const ref<const dense_vector<T, Eigen::Dynamic>>& rho,     \
+  template void qme_type<T, matrix_type, num_state>::init_aux_vars();        \
+  template void qme_type<T, matrix_type, num_state>::calc_diff(              \
+      ref<dense_vector<T, Eigen::Dynamic>> drho_dt,                          \
+      const ref<const dense_vector<T, Eigen::Dynamic>>& rho,                 \
       real_t<T> alpha, real_t<T> beta);
 // template void qme_type<T, matrix_type>::ConstructCommutator(            \
 //     lil_matrix<T>& x,                                                  \

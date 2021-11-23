@@ -24,28 +24,35 @@
 #include "dense_matrix.h"
 #include "csr_matrix.h"
 
-namespace libheom {
+namespace libheom
+{
+
 
 template <typename T>
-struct csr_matrix<T>::Aux {
+struct csr_matrix<T>::aux
+{
   bool init_flag = false;
 #if __INTEL_MKL__ >= 12
   sparse_matrix_t handle;
 #endif
-  void Init(csr_matrix<T>& mat);
+  void init(csr_matrix<T>& mat);
 };
 
 
 template <typename T>
-void csr_matrix<T>::init_aux() {
-  p_aux.reset(new csr_matrix<T>::Aux());
-  p_aux->Init(*this);
+void csr_matrix<T>::init_aux
+/**/()
+{
+  p_aux.reset(new csr_matrix<T>::aux());
+  p_aux->init(*this);
   p_aux->init_flag = true;
 }
 
 
 template <typename T>
-void csr_matrix<T>::fin_aux() {
+void csr_matrix<T>::fin_aux
+/**/()
+{
   if (p_aux && p_aux->init_flag) {
 #if __INTEL_MKL__ >= 12
     mkl_sparse_destroy(p_aux->handle);
@@ -57,73 +64,100 @@ void csr_matrix<T>::fin_aux() {
 
 
 template<>
-struct copy_impl<complex64> {
-  static inline void func(int n,
-                          const complex64* x,
-                          complex64* y) {
+struct copy_impl<complex64>
+{
+  static inline void func
+  /**/(int n,
+       const complex64* x,
+       complex64* y)
+  {
     cblas_ccopy(n, x, 1, y, 1);
   }
 };
 
 
 template<>
-struct copy_impl<complex128> {
-  static inline void func(int n,
-                          const complex128* x,
-                          complex128* y) {
+struct copy_impl<complex128>
+{
+  static inline void func
+  /**/(int n,
+       const complex128* x,
+       complex128* y)
+  {
     cblas_zcopy(n, x, 1, y, 1);
   }
 };
 
 
 template<>
-struct scal_impl<complex64, complex64> {
-  static inline void func(int n, complex64 alpha, complex64* x) {
+struct scal_impl<complex64, complex64>
+{
+  static inline void func
+  /**/(int n, complex64 alpha, complex64* x)
+  {
     cblas_cscal(n, &alpha, x, 1);
   }
 };
 
 
 template<>
-struct scal_impl<complex128, complex128> {
-  static inline void func(int n, complex128 alpha, complex128* x) {
+struct scal_impl<complex128, complex128>
+{
+  static inline void func
+  /**/(int n, complex128 alpha, complex128* x)
+  {
     cblas_zscal(n, &alpha, x, 1);
   }
 };
 
+
 template<>
-struct scal_impl<float32, complex64> {
-  static inline void func(int n, float32 alpha, complex64* x) {
+struct scal_impl<float32, complex64>
+{
+  static inline void func
+  /**/(int n, float32 alpha, complex64* x)
+  {
     cblas_csscal(n, alpha, x, 1);
   }
 };
 
 
 template<>
-struct scal_impl<float64, complex128> {
-  static inline void func(int n, float64 alpha, complex128* x) {
+struct scal_impl<float64, complex128>
+{
+  static inline void func
+  /**/(int n,
+       float64 alpha,
+       complex128* x)
+  {
     cblas_zdscal(n, alpha, x, 1);
   }
 };
 
 
 template<>
-struct axpy_impl<complex64> {
-  static inline void func(int n,
-                          complex64 alpha,
-                          const complex64* x,
-                          complex64* y) {
+struct axpy_impl<complex64>
+{
+  static inline void func
+  /**/(int n,
+       complex64 alpha,
+       const complex64* x,
+       complex64* y)
+  {
     cblas_caxpy(n, &alpha, x, 1, y, 1);
   }
 };
 
 
 template<>
-struct axpy_impl<complex128> {
-  static inline void func(int n,
-                          complex128 alpha,
-                          const complex128* x,
-                          complex128* y) {
+struct axpy_impl<complex128>
+{
+  static inline void func
+  /**/(int n,
+       complex128 alpha,
+       const complex128* x,
+       complex128* y)
+  {
     cblas_zaxpy(n, &alpha, x, 1, y, 1);
     // double alpha_ = std::real(alpha);
     // for (int i = 0; i < n; ++i) {
@@ -135,12 +169,15 @@ struct axpy_impl<complex128> {
 
 // general matrix-vector multiplication
 template<template <typename> class matrix_type>
-struct gemv_impl<complex64, matrix_type> {
-  static inline void func(complex64 alpha, 
-                          const matrix_type<complex64>& A,
-                          const complex64* B,
-                          complex64& beta,
-                          complex64* C) {
+struct gemv_impl<complex64, matrix_type>
+{
+  static inline void func
+  /**/(complex64 alpha, 
+       const matrix_type<complex64>& A,
+       const complex64* B,
+       complex64& beta,
+       complex64* C)
+  {
     cblas_cgemv(CblasRowMajor,
                 CblasNoTrans,
                 std::get<0>(A.shape),
@@ -158,12 +195,15 @@ struct gemv_impl<complex64, matrix_type> {
 
 
 template<template <typename> class matrix_type>
-struct gemv_impl<complex128, matrix_type> {
-  static inline void func(complex128 alpha, 
-                          const matrix_type<complex128>& A,
-                          const complex128* B,
-                          complex128 beta,
-                          complex128* C) {
+struct gemv_impl<complex128, matrix_type>
+{
+  static inline void func
+  /**/(complex128 alpha, 
+       const matrix_type<complex128>& A,
+       const complex128* B,
+       complex128 beta,
+       complex128* C)
+  {
     cblas_zgemv(CblasRowMajor,
                 CblasNoTrans,
                 std::get<0>(A.shape),
@@ -200,12 +240,15 @@ struct gemv_impl<complex128, matrix_type> {
 
 
 template<>
-struct gemv_impl<complex64, csr_matrix> {
-  static inline void func(complex64 alpha, 
-                          const csr_matrix<complex64>& A,
-                          const complex64* B,
-                          complex64& beta,
-                          complex64* C) {
+struct gemv_impl<complex64, csr_matrix>
+{
+  static inline void func
+  /**/(complex64 alpha, 
+       const csr_matrix<complex64>& A,
+       const complex64* B,
+       complex64& beta,
+       complex64* C)
+  {
 #if __INTEL_MKL__ >= 12
     struct matrix_descr descr = { SPARSE_MATRIX_TYPE_GENERAL };
     mkl_sparse_c_mv(SPARSE_OPERATION_NON_TRANSPOSE,
@@ -234,12 +277,15 @@ struct gemv_impl<complex64, csr_matrix> {
 
 
 template<>
-struct gemv_impl<complex128, csr_matrix> {
-  static inline void func(complex128 alpha, 
-                          const csr_matrix<complex128>& A,
-                          const complex128* B,
-                          complex128& beta,
-                          complex128* C) {
+struct gemv_impl<complex128, csr_matrix>
+{
+  static inline void func
+  /**/(complex128 alpha, 
+       const csr_matrix<complex128>& A,
+       const complex128* B,
+       complex128& beta,
+       complex128* C)
+  {
 #if __INTEL_MKL__ >= 12
     struct matrix_descr descr = { SPARSE_MATRIX_TYPE_GENERAL };
     mkl_sparse_z_mv(SPARSE_OPERATION_NON_TRANSPOSE,
@@ -271,12 +317,15 @@ struct gemv_impl<complex128, csr_matrix> {
 template<template <typename> class matrix_type_a,
          template <typename> class matrix_type_b,
          template <typename> class matrix_type_c>
-struct gemm_impl<complex64, matrix_type_a, matrix_type_b, matrix_type_c> {
-  static inline void func(complex64 alpha,
-                          const matrix_type_a<complex64>& A,
-                          const matrix_type_b<complex64>& B,
-                          complex64& beta,
-                          matrix_type_c<complex64>& C) {
+struct gemm_impl<complex64, matrix_type_a, matrix_type_b, matrix_type_c>
+{
+  static inline void func
+  /**/(complex64 alpha,
+       const matrix_type_a<complex64>& A,
+       const matrix_type_b<complex64>& B,
+       complex64& beta,
+       matrix_type_c<complex64>& C)
+  {
     cblas_cgemm(CblasRowMajor,
                 CblasNoTrans,
                 CblasNoTrans,
@@ -292,15 +341,19 @@ struct gemm_impl<complex64, matrix_type_a, matrix_type_b, matrix_type_c> {
   }
 };
 
+
 template<template <typename> class matrix_type_a,
          template <typename> class matrix_type_b,
          template <typename> class matrix_type_c>
-struct gemm_impl<complex128, matrix_type_a, matrix_type_b, matrix_type_c> {
-  static inline void func(complex128 alpha,
-                          const matrix_type_a<complex128>& A,
-                          const matrix_type_b<complex128>& B,
-                          complex128& beta,
-                          matrix_type_c<complex128>& C) {
+struct gemm_impl<complex128, matrix_type_a, matrix_type_b, matrix_type_c>
+{
+  static inline void func
+  /**/(complex128 alpha,
+       const matrix_type_a<complex128>& A,
+       const matrix_type_b<complex128>& B,
+       complex128& beta,
+       matrix_type_c<complex128>& C)
+  {
     cblas_zgemm(CblasRowMajor,
                 CblasNoTrans,
                 CblasNoTrans,
@@ -321,12 +374,15 @@ struct gemm_impl<complex128, matrix_type_a, matrix_type_b, matrix_type_c> {
 
 template<template <typename> class matrix_type_b,
          template <typename> class matrix_type_c>
-struct gemm_impl<complex64, csr_matrix, matrix_type_b, matrix_type_c> {
-  static inline void func(complex64 alpha,
-                          const csr_matrix<complex64>& A,
-                          const matrix_type_b<complex64>& B,
-                          complex64& beta,
-                          matrix_type_c<complex64>& C) {
+struct gemm_impl<complex64, csr_matrix, matrix_type_b, matrix_type_c>
+{
+  static inline void func
+  /**/(complex64 alpha,
+       const csr_matrix<complex64>& A,
+       const matrix_type_b<complex64>& B,
+       complex64& beta,
+       matrix_type_c<complex64>& C)
+  {
 #if __INTEL_MKL__ >= 12
     struct matrix_descr descr = { SPARSE_MATRIX_TYPE_GENERAL };
     mkl_sparse_c_mm(SPARSE_OPERATION_NON_TRANSPOSE,
@@ -365,14 +421,18 @@ struct gemm_impl<complex64, csr_matrix, matrix_type_b, matrix_type_c> {
 };
 
 
+
 template<template <typename> class matrix_type_b,
          template <typename> class matrix_type_c>
-struct gemm_impl<complex128, csr_matrix, matrix_type_b, matrix_type_c> {
-  static inline void func(complex128 alpha,
-                          const csr_matrix<complex128>& A,
-                          const matrix_type_b<complex128>& B,
-                          complex128& beta,
-                          matrix_type_c<complex128>& C) {
+struct gemm_impl<complex128, csr_matrix, matrix_type_b, matrix_type_c>
+{
+  static inline void func
+  /**/(complex128 alpha,
+       const csr_matrix<complex128>& A,
+       const matrix_type_b<complex128>& B,
+       complex128& beta,
+       matrix_type_c<complex128>& C)
+  {
 #if __INTEL_MKL__ >= 12
     struct matrix_descr descr = { SPARSE_MATRIX_TYPE_GENERAL };
     mkl_sparse_z_mm(SPARSE_OPERATION_NON_TRANSPOSE,
@@ -414,12 +474,15 @@ struct gemm_impl<complex128, csr_matrix, matrix_type_b, matrix_type_c> {
 
 template<template <typename> class matrix_type_a,
          template <typename> class matrix_type_c>
-struct gemm_impl<complex64, matrix_type_a, csr_matrix, matrix_type_c> {
-  static inline void func(complex64 alpha,
-                          const matrix_type_a<complex64>& A,
-                          const csr_matrix<complex64>& B,
-                          complex64& beta,
-                          matrix_type_c<complex64>& C) {
+struct gemm_impl<complex64, matrix_type_a, csr_matrix, matrix_type_c>
+{
+  static inline void func
+    /**/(complex64 alpha,
+         const matrix_type_a<complex64>& A,
+         const csr_matrix<complex64>& B,
+         complex64& beta,
+         matrix_type_c<complex64>& C)
+  {
 #if __INTEL_MKL__ >= 12
     struct matrix_descr descr = { SPARSE_MATRIX_TYPE_GENERAL };
     mkl_sparse_c_mm(SPARSE_OPERATION_TRANSPOSE,
@@ -482,12 +545,15 @@ struct gemm_impl<complex64, matrix_type_a, csr_matrix, matrix_type_c> {
 
 template<template <typename> class matrix_type_a,
          template <typename> class matrix_type_c>
-struct gemm_impl<complex128, matrix_type_a, csr_matrix, matrix_type_c> {
-  static inline void func(complex128 alpha,
-                          const matrix_type_a<complex128>& A,
-                          const csr_matrix<complex128>& B,
-                          complex128& beta,
-                          matrix_type_c<complex128>& C) {
+struct gemm_impl<complex128, matrix_type_a, csr_matrix, matrix_type_c>
+{
+  static inline void func
+  /**/(complex128 alpha,
+       const matrix_type_a<complex128>& A,
+       const csr_matrix<complex128>& B,
+       complex128& beta,
+       matrix_type_c<complex128>& C)
+  {
 #if __INTEL_MKL__ >= 12
     struct matrix_descr descr = { SPARSE_MATRIX_TYPE_GENERAL };
     mkl_sparse_z_mm(SPARSE_OPERATION_TRANSPOSE,

@@ -9,7 +9,8 @@
 
 #include <complex>
 
-namespace libheom {
+namespace libheom
+{
 
 typedef float  float32;
 typedef std::complex<float> complex64;

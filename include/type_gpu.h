@@ -30,6 +30,7 @@ template<> struct gpu_type<float64>    { typedef double value; };
 template<> struct gpu_type<complex64>  { typedef thrust::complex<float> value; };
 template<> struct gpu_type<complex128> { typedef thrust::complex<double> value; };
 
+
 // Get the corresponding type name on device code from type name on cpu code.
 template <typename T> struct raw_gpu_type;
 #define RAW_GPU_TYPE(type) typename raw_gpu_type<type>::value
@@ -81,36 +82,52 @@ inline RAW_GPU_TYPE(T) raw_gpu_type_cast(U data) {
 
 
 template<typename T>
-inline void copy_vector_gpu(const std::vector<T>& input,
-                          thrust::device_vector<GPU_TYPE(T)>& output) {
+inline void copy_vector_gpu
+/**/(const std::vector<T>& input,
+     thrust::device_vector<GPU_TYPE(T)>& output)
+{
   output.resize(input.size());
   thrust::copy_n(reinterpret_cast<const GPU_TYPE(T)*>(input.data()),
                  input.size(), output.begin());
 }
+
+
 template<typename T>
-inline void copy_vector_gpu(const thrust::device_vector<GPU_TYPE(T)>& input,
-                          std::vector<T>& output) {
+inline void copy_vector_gpu
+/**/(const thrust::device_vector<GPU_TYPE(T)>& input,
+     std::vector<T>& output)
+{
   output.resize(input.size());
   thrust::copy_n(input.begin(), input.size(),
                  reinterpret_cast<GPU_TYPE(T)*>(output.data()));
 }
+
+
 template<typename T>
-inline void copy_vector_gpu(const T* input,
-                          thrust::device_vector<GPU_TYPE(T)>& output) {
+inline void copy_vector_gpu
+/**/(const T* input,
+     thrust::device_vector<GPU_TYPE(T)>& output)
+{
   thrust::copy_n(reinterpret_cast<const GPU_TYPE(T)*>(input),
                  output.size(), output.begin());
 }
+
+
 template<typename T>
-inline void copy_vector_gpu(const thrust::device_vector<GPU_TYPE(T)>& input,
-                          T* output) {
+inline void copy_vector_gpu
+/**/(const thrust::device_vector<GPU_TYPE(T)>& input,
+     T* output)
+{
   thrust::copy_n(input.begin(), input.size(),
                  reinterpret_cast<GPU_TYPE(T)*>(output));
 }
 
 
 template <typename T> class dense_matrix_gpu;
+
 template <typename T>
-class csr_matrix_gpu {
+class csr_matrix_gpu
+{
  public:
   std::tuple<int, int> shape;
   int nnz;
@@ -119,7 +136,9 @@ class csr_matrix_gpu {
   thrust::device_vector<int> indices;
   thrust::device_vector<int> indptr;
 
-  inline csr_matrix_gpu<T>& operator = (const csr_matrix<T, Eigen::Dynamic>& rhs) {
+  inline csr_matrix_gpu<T>& operator =
+  /**/(const csr_matrix<T, Eigen::Dynamic>& rhs)
+  {
     std::get<0>(this->shape) = rhs.rows();
     std::get<1>(this->shape) = rhs.cols();
     
@@ -167,10 +186,13 @@ class csr_matrix_gpu {
 // Get the corresponding matrix type name on device from matrix name on cpu code.
 #define GPU_MATRIX_TYPE(type) typename GpuMatrixType<type>::value
 template <template <typename, int> class T> struct GpuMatrixType;
+
 template<> struct GpuMatrixType<DenseMatrix> {
   template <typename T>
   using value = dense_matrix_gpu<T>;
 };
+
+
 template<> struct GpuMatrixType<csr_matrix> {
   template <typename T>
   using value = CsrMatrixGpu<T>;

@@ -6,7 +6,8 @@
 
 #include "utility_gpu.h"
 
-namespace libheom {
+namespace libheom
+{
 
 // The source of these messages is https://docs.nvidia.com/cuda/cublas/index.html.
 std::map<cublasStatus_t,std::string> CUBLAS_ERR_MSG =

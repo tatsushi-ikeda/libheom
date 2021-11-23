@@ -12,10 +12,13 @@
 //       lookup rule regarding template class, all class variables in
 //       this source have this-> modifier.
 
-namespace libheom {
+namespace libheom
+{
 
 template<typename T>
-void qme<T>::alloc_noise(int n_noise) {
+void qme<T>::alloc_noise
+/**/(int n_noise)
+{
   this->n_noise = n_noise;
   
   this->V.reset(new lil_matrix<T>[n_noise]);
@@ -32,22 +35,29 @@ void qme<T>::alloc_noise(int n_noise) {
 
 
 template<typename T>
-void qme<T>::init() {
+void qme<T>::init
+/**/()
+{
   this->size_rho = this->n_state*this->n_state;
   this->sub_vector.resize(this->size_rho);
 }
 
+
 template<typename T>
-void qme<T>::fin() {
+void qme<T>::fin
+/**/()
+{
 }
 
 template<typename T>
-void qme<T>::solve(ref<dense_vector<T,Eigen::Dynamic>> rho,
-                           real_t<T> dt__unit,
-                           real_t<T> dt,
-                           int interval,
-                           int count,
-                           std::function<void(real_t<T>)> callback) {
+void qme<T>::solve
+/**/(ref<dense_vector<T,Eigen::Dynamic>> rho,
+     real_t<T> dt__unit,
+     real_t<T> dt,
+     int       interval,
+     int       count,
+     std::function<void(real_t<T>)> callback)
+{
   for (int ctr = 0; ctr < count; ++ctr) {
     callback(ctr*interval*dt__unit);
     evolve(rho, dt, interval);
@@ -56,7 +66,10 @@ void qme<T>::solve(ref<dense_vector<T,Eigen::Dynamic>> rho,
 
 
 template<typename T>
-void qme<T>::evolve_1(ref<dense_vector<T,Eigen::Dynamic>> rho, real_t<T> dt) {
+void qme<T>::evolve_1
+/**/(ref<dense_vector<T,Eigen::Dynamic>> rho,
+     real_t<T> dt)
+{
   calc_diff(this->sub_vector, rho, dt, 0);
   rho.noalias() += frac<real_t<T>>(1,3)*this->sub_vector;
 
@@ -71,7 +84,11 @@ void qme<T>::evolve_1(ref<dense_vector<T,Eigen::Dynamic>> rho, real_t<T> dt) {
 }
 
 template<typename T>
-void qme<T>::evolve(ref<dense_vector<T,Eigen::Dynamic>> rho, real_t<T> dt, const int steps) {
+void qme<T>::evolve
+/**/(ref<dense_vector<T,Eigen::Dynamic>> rho,
+     real_t<T> dt,
+     const int steps)
+{
   for (int step = 0; step < steps; ++step) {
     evolve_1(rho, dt);
   }
@@ -80,25 +97,26 @@ void qme<T>::evolve(ref<dense_vector<T,Eigen::Dynamic>> rho, real_t<T> dt, const
 }
 
 // Explicit instantiations
-namespace libheom {
+namespace libheom
+{
 
-#define DECLARE_EXPLICIT_INSTANTIATIONS(T)                                    \
-  template void qme<T>::alloc_noise(int n_noise);                           \
+#define DECLARE_EXPLICIT_INSTANTIATIONS(T)                              \
+  template void qme<T>::alloc_noise(int n_noise);                       \
   template void qme<T>::init();                                         \
-  template void qme<T>::fin();                                           \
-  template void qme<T>::solve(                                        \
-      ref<dense_vector<T,Eigen::Dynamic>> rho,                                                    \
-      real_t<T> dt__unit,                                                  \
-      real_t<T> dt,                                                        \
-      int interval,                                                           \
-      int count,                                                              \
-      std::function<void(real_t<T>)> callback);                            \
-  template void qme<T>::evolve(ref<dense_vector<T,Eigen::Dynamic>> rho,                           \
-                               real_t<T> dt,                         \
-                               const int steps);                              \
+  template void qme<T>::fin();                                          \
+  template void qme<T>::solve(                                          \
+      ref<dense_vector<T,Eigen::Dynamic>> rho,                          \
+      real_t<T> dt__unit,                                               \
+      real_t<T> dt,                                                     \
+      int interval,                                                     \
+      int count,                                                        \
+      std::function<void(real_t<T>)> callback);                         \
+  template void qme<T>::evolve(ref<dense_vector<T,Eigen::Dynamic>> rho, \
+                               real_t<T> dt,                            \
+                               const int steps);                        \
   template void qme<T>::evolve_1(ref<dense_vector<T,Eigen::Dynamic>> rho, real_t<T> dt);
 
-DECLARE_EXPLICIT_INSTANTIATIONS(complex64);
+DECLARE_EXPLICIT_INSTANTIATIONS(complex64 );
 DECLARE_EXPLICIT_INSTANTIATIONS(complex128);
 
 }

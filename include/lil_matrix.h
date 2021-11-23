@@ -22,24 +22,37 @@
 #include "csr_matrix.h"
 #include "printer.h"
 
-namespace libheom{
+namespace libheom
+{
 
 // Sparse matrix class by using list in list (LIL) format.
 // While the name includes `list', this is implemented by using std::map.
 template <typename T>
-class lil_matrix {
+class lil_matrix
+{
  public:
   typedef T dtype;
   typedef std::map<int, std::map<int, dtype>> lil_type;
   std::tuple<int, int> shape;
   lil_type data;
 
-  lil_matrix() {}
   
-  lil_matrix(int shape_0, int shape_1)
-    : shape(shape_0, shape_1) {}
+  lil_matrix
+  /**/()
+  {}
 
-  void set_shape(int shape_0, int shape_1) {
+  
+  lil_matrix
+  /**/(int shape_0,
+       int shape_1)
+    : shape(shape_0, shape_1)
+  {}
+  
+
+  void set_shape
+  /**/(int shape_0,
+       int shape_1)
+  {
     std::get<0>(shape) = shape_0;
     std::get<1>(shape) = shape_1;
     data.clear();
@@ -51,13 +64,17 @@ class lil_matrix {
   //   // for (int i = 0; i < csr.indptr.)
   // }
 
-  void clear() {
+  void clear
+  /**/()
+  {
     data.clear();
   }
 
-  void optimize(
-      typename T::value_type tol
-      = std::numeric_limits<typename T::value_type>::epsilon()) {
+  
+  void optimize
+  /**/(typename T::value_type tol
+       = std::numeric_limits<typename T::value_type>::epsilon())
+  {
     typename T::value_type max = 0;
     for (auto& ijv : data) {
       int i = ijv.first;
@@ -100,11 +117,13 @@ class lil_matrix {
     }
   }
   
-  void push(const int row, const int col, const T& value) {
+  void push(const int row, const int col, const T& value)
+  {
     data[row][col] += value;
   }
 
-  lil_matrix<T> transpose() const {
+  lil_matrix<T> transpose() const
+  {
     lil_matrix<T> out(std::get<1>(shape), std::get<0>(shape));
     for (auto& data_ijv : data) {
       int i = data_ijv.first;
@@ -116,7 +135,8 @@ class lil_matrix {
     return std::move(out);
   }
 
-  lil_matrix<T> hermite_conjugate() const {
+  lil_matrix<T> hermite_conjugate() const
+  {
     lil_matrix<T> out(std::get<1>(shape), std::get<0>(shape));
     for (auto& data_ijv : data) {
       int i = data_ijv.first;
@@ -130,7 +150,9 @@ class lil_matrix {
 
 
   template<int N = Eigen::Dynamic>
-  void dump(dense_matrix<T,N>& out) const {
+  void dump
+  /**/(dense_matrix<T,N>& out) const
+  {
     out.resize(std::get<0>(shape), std::get<1>(shape));
     out.setZero();
     for (auto& data_ijv : data) {
@@ -144,7 +166,9 @@ class lil_matrix {
 
 
   template<int N = Eigen::Dynamic>
-  void dump(csr_matrix<T,N>& out) const {
+  void dump
+  /**/(csr_matrix<T,N>& out) const
+  {
     out.resize(std::get<0>(shape), std::get<1>(shape));
     std::vector<Eigen::Triplet<T>> list;
     for (auto& data_ijv : data) {
@@ -171,7 +195,10 @@ class lil_matrix {
 
 
 template <typename T>
-std::ostream& operator << (std::ostream& out, const lil_matrix<T>& m) {
+std::ostream& operator <<
+/**/(std::ostream& out,
+     const lil_matrix<T>& m)
+{
   out << "lil matrix" << std::endl;
   out << "  internal data:" << std::endl;
   out << "  - shape: "   << ShapePrinter(m.shape) << std::endl;
@@ -189,11 +216,13 @@ std::ostream& operator << (std::ostream& out, const lil_matrix<T>& m) {
 
 
 template<typename T>
-inline void kron_identity_right(const T& alpha,
-                                const lil_matrix<T>& x,
-                                const T& beta,
-                                lil_matrix<T>& y,
-                                bool conj=false) {
+inline void kron_identity_right
+/**/(const T& alpha,
+     const lil_matrix<T>& x,
+     const T& beta,
+     lil_matrix<T>& y,
+     bool conj=false)
+{
   if (beta == static_cast<T>(0)) {
     y.data.clear();
   } else {
@@ -235,11 +264,13 @@ inline void kron_identity_right(const T& alpha,
 
 
 template<typename T>
-inline void kron_identity_left(const T& alpha,
-                               const lil_matrix<T>& x,
-                               const T& beta,
-                               lil_matrix<T>& y,
-                               bool conj=false) {
+inline void kron_identity_left
+/**/(const T& alpha,
+     const lil_matrix<T>& x,
+     const T& beta,
+     lil_matrix<T>& y,
+     bool conj=false)
+{
   if (beta == static_cast<T>(0)) {
     y.data.clear();
   } else {
@@ -279,11 +310,15 @@ inline void kron_identity_left(const T& alpha,
   }
 }
 
+
 template<typename T>
-struct axpy_impl<T, lil_matrix> {
-  static inline void func(T alpha,
-                          const lil_matrix<T>& x,
-                          lil_matrix<T>& y) {
+struct axpy_impl<T, lil_matrix>
+{
+  static inline void func
+  /**/(T alpha,
+       const lil_matrix<T>& x,
+       lil_matrix<T>& y)
+  {
     for (auto& x_ijv : x.data) {
       int i = x_ijv.first;
       for (auto& x_jv: x_ijv.second) {
@@ -296,11 +331,13 @@ struct axpy_impl<T, lil_matrix> {
 
 
 template<typename T>
-inline void gemm_lil_matrix_impl(T alpha,
-                                 const lil_matrix<T>& A,
-                                 const lil_matrix<T>& B,
-                                 T beta,
-                                 lil_matrix<T>& C) {
+inline void gemm_lil_matrix_impl
+/**/(T alpha,
+     const lil_matrix<T>& A,
+     const lil_matrix<T>& B,
+     T beta,
+     lil_matrix<T>& C)
+{
   if (beta == static_cast<T>(0)) {
     C.data.clear();
   } else {
@@ -325,24 +362,32 @@ inline void gemm_lil_matrix_impl(T alpha,
   }
 }
 
+
 template<>
-struct gemm_impl<complex64, lil_matrix, lil_matrix, lil_matrix> {
-  static void func(complex64 alpha,
-                   const lil_matrix<complex64>& A,
-                   const lil_matrix<complex64>& B,
-                   complex64 beta,
-                   lil_matrix<complex64>& C) {
+struct gemm_impl<complex64, lil_matrix, lil_matrix, lil_matrix>
+{
+  static void func
+  /**/(complex64 alpha,
+       const lil_matrix<complex64>& A,
+       const lil_matrix<complex64>& B,
+       complex64 beta,
+       lil_matrix<complex64>& C)
+  {
     gemm_lil_matrix_impl(alpha, A, B, beta, C);
   }
 };
 
+
 template<>
-struct gemm_impl<complex128, lil_matrix, lil_matrix, lil_matrix> {
-  static void func(complex128 alpha,
-                   const lil_matrix<complex128>& A,
-                   const lil_matrix<complex128>& B,
-                   complex128 beta,
-                   lil_matrix<complex128>& C) {
+struct gemm_impl<complex128, lil_matrix, lil_matrix, lil_matrix>
+{
+  static void func
+  /**/(complex128 alpha,
+       const lil_matrix<complex128>& A,
+       const lil_matrix<complex128>& B,
+       complex128 beta,
+       lil_matrix<complex128>& C)
+  {
     gemm_lil_matrix_impl(alpha, A, B, beta, C);
   }
 };

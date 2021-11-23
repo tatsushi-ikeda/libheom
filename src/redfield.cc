@@ -15,16 +15,17 @@
 #include "const.h"
 // #include "mkl_wrapper.h"
 
-namespace libheom {
+namespace libheom
+{
 
 // calculate Fourier-Laplace transform of quantum correlation function.
 // The exponent is +1j*omega*t.
 template<typename T>
-inline T correlation(
-    redfield<T>& rf,
-    int u,
-    real_t<T> omega) {
-
+inline T correlation
+/**/(redfield<T>& rf,
+     int u,
+     real_t<T> omega)
+{
   if (rf.use_corr_func && rf.use_corr_func[u]) {
     return rf.corr_func[u](omega);
   } else {
@@ -45,7 +46,9 @@ inline T correlation(
 
 
 template<typename T>
-void redfield<T>::init_aux_vars() {
+void redfield<T>::init_aux_vars
+/**/()
+{
   qme<T>::init_aux_vars();
   
   this->Lambda.reset(new lil_matrix<T>[this->n_noise]);
@@ -73,14 +76,16 @@ void redfield<T>::init_aux_vars() {
 
 
 //========================================================================
-// redfield Module by using Hilbert space expression
+// redfield Module (Hilbert space expression)
 //========================================================================
 
 
 template<typename T,
          template <typename, int> class matrix_type,
          int num_state>
-void redfield_h<T, matrix_type, num_state>::init_aux_vars() {
+void redfield_h<T, matrix_type, num_state>::init_aux_vars
+/**/()
+{
   redfield<T>::init_aux_vars();
 
   this->H.template dump<num_state>(this->H_impl);
@@ -114,11 +119,12 @@ void redfield_h<T, matrix_type, num_state>::init_aux_vars() {
 template<typename T,
          template <typename, int> class matrix_type,
          int num_state>
-void redfield_h<T, matrix_type, num_state>::calc_diff(
-    ref<dense_vector<T,Eigen::Dynamic>> drho_dt_raw,
-    const ref<const dense_vector<T,Eigen::Dynamic>>& rho_raw,
-    real_t<T> alpha,
-    real_t<T> beta) {
+void redfield_h<T, matrix_type, num_state>::calc_diff
+/**/(ref<dense_vector<T,Eigen::Dynamic>>              drho_dt_raw,
+     const ref<const dense_vector<T,Eigen::Dynamic>>& rho_raw,
+     real_t<T> alpha,
+     real_t<T> beta)
+{
   auto n_state = this->n_state;
   
   auto rho     = Eigen::Map<const dense_matrix<T,num_state>>(rho_raw.data(),n_state,n_state);
@@ -149,14 +155,16 @@ void redfield_h<T, matrix_type, num_state>::calc_diff(
 
 
 //========================================================================
-// redfield Module by using Liouville space expression
+// redfield Module (Liouville space expression)
 //========================================================================
 
 
 template<typename T,
          template <typename, int> class matrix_type,
          int num_state>
-void redfield_l<T, matrix_type, num_state>::init_aux_vars() {
+void redfield_l<T, matrix_type, num_state>::init_aux_vars
+/**/()
+{
   redfield<T>::init_aux_vars();
   
   this->n_state_liou = this->n_state*this->n_state;
@@ -207,11 +215,12 @@ void redfield_l<T, matrix_type, num_state>::init_aux_vars() {
 template<typename T,
          template <typename, int> class matrix_type,
          int num_state>
-void redfield_l<T, matrix_type, num_state>::calc_diff(
-    ref<dense_vector<T,Eigen::Dynamic>> drho_dt_raw,
-    const ref<const dense_vector<T,Eigen::Dynamic>>& rho_raw,
-    real_t<T> alpha,
-    real_t<T> beta) {
+void redfield_l<T, matrix_type, num_state>::calc_diff
+/**/(ref<dense_vector<T,Eigen::Dynamic>>              drho_dt_raw,
+     const ref<const dense_vector<T,Eigen::Dynamic>>& rho_raw,
+     real_t<T> alpha,
+     real_t<T> beta)
+{
   auto n_state_liou   = this->n_state_liou;
   auto rho     = block<num_state_liou,1>::value(rho_raw, 0,0,n_state_liou,1);
   auto drho_dt = block<num_state_liou,1>::value(drho_dt_raw,0,0,n_state_liou,1);
@@ -233,14 +242,16 @@ void redfield_l<T, matrix_type, num_state>::calc_diff(
 
 }
 
+
 // Explicit instantiations
-namespace libheom {
+namespace libheom
+{
 
 #define DECLARE_EXPLICIT_INSTANTIATIONS(qme_type, T, matrix_type, num_state) \
-  template void qme_type<T, matrix_type, num_state>::init_aux_vars();   \
-  template void qme_type<T, matrix_type, num_state>::calc_diff(                       \
-      ref<dense_vector<T, Eigen::Dynamic>> drho_dt, \
-      const ref<const dense_vector<T, Eigen::Dynamic>>& rho,     \
+  template void qme_type<T, matrix_type, num_state>::init_aux_vars();        \
+  template void qme_type<T, matrix_type, num_state>::calc_diff(              \
+      ref<dense_vector<T, Eigen::Dynamic>> drho_dt,                          \
+      const ref<const dense_vector<T, Eigen::Dynamic>>& rho,                 \
       real_t<T> alpha, real_t<T> beta);
 // template void qme_type<T, matrix_type>::ConstructCommutator(            \
 //     lil_matrix<T>& x,                                                  \

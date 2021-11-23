@@ -6,10 +6,13 @@
 
 #include "mkl_wrapper.h"
 
-namespace libheom {
+namespace libheom
+{
 
 template <>
-void csr_matrix<complex64>::aux::init(csr_matrix<complex64>& mat) {
+void csr_matrix<complex64>::aux::init
+/**/(csr_matrix<complex64>& mat)
+{
 #if __INTEL_MKL__ >= 12
   mkl_sparse_c_create_csr(&handle,
                           SPARSE_INDEX_BASE_ZERO,
@@ -24,7 +27,9 @@ void csr_matrix<complex64>::aux::init(csr_matrix<complex64>& mat) {
 
 
 template <>
-void csr_matrix<complex128>::aux::init(csr_matrix<complex128>& mat) {
+void csr_matrix<complex128>::aux::init
+/**/(csr_matrix<complex128>& mat)
+{
 #if __INTEL_MKL__ >= 12
   mkl_sparse_z_create_csr(&handle,
                           SPARSE_INDEX_BASE_ZERO,
@@ -37,14 +42,20 @@ void csr_matrix<complex128>::aux::init(csr_matrix<complex128>& mat) {
 #endif
 }
 
+
 template<typename T>
-csr_matrix<T>::~csr_matrix() {
+csr_matrix<T>::~csr_matrix
+/**/()
+{
   fin_aux();
 };
 
 }
 
-namespace libheom {
+namespace libheom
+{
+
 template class csr_matrix<complex64>;
 template class csr_matrix<complex128>;
+
 }

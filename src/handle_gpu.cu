@@ -8,9 +8,12 @@
 
 #include "gpu_info.h"
 
-namespace libheom {
+namespace libheom
+{
 
-void handle_gpu::init(int device_number) {
+void handle_gpu::init
+/**/(int device_number)
+{
   this->device_number = device_number;
   SetGpuDevice(device_number);
   

@@ -9,16 +9,20 @@
 
 #include "utility_gpu.h"
 
-namespace libheom {
+namespace libheom
+{
 
-class handle_gpu {
+class handle_gpu
+{
 public:
   int                device_number = 0;
   cusparseHandle_t   cusparse;
   cublasHandle_t     cublas;  
   cusparseMatDescr_t mat_descr;
 
-  void init(int device_number);
+
+  void init
+  /**/(int device_number);
 };
 
 }

@@ -18,19 +18,24 @@ class heom_lh_gpu_vars;
 
 template<typename T, template <typename, int> class matrix_type, int num_state>
 class heom_lh_gpu
-    : public HeomLH<T, matrix_type, num_state> {
+    : public HeomLH<T, matrix_type, num_state>
+{
  public:
-  void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
-                 const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-                 real_t<T> alpha,
-                 real_t<T> beta) override;
+  void calc_diff
+  /**/(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
+       const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
+       real_t<T> alpha,
+       real_t<T> beta) override;
 
-  void evolve(ref<dense_vector<T,Eigen::Dynamic>> rho,
-              real_t<T> dt,
-              const int steps);
+  
+  void evolve
+  /**/(ref<dense_vector<T,Eigen::Dynamic>> rho,
+       real_t<T> dt,
+       const int steps);
 
-  void evolve_1(ref<dense_vector<T,Eigen::Dynamic>> rho,
-               real_t<T> dt);
+  void evolve_1
+  /**/(ref<dense_vector<T,Eigen::Dynamic>> rho,
+       real_t<T> dt);
   
   // void construct_commutator
   // /**/(did_matrix<T>& x,
@@ -43,12 +48,15 @@ class heom_lh_gpu
   // void apply_commutator
   // /**/(T* rho);
   
-  void set_device_number(int device_number);
+  void set_device
+  /**/(int device_number);
+
   
-  void init_aux_vars(std::function<void(int)> callback);
+  void init_aux_vars
+  /**/(std::function<void(int)> callback);
+
 
   int device_number = -1;
-  
   std::shared_ptr<heom_lh_gpu_vars<T, matrix_type, num_state>> gpu;
 };
 

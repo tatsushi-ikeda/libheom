@@ -12,15 +12,21 @@
 #include <iostream>
 #include <fstream>
 
-namespace libheom {
+namespace libheom
+{
 
-class shape_printer {
+class shape_printer
+{
 public:
-  shape_printer(const std::tuple<int, int>& shape) :
-    data(shape)
+  shape_printer
+  /**/(const std::tuple<int, int>& shape)
+      : data(shape)
   {}
+
+  
   const std::tuple<int, int>& data;
 };
+
 
 std::ostream& operator <<
 /**/(std::ostream& out,
@@ -28,13 +34,18 @@ std::ostream& operator <<
 
 
 template <typename T>
-class vector_printer {
+class vector_printer
+{
 public:
-  vector_printer(const std::vector<T>& vec) :
-    data(vec)
+  vector_printer
+  /**/(const std::vector<T>& vec)
+      : data(vec)
   {}
+
+
   const std::vector<T>& data;
 };
+
 
 template <typename T>
 std::ostream& operator <<
@@ -52,6 +63,5 @@ std::ostream& operator <<
 }
 
 }
-
 
 #endif

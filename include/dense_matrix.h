@@ -19,14 +19,17 @@
 #define EIGEN_INITIALIZE_MATRICES_BY_NAN
 #include <Eigen/Core>
 
-namespace libheom {
+namespace libheom
+{
 
 template<typename T>
 using ref = Eigen::Ref<T>;
 
+
 template<typename T,
          int N>
 using dense_vector = Eigen::Matrix<T,N,1,Eigen::ColMajor>;
+
 
 template<typename T,
          int N>

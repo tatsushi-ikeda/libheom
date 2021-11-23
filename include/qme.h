@@ -16,35 +16,45 @@
 #include "lil_matrix.h"
 #include "dense_matrix.h"
 
-namespace libheom {
+namespace libheom
+{
 
-constexpr inline int n_state_prod(int a, int b) {
+
+constexpr inline int n_state_prod(int a, int b)
+{
   return ((a == Eigen::Dynamic) || (b == Eigen::Dynamic)) ? Eigen::Dynamic : a*b;
 }
 
 
 template <int P, int Q,
           bool static_flag = ((P != Eigen::Dynamic) && (Q != Eigen::Dynamic))>
-class block {
+class block
+{
  public:
   template<typename matrix_type>
-  static inline Eigen::Block<matrix_type,P,Q> value(matrix_type& matrix, int i, int j, int p, int q) {
+  static inline Eigen::Block<matrix_type,P,Q> value
+  /**/(matrix_type& matrix, int i, int j, int p, int q)
+  {
     return matrix.template block<P,Q>(i,j);
   }
 };
 
 template <int P, int Q>
-class block<P, Q, false> {
+class block<P, Q, false>
+{
  public:
   template<typename matrix_type>
-  static inline Eigen::Block<matrix_type> value(matrix_type& matrix, int i, int j, int p, int q) {
+  static inline Eigen::Block<matrix_type> value
+  /**/(matrix_type& matrix, int i, int j, int p, int q)
+  {
     return matrix.block(i,j,p,q);
   }
 };
 
 
 template<typename T>
-class qme {
+class qme
+{
 public:
   int n_state;
   lil_matrix<T> H;
@@ -70,28 +80,37 @@ public:
 
   dense_vector<T,Eigen::Dynamic> sub_vector;
   
-  void alloc_noise(int n_noise);
-  void init();
-  void fin();
-
-  void solve(ref<dense_vector<T,Eigen::Dynamic>> rho,
-             real_t<T> dt__unit,
-             real_t<T> dt,
-             int interval,
-             int count,
-             std::function<void(real_t<T>)> callback);
-
-  virtual void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
-                         const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-                         real_t<T> alpha,
-                         real_t<T> beta) = 0;
+  void alloc_noise
+  /**/(int n_noise);
   
-  virtual void evolve(ref<dense_vector<T,Eigen::Dynamic>> rho,
-                      real_t<T> dt,
-                      const int steps);
+  void init
+  /**/();
+  
+  void fin
+  /**/();
 
-  virtual void evolve_1(ref<dense_vector<T,Eigen::Dynamic>> rho,
-                        real_t<T> dt);
+  void solve
+  /**/(ref<dense_vector<T,Eigen::Dynamic>> rho,
+       real_t<T> dt__unit,
+       real_t<T> dt,
+       int interval,
+       int count,
+       std::function<void(real_t<T>)> callback);
+
+  virtual void calc_diff
+  /**/(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
+       const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
+       real_t<T> alpha,
+       real_t<T> beta) = 0;
+  
+  virtual void evolve
+  /**/(ref<dense_vector<T,Eigen::Dynamic>> rho,
+       real_t<T> dt,
+       const int steps);
+  
+  virtual void evolve_1
+  /**/(ref<dense_vector<T,Eigen::Dynamic>> rho,
+       real_t<T> dt);
   
   // virtual void ConstructCommutator(lil_matrix<T>& x,
   //                                  T coef_l,
@@ -102,7 +121,8 @@ public:
   
   // virtual void ApplyCommutator(Eigen::ref<dense_vector<T>> rho) = 0;
 
-  void init_aux_vars() {};
+  void init_aux_vars
+  /**/() {};
 
   qme()                      = default;
   qme(const qme&)            = delete;

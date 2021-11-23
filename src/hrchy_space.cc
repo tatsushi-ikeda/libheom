@@ -29,10 +29,13 @@
 #include <stdexcept>
 #include <iostream>
 
-namespace libheom {
+namespace libheom
+{
 
 template<typename T>
-T calc_gcd(T m, T n) {
+T calc_gcd
+/**/(T m, T n)
+{
   if (m < n) {
     T swap = m;
     m = n;
@@ -48,7 +51,9 @@ T calc_gcd(T m, T n) {
 
 
 template<typename T>
-T calc_multicombination(T n, T r) {
+T calc_multicombination
+/**/(T n, T r)
+{
   T num, den;
   num = 1;
   den = 1;
@@ -62,12 +67,18 @@ T calc_multicombination(T n, T r) {
   return num/den;
 }
 
-long long calc_hrchy_element_count(int level,
-                                       int dim) {
+
+long long calc_hrchy_element_count
+/**/(int level,
+     int dim)
+{
   return calc_multicombination<long long>(dim + 1, level);
 }
 
-void print_index(std::vector<int>& index, std::ostream& out) {
+
+void print_index
+/**/(std::vector<int>& index, std::ostream& out)
+{
   out << "[";
   if (index.size() > 0) {
     out << index[0];
@@ -78,18 +89,21 @@ void print_index(std::vector<int>& index, std::ostream& out) {
   out << "]";
 }
 
+
 #if ORDER_TYPE == ORIGINAL_ORDER
-void set_hrchy_space_sub(hrchy_space& hs,
-                             std::vector<int>& index,
-                             int& lidx,
-                             int k,
-                             int depth,
-                             int max_depth,
-                             std::function<void(int, int)> callback,
-                             int interval_callback,
-                             int estimated_max_lidx,
-                             std::function<bool(std::vector<int>, int)> hrchy_filter,
-                             bool filter_flag) {
+void set_hrchy_space_sub
+/**/(hrchy_space& hs,
+     std::vector<int>& index,
+     int& lidx,
+     int  k,
+     int  depth,
+     int  max_depth,
+     std::function<void(int, int)> callback,
+     int  interval_callback,
+     int  estimated_max_lidx,
+     std::function<bool(std::vector<int>, int)> hrchy_filter,
+     bool filter_flag)
+{
   for (int n_k = 0; n_k <= max_depth - depth; ++n_k) {
     index[k] = n_k;
     int depth_current = n_k + depth;
@@ -125,12 +139,15 @@ void set_hrchy_space_sub(hrchy_space& hs,
 }
 #endif
 
-int alloc_hrchy_space(hrchy_space& hs,
-                             int max_depth,
-                             std::function<void(int, int)> callback,
-                             int interval_callback,
-                             std::function<bool(std::vector<int>, int)> hrchy_filter,
-                             bool filter_flag) {
+
+int alloc_hrchy_space
+/**/(hrchy_space& hs,
+     int  max_depth,
+     std::function<void(int, int)> callback,
+     int  interval_callback,
+     std::function<bool(std::vector<int>, int)> hrchy_filter,
+     bool filter_flag)
+{
   int n_dim = hs.n_dim;
   
   std::vector<int> index(n_dim);

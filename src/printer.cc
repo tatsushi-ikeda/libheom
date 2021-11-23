@@ -6,10 +6,13 @@
 
 #include "printer.h"
 
-namespace libheom {
+namespace libheom
+{
 
-std::ostream& operator << (std::ostream& out,
-                           const shape_printer& printer) {
+std::ostream& operator <<
+/**/(std::ostream& out,
+     const shape_printer& printer)
+{
   out << "("
       << std::get<0>(printer.data) << ", "
       << std::get<1>(printer.data) << ")";

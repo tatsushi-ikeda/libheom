@@ -122,7 +122,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name='pylibheom',
-    version='0.6.7',
+    version='0.6.8',
     author='Tatsushi IKEDA',
     author_email='ikeda.tatsushi.37u@kyoto-u.jp',
     # packages=[''],
