@@ -102,7 +102,7 @@ public:
   
   // virtual void ApplyCommutator(Eigen::ref<dense_vector<T>> rho) = 0;
 
-  void init_aux_vars(std::function<void(int)> callback) {};
+  void init_aux_vars() {};
 
   qme()                      = default;
   qme(const qme&)            = delete;

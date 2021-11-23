@@ -45,8 +45,8 @@ inline T correlation(
 
 
 template<typename T>
-void redfield<T>::init_aux_vars(std::function<void(int)> callback) {
-  qme<T>::init_aux_vars(callback);
+void redfield<T>::init_aux_vars() {
+  qme<T>::init_aux_vars();
   
   this->Lambda.reset(new lil_matrix<T>[this->n_noise]);
   for (int s = 0; s < this->n_noise; ++s) {
@@ -80,9 +80,8 @@ void redfield<T>::init_aux_vars(std::function<void(int)> callback) {
 template<typename T,
          template <typename, int> class matrix_type,
          int num_state>
-void redfield_h<T, matrix_type, num_state>::init_aux_vars(
-    std::function<void(int)> callback) {
-  redfield<T>::init_aux_vars(callback);
+void redfield_h<T, matrix_type, num_state>::init_aux_vars() {
+  redfield<T>::init_aux_vars();
 
   this->H.template dump<num_state>(this->H_impl);
 
@@ -157,9 +156,8 @@ void redfield_h<T, matrix_type, num_state>::calc_diff(
 template<typename T,
          template <typename, int> class matrix_type,
          int num_state>
-void redfield_l<T, matrix_type, num_state>::init_aux_vars(
-    std::function<void(int)> callback) {
-  redfield<T>::init_aux_vars(callback);
+void redfield_l<T, matrix_type, num_state>::init_aux_vars() {
+  redfield<T>::init_aux_vars();
   
   this->n_state_liou = this->n_state*this->n_state;
   
@@ -239,8 +237,7 @@ void redfield_l<T, matrix_type, num_state>::calc_diff(
 namespace libheom {
 
 #define DECLARE_EXPLICIT_INSTANTIATIONS(qme_type, T, matrix_type, num_state) \
-  template void qme_type<T, matrix_type, num_state>::init_aux_vars(                   \
-      std::function<void(int)> callback);                               \
+  template void qme_type<T, matrix_type, num_state>::init_aux_vars();   \
   template void qme_type<T, matrix_type, num_state>::calc_diff(                       \
       ref<dense_vector<T, Eigen::Dynamic>> drho_dt, \
       const ref<const dense_vector<T, Eigen::Dynamic>>& rho,     \

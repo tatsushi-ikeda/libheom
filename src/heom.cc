@@ -43,8 +43,8 @@ void heom<T>::initialize() {
 
 
 template<typename T>
-void heom<T>::init_aux_vars(std::function<void(int)> callback) {
-  qme<T>::init_aux_vars(callback);
+void heom<T>::init_aux_vars() {
+  qme<T>::init_aux_vars();
 
   this->jgamma_diag.resize(this->n_hierarchy);
   for (int lidx = 0; lidx < this->n_hierarchy; ++lidx) {
@@ -89,8 +89,8 @@ void heom<T>::init_aux_vars(std::function<void(int)> callback) {
 }
 
 template<typename T>
-void heom_l<T>::init_aux_vars(std::function<void(int)> callback) {
-  heom<T>::init_aux_vars(callback);
+void heom_l<T>::init_aux_vars() {
+  heom<T>::init_aux_vars();
   
   this->n_state_liou = this->n_state*this->n_state;
   
@@ -159,9 +159,8 @@ void heom_l<T>::init_aux_vars(std::function<void(int)> callback) {
 template<typename T,
          template<typename, int> class matrix_type,
          int num_state>
-void heom_ll<T, matrix_type, num_state>::init_aux_vars(
-    std::function<void(int)> callback) {
-  heom_l<T>::init_aux_vars(callback);
+void heom_ll<T, matrix_type, num_state>::init_aux_vars() {
+  heom_l<T>::init_aux_vars();
 
   this->L.template dump<num_state_liou>(this->L_impl);
 
@@ -305,16 +304,12 @@ void heom_ll<T, matrix_type, num_state>::calc_diff(
 template<typename T,
          template<typename, int> class matrix_type,
          int num_state>
-void heom_lh<T, matrix_type, num_state>::init_aux_vars(std::function<void(int)> callback) {
-  heom_l<T>::init_aux_vars(callback);
+void heom_lh<T, matrix_type, num_state>::init_aux_vars() {
+  heom_l<T>::init_aux_vars();
   
   R_heom.set_shape(this->n_hierarchy*this->n_state_liou, this->n_hierarchy*this->n_state_liou);
   
   for (int lidx = 0; lidx < this->n_hierarchy; ++lidx) {
-    // if (lidx % interval_callback == 0) {
-    callback(lidx);
-    // }
-
     for (int a = 0; a < this->n_state_liou; ++a) {
       // -1 terms
       for (int u = 0; u < this->n_noise; ++u) {
@@ -478,8 +473,7 @@ template void heom<complex128>::linearize_dim();
 template void heom<complex128>::initialize();
 
 #define DECLARE_EXPLICIT_INSTANTIATIONS(qme_type, T, matrix_type, num_state) \
-  template void qme_type<T, matrix_type, num_state>::init_aux_vars(                   \
-      std::function<void(int)> callback);                               \
+  template void qme_type<T, matrix_type, num_state>::init_aux_vars();   \
   template void qme_type<T, matrix_type, num_state>::calc_diff(                       \
       ref<dense_vector<T, Eigen::Dynamic>> drho_dt, \
       const ref<const dense_vector<T, Eigen::Dynamic>>& rho,     \

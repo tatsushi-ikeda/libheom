@@ -31,7 +31,7 @@ class heom
   void linearize_dim();
   
   void initialize();
-  void init_aux_vars(std::function<void(int)> callback);
+  void init_aux_vars();
 };
 
 
@@ -50,7 +50,7 @@ class heom_l
   
   lil_matrix<T> X;
 
-  void init_aux_vars(std::function<void(int)> callback);
+  void init_aux_vars();
 };
 
 
@@ -86,7 +86,7 @@ class heom_ll
   
   // void ApplyCommutator(ref<dense_vector<T>>& rho) override;
   
-  void init_aux_vars(std::function<void(int)> callback);
+  void init_aux_vars();
 
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -123,7 +123,7 @@ class heom_lh
   
   // void ApplyCommutator(ref<dense_vector<T>>& rho) override;
   
-  void init_aux_vars(std::function<void(int)> callback);
+  void init_aux_vars();
 
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW

@@ -214,11 +214,9 @@ template<template <typename,
          typename T,
          template<typename, int> class matrix_type, 
          int num_state>
-void init_aux_vars(qme_type<T, matrix_type, num_state>& obj,
-                   py::function& callback,
-                   int interval_callback) {
+void init_aux_vars(qme_type<T, matrix_type, num_state>& obj) {
   obj.initialize();
-  obj.init_aux_vars([&](int lidx) { callback(lidx); });
+  obj.init_aux_vars();
 }
 
 

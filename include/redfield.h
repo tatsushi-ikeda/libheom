@@ -21,7 +21,7 @@ class redfield
   std::unique_ptr<lil_matrix<T>[]> Lambda;
   std::vector<T> sub_vector;  
   
-  void init_aux_vars(std::function<void(int)> callback);
+  void init_aux_vars();
 };
 
 
@@ -41,7 +41,7 @@ class redfield_h
 
   // std::vector<T> tmp_vector;
 
-  void init_aux_vars(std::function<void(int)> callback);
+  void init_aux_vars();
 
   void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
                  const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
@@ -82,7 +82,7 @@ class redfield_l
 
   // std::vector<T> tmp_vector;
 
-  void init_aux_vars(std::function<void(int)> callback);
+  void init_aux_vars();
 
   void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
                 const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
