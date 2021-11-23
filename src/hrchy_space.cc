@@ -4,7 +4,7 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#include "hierarchy_space.h"
+#include "hrchy_space.h"
 
 #define ORIGINAL_ORDER      0
 #define BREADTH_FIRST_ORDER 1
@@ -62,7 +62,7 @@ T calc_multicombination(T n, T r) {
   return num/den;
 }
 
-long long calc_hierarchy_element_count(int level,
+long long calc_hrchy_element_count(int level,
                                        int dim) {
   return calc_multicombination<long long>(dim + 1, level);
 }
@@ -79,7 +79,7 @@ void print_index(std::vector<int>& index, std::ostream& out) {
 }
 
 #if ORDER_TYPE == ORIGINAL_ORDER
-void set_hierarchy_space_sub(hierarchy_space& hs,
+void set_hrchy_space_sub(hrchy_space& hs,
                              std::vector<int>& index,
                              int& lidx,
                              int k,
@@ -88,19 +88,19 @@ void set_hierarchy_space_sub(hierarchy_space& hs,
                              std::function<void(int, int)> callback,
                              int interval_callback,
                              int estimated_max_lidx,
-                             std::function<bool(std::vector<int>, int)> hierarchy_filter,
+                             std::function<bool(std::vector<int>, int)> hrchy_filter,
                              bool filter_flag) {
   for (int j_k = 0; j_k <= max_depth - depth; ++j_k) {
     index[k] = j_k;
     int depth_current = j_k + depth;
-    bool pass = (depth <= max_depth) && (!filter_flag || hierarchy_filter(index, depth));
+    bool pass = (depth <= max_depth) && (!filter_flag || hrchy_filter(index, depth));
     if (pass) {
       if (k == 0) {
         if (lidx % interval_callback == 0) {
           callback(lidx, estimated_max_lidx);
         }
         if (depth == max_depth && filter_flag) {
-          std::cerr << "[Warning]: hierarchy_filter has reached max_depth ";
+          std::cerr << "[Warning]: hrchy_filter has reached max_depth ";
           print_index(index, std::cerr);
           std::cerr << std::endl; 
         }
@@ -108,7 +108,7 @@ void set_hierarchy_space_sub(hierarchy_space& hs,
         hs.j.push_back(index);
         ++lidx;
       } else {
-        set_hierarchy_space_sub(hs,
+        set_hrchy_space_sub(hs,
                                 index,
                                 lidx,
                                 k - 1,
@@ -116,7 +116,7 @@ void set_hierarchy_space_sub(hierarchy_space& hs,
                                 max_depth,
                                 callback,
                                 interval_callback,
-                                hierarchy_filter,
+                                hrchy_filter,
                                 filrer_flag);
       }
     }
@@ -125,16 +125,16 @@ void set_hierarchy_space_sub(hierarchy_space& hs,
 }
 #endif
 
-int allocate_hierarchy_space(hierarchy_space& hs,
+int alloc_hrchy_space(hrchy_space& hs,
                              int max_depth,
                              std::function<void(int, int)> callback,
                              int interval_callback,
-                             std::function<bool(std::vector<int>, int)> hierarchy_filter,
+                             std::function<bool(std::vector<int>, int)> hrchy_filter,
                              bool filter_flag) {
   int n_dim = hs.n_dim;
   
   std::vector<int> index(n_dim);
-  int n_hierarchy   = 0;
+  int n_hrchy   = 0;
   int lidx          = 0;
 #if (ORDER_TYPE == BREADTH_FIRST_ORDER) || (ORDER_TYPE == DEPTH_FIRST_ORDER)
   AUX_STRUCT<std::vector<int>> next_element;
@@ -142,10 +142,10 @@ int allocate_hierarchy_space(hierarchy_space& hs,
   int last_modified = 0;
 #endif  
 
-  long long estimated_max_lidx = calc_hierarchy_element_count(max_depth, n_dim);
+  long long estimated_max_lidx = calc_hrchy_element_count(max_depth, n_dim);
   std::fill(index.begin(), index.end(), 0);
 #if   ORDER_TYPE == ORIGINAL_ORDER
-  set_hierarchy_space_sub(hs, index, lidx, n_dim - 1, 0, max_depth, callback, interval_callback, estimated_max_lidx, hierarchy_filter, filter_flag);
+  set_hrchy_space_sub(hs, index, lidx, n_dim - 1, 0, max_depth, callback, interval_callback, estimated_max_lidx, hrchy_filter, filter_flag);
 #elif (ORDER_TYPE == BREADTH_FIRST_ORDER) || (ORDER_TYPE == DEPTH_FIRST_ORDER)
   next_element.AUX_STRUCT_PUSH(index);
   k_last_modified.AUX_STRUCT_PUSH(last_modified);
@@ -169,10 +169,10 @@ int allocate_hierarchy_space(hierarchy_space& hs,
 #  endif
         ++index[k];
         int depth = std::accumulate(index.begin(), index.end(), 0);
-        bool pass = (depth <= max_depth) && (!filter_flag || hierarchy_filter(index, depth));
+        bool pass = (depth <= max_depth) && (!filter_flag || hrchy_filter(index, depth));
         if (pass) {
           if (depth == max_depth && filter_flag) {
-            std::cerr << "[Warning]: hierarchy_filter has reached max_depth ";
+            std::cerr << "[Warning]: hrchy_filter has reached max_depth ";
             print_index(index, std::cerr);
             std::cerr << std::endl; 
          }
@@ -187,12 +187,12 @@ int allocate_hierarchy_space(hierarchy_space& hs,
 #  endif
   }
 #endif
-  n_hierarchy = lidx;
+  n_hrchy = lidx;
   hs.ptr_void = lidx;
   
-  hs.ptr_p1.resize(n_hierarchy);
-  hs.ptr_m1.resize(n_hierarchy);
-  for (int lidx = 0; lidx < n_hierarchy; ++lidx) {
+  hs.ptr_p1.resize(n_hrchy);
+  hs.ptr_m1.resize(n_hrchy);
+  for (int lidx = 0; lidx < n_hrchy; ++lidx) {
     index = hs.j[lidx];
     hs.ptr_p1[lidx].resize(n_dim);
     hs.ptr_m1[lidx].resize(n_dim);
@@ -213,7 +213,7 @@ int allocate_hierarchy_space(hierarchy_space& hs,
       ++index[k];
     }
   }
-  return n_hierarchy;
+  return n_hrchy;
 }
 
 }

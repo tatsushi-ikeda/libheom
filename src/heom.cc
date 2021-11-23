@@ -17,7 +17,7 @@
 namespace libheom {
 
 template<typename T>
-void heom<T>::linearize_dim() {
+void heom<T>::linearize() {
   this->hs.n_dim
       = std::accumulate(this->len_gamma.get(),
                         this->len_gamma.get() + this->n_noise, 0);
@@ -35,8 +35,8 @@ void heom<T>::linearize_dim() {
 
 
 template<typename T>
-void heom<T>::initialize() {
-  this->size_rho = (this->n_hierarchy+1)*this->n_state*this->n_state;
+void heom<T>::init() {
+  this->size_rho = (this->n_hrchy+1)*this->n_state*this->n_state;
   this->sub_vector.resize(this->size_rho);
   this->sub_vector.fill(zero<T>());
 }
@@ -46,8 +46,8 @@ template<typename T>
 void heom<T>::init_aux_vars() {
   qme<T>::init_aux_vars();
 
-  this->jgamma_diag.resize(this->n_hierarchy);
-  for (int lidx = 0; lidx < this->n_hierarchy; ++lidx) {
+  this->jgamma_diag.resize(this->n_hrchy);
+  for (int lidx = 0; lidx < this->n_hrchy; ++lidx) {
     this->jgamma_diag[lidx] = zero<T>();
     for (int u = 0; u < this->n_noise; ++u) {
       for (int k = 0; k < this->len_gamma[u]; ++k) {
@@ -187,7 +187,7 @@ void heom_ll<T, matrix_type, num_state>::calc_diff(
     const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
     REAL_TYPE(T) alpha,
     REAL_TYPE(T) beta) {
-  auto n_hierarchy    = this->n_hierarchy;
+  auto n_hrchy    = this->n_hrchy;
   auto n_state_liou   = this->n_state_liou;
   auto n_noise        = this->n_noise;
   auto& R_heom_0_impl = this->R_heom_0_impl;
@@ -207,7 +207,7 @@ void heom_ll<T, matrix_type, num_state>::calc_diff(
   dense_vector<T,num_state_liou> tmp_Phi(this->n_state_liou);
   dense_vector<T,num_state_liou> tmp_Psi(this->n_state_liou);
 
-  for (int lidx = 0; lidx < n_hierarchy; ++lidx) {
+  for (int lidx = 0; lidx < n_hrchy; ++lidx) {
     // auto rho_n     = rho.block(lidx*n_state_liou,0,n_state_liou,1);
     // auto drho_dt_n = drho_dt.block(lidx*n_state_liou,0,n_state_liou,1);
     auto rho_n     = block<num_state_liou,1>::value(rho, lidx*n_state_liou,0,n_state_liou,1);
@@ -307,9 +307,9 @@ template<typename T,
 void heom_lh<T, matrix_type, num_state>::init_aux_vars() {
   heom_l<T>::init_aux_vars();
   
-  R_heom.set_shape(this->n_hierarchy*this->n_state_liou, this->n_hierarchy*this->n_state_liou);
+  R_heom.set_shape(this->n_hrchy*this->n_state_liou, this->n_hrchy*this->n_state_liou);
   
-  for (int lidx = 0; lidx < this->n_hierarchy; ++lidx) {
+  for (int lidx = 0; lidx < this->n_hrchy; ++lidx) {
     for (int a = 0; a < this->n_state_liou; ++a) {
       // -1 terms
       for (int u = 0; u < this->n_noise; ++u) {
@@ -428,10 +428,10 @@ void heom_lh<T, matrix_type, num_state>::calc_diff(
 //   kron_identity_left (coeff_r, x, one<T>(), this->X);
 //   this->X.optimize();
 
-//   this->X_hrchy.set_shape(this->n_hierarchy*this->n_state_liou,
-//                          this->n_hierarchy*this->n_state_liou);
+//   this->X_hrchy.set_shape(this->n_hrchy*this->n_state_liou,
+//                          this->n_hrchy*this->n_state_liou);
   
-//   for (int lidx = 0; lidx < this->n_hierarchy; ++lidx) {
+//   for (int lidx = 0; lidx < this->n_hrchy; ++lidx) {
 //     if (lidx % interval_callback == 0) {
 //       callback(lidx);
 //     }
@@ -467,10 +467,10 @@ void heom_lh<T, matrix_type, num_state>::calc_diff(
 // Explicit instantiations
 namespace libheom {
 
-template void heom<complex64>::linearize_dim();
-template void heom<complex64>::initialize();
-template void heom<complex128>::linearize_dim();
-template void heom<complex128>::initialize();
+template void heom<complex64>::linearize();
+template void heom<complex64>::init();
+template void heom<complex128>::linearize();
+template void heom<complex128>::init();
 
 #define DECLARE_EXPLICIT_INSTANTIATIONS(qme_type, T, matrix_type, num_state) \
   template void qme_type<T, matrix_type, num_state>::init_aux_vars();   \

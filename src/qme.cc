@@ -15,7 +15,7 @@
 namespace libheom {
 
 template<typename T>
-void qme<T>::allocate_noise(int n_noise) {
+void qme<T>::alloc_noise(int n_noise) {
   this->n_noise = n_noise;
   
   this->V.reset(new lil_matrix<T>[n_noise]);
@@ -32,17 +32,17 @@ void qme<T>::allocate_noise(int n_noise) {
 
 
 template<typename T>
-void qme<T>::initialize() {
+void qme<T>::init() {
   this->size_rho = this->n_state*this->n_state;
   this->sub_vector.resize(this->size_rho);
 }
 
 template<typename T>
-void qme<T>::finalize() {
+void qme<T>::fin() {
 }
 
 template<typename T>
-void qme<T>::time_evolution(ref<dense_vector<T,Eigen::Dynamic>> rho,
+void qme<T>::solve(ref<dense_vector<T,Eigen::Dynamic>> rho,
                            REAL_TYPE(T) dt__unit,
                            REAL_TYPE(T) dt,
                            int interval,
@@ -83,10 +83,10 @@ void qme<T>::evolve(ref<dense_vector<T,Eigen::Dynamic>> rho, REAL_TYPE(T) dt, co
 namespace libheom {
 
 #define DECLARE_EXPLICIT_INSTANTIATIONS(T)                                    \
-  template void qme<T>::allocate_noise(int n_noise);                           \
-  template void qme<T>::initialize();                                         \
-  template void qme<T>::finalize();                                           \
-  template void qme<T>::time_evolution(                                        \
+  template void qme<T>::alloc_noise(int n_noise);                           \
+  template void qme<T>::init();                                         \
+  template void qme<T>::fin();                                           \
+  template void qme<T>::solve(                                        \
       ref<dense_vector<T,Eigen::Dynamic>> rho,                                                    \
       REAL_TYPE(T) dt__unit,                                                  \
       REAL_TYPE(T) dt,                                                        \

@@ -70,16 +70,16 @@ public:
 
   dense_vector<T,Eigen::Dynamic> sub_vector;
   
-  void allocate_noise(int n_noise);
-  void initialize();
-  void finalize();
+  void alloc_noise(int n_noise);
+  void init();
+  void fin();
 
-  void time_evolution(ref<dense_vector<T,Eigen::Dynamic>> rho,
-                      REAL_TYPE(T) dt__unit,
-                      REAL_TYPE(T) dt,
-                      int interval,
-                      int count,
-                      std::function<void(REAL_TYPE(T))> callback);
+  void solve(ref<dense_vector<T,Eigen::Dynamic>> rho,
+             REAL_TYPE(T) dt__unit,
+             REAL_TYPE(T) dt,
+             int interval,
+             int count,
+             std::function<void(REAL_TYPE(T))> callback);
 
   virtual void calc_diff(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
                          const ref<const dense_vector<T,Eigen::Dynamic>>& rho,

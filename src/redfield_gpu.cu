@@ -44,7 +44,7 @@ void redfield_h_gpu<T, matrix_type, num_state>::init_aux_vars(std::function<void
 
   this->gpu.reset(new redfield_h_gpu_vars<T, matrix_type, num_state>);
   
-  this->gpu->handle.Initialize(device_number);
+  this->gpu->handle.init(device_number);
 
   this->gpu->H_impl = this->H_impl;
   

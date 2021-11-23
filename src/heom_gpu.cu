@@ -42,7 +42,7 @@ void heom_lh_gpu<T, matrix_type, num_state>::init_aux_vars(std::function<void(in
 
   this->gpu.reset(new heom_lh_gpu_vars<T, matrix_type, num_state>);
   
-  this->gpu->handle.initialize(device_number);
+  this->gpu->handle.init(device_number);
   
   this->gpu->R_heom_impl = this->R_heom_impl;
   this->gpu->rho.resize(this->size_rho);

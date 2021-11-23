@@ -8,7 +8,7 @@
 #define HEOM_H
 
 #include "qme.h"
-#include "hierarchy_space.h"
+#include "hrchy_space.h"
 
 namespace libheom {
 
@@ -18,7 +18,7 @@ template<typename T>
 class heom
   : public qme<T> {
  public:
-  hierarchy_space hs;
+  hrchy_space hs;
   std::vector<T>  jgamma_diag;
   std::unique_ptr<Eigen::SparseMatrix<T, Eigen::RowMajor>[]> gamma_offdiag;
   
@@ -26,11 +26,11 @@ class heom
   std::unique_ptr<Eigen::Matrix<T,Eigen::Dynamic,1>[]> A;
   
   int n_dim;
-  int n_hierarchy;
+  int n_hrchy;
 
-  void linearize_dim();
+  void linearize();
   
-  void initialize();
+  void init();
   void init_aux_vars();
 };
 

@@ -18,7 +18,7 @@ public:
   cublasHandle_t     cublas;  
   cusparseMatDescr_t mat_descr;
 
-  void initialize(int device_number);
+  void init(int device_number);
 };
 
 }

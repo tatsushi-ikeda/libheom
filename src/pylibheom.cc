@@ -89,9 +89,9 @@ template<template <typename,
          typename T,
          template<typename, int> class matrix_type, 
          int num_state>
-void allocate_noises(qme_type<T, matrix_type, num_state>& obj,
+void alloc_noises(qme_type<T, matrix_type, num_state>& obj,
                      int n_noise) {
-  obj.allocate_noise(n_noise);
+  obj.alloc_noise(n_noise);
 }
 
 
@@ -167,8 +167,8 @@ template<template <typename,
          typename T,
          template<typename, int> class matrix_type, 
          int num_state>
-void flatten_hierarchy_dimension(heom_type<T, matrix_type, num_state>& obj) {
-  obj.linearize_dim();
+void linearize(heom_type<T, matrix_type, num_state>& obj) {
+  obj.linearize();
 }
 
 
@@ -187,24 +187,24 @@ template<template <typename,
          typename T,
          template<typename, int> class matrix_type, 
          int num_state>
-int allocate_hierarchy_space(heom_type<T, matrix_type, num_state>& obj,
+int alloc_hrchy(heom_type<T, matrix_type, num_state>& obj,
                              int max_depth,
                              py::function& callback,
                              int interval_callback,
                              py::function& filter,
                              bool filter_flag) {
-  obj.n_hierarchy
-      = allocate_hierarchy_space(obj.hs,
-                                 max_depth,
-                                 [&](int lidx, int estimated_max_lidx) {
-                                   callback(lidx, estimated_max_lidx);
-                                 },
-                                 interval_callback,
-                                 [&](std::vector<int> index, int depth) -> bool {
-                                   return py::cast<bool>(filter(index, depth, obj.lk));
-                                 },
-                                 filter_flag);
-  return obj.n_hierarchy + 1;
+  obj.n_hrchy
+      = alloc_hrchy_space(obj.hs,
+                          max_depth,
+                          [&](int lidx, int estimated_max_lidx) {
+                            callback(lidx, estimated_max_lidx);
+                          },
+                          interval_callback,
+                          [&](std::vector<int> index, int depth) -> bool {
+                            return py::cast<bool>(filter(index, depth, obj.lk));
+                          },
+                          filter_flag);
+  return obj.n_hrchy + 1;
 }
 
 
@@ -215,7 +215,7 @@ template<template <typename,
          template<typename, int> class matrix_type, 
          int num_state>
 void init_aux_vars(qme_type<T, matrix_type, num_state>& obj) {
-  obj.initialize();
+  obj.init();
   obj.init_aux_vars();
 }
 
@@ -283,14 +283,14 @@ template<template <typename,
          typename T,
          template<typename, int> class matrix_type, 
          int num_state>
-void time_evolution(qme_type<T, matrix_type, num_state>& obj,
+void solve(qme_type<T, matrix_type, num_state>& obj,
                     py::array_t<T> rho,
                     typename T::value_type dt__unit,
                     typename T::value_type dt,
                     int interval,
                     int count,
                     py::function& callback) {
-  obj.time_evolution(Eigen::Map<dense_vector<T,Eigen::Dynamic>>(rho.mutable_data(), obj.size_rho),
+  obj.solve(Eigen::Map<dense_vector<T,Eigen::Dynamic>>(rho.mutable_data(), obj.size_rho),
                      dt__unit, dt,
                      interval,
                      count,
@@ -310,7 +310,7 @@ void set_device_number(qme_type<T, matrix_type, num_state>& obj,
 }
 
 // std::vector<std::vector<int>>& get_lk
-// /**/(hierarchy& h)
+// /**/(hrchy& h)
 // {
 //   return h.lk; 
 // }
@@ -334,11 +334,11 @@ py::class_<qme_type<T, matrix_type, num_state>> declare_qme_binding(
   return py::class_<qme_type<T, matrix_type, num_state>>(m, class_name)
       .def(py::init<>())
       .def("set_hamiltonian",      &set_hamiltonian<qme_type, T, matrix_type, num_state>)
-      .def("allocate_noises",      &allocate_noises<qme_type, T, matrix_type, num_state>)
+      .def("alloc_noises",      &alloc_noises<qme_type, T, matrix_type, num_state>)
       .def("set_noise",            &set_noise      <qme_type, T, matrix_type, num_state>)
       .def("init_aux_vars",        &init_aux_vars  <qme_type, T, matrix_type, num_state>)
       .def("calc_diff",            &calc_diff      <qme_type, T, matrix_type, num_state>)
-      .def("time_evolution",       &time_evolution <qme_type, T, matrix_type, num_state>);
+      .def("solve",       &solve <qme_type, T, matrix_type, num_state>);
       // .def("construct_commutator", &construct_commutator <qme_type, T, matrix_type>)
       // .def("apply_commutator",     &apply_commutator     <qme_type, T, matrix_type>)
 }
@@ -370,8 +370,8 @@ py::class_<heom_type<T, matrix_type, num_state>> declare_heom_binding(
     const char* class_name)
 {
   return declare_qme_binding<heom_type, T, matrix_type, num_state>(m, class_name)
-      .def("flatten_hierarchy_dimension", &flatten_hierarchy_dimension<heom_type, T, matrix_type, num_state>)
-      .def("allocate_hierarchy_space",    &allocate_hierarchy_space   <heom_type, T, matrix_type, num_state>);
+      .def("linearize", &linearize<heom_type, T, matrix_type, num_state>)
+      .def("alloc_hrchy",    &alloc_hrchy   <heom_type, T, matrix_type, num_state>);
 }
 
 
@@ -387,12 +387,12 @@ py::class_<qme_type<T, matrix_type, num_state>> declare_qme_gpu_binding(
   return py::class_<qme_type<T, matrix_type, num_state>>(m, class_name)
       .def(py::init<>())
       .def("set_hamiltonian",         &set_hamiltonian        <qme_type, T, matrix_type, num_state>)
-      .def("allocate_noises",             &allocate_noises            <qme_type, T, matrix_type, num_state>)
+      .def("alloc_noises",             &alloc_noises            <qme_type, T, matrix_type, num_state>)
       .def("set_noise",                   &set_noise              <qme_type, T, matrix_type, num_state>)
       .def("init_aux_vars",               &init_aux_vars              <qme_type, T, matrix_type, num_state>)
       // .def("construct_commutator",        &construct_commutator       <qme_type, T, matrix_type>)
       // .def("apply_commutator",            &apply_commutator           <qme_type, T, matrix_type>)
-      .def("time_evolution",              &time_evolution             <qme_type, T, matrix_type, num_state>)
+      .def("solve",              &solve             <qme_type, T, matrix_type, num_state>)
       .def("set_device_number",           &set_device_number          <qme_type, T, matrix_type, num_state>)
       .def("set_noise_func",    &set_noise_func    <qme_type, T, matrix_type, num_state>);
 }
@@ -410,14 +410,14 @@ py::class_<heom_type<T, matrix_type, num_state>> declare_heom_gpu_binding(
   return py::class_<heom_type<T, matrix_type, num_state>>(m, class_name)
       .def(py::init<>())
       .def("set_hamiltonian",         &set_hamiltonian        <heom_type, T, matrix_type, num_state>)
-      .def("allocate_noises",             &allocate_noises            <heom_type, T, matrix_type, num_state>)
+      .def("alloc_noises",             &alloc_noises            <heom_type, T, matrix_type, num_state>)
       .def("set_noise",               &set_noise              <heom_type, T, matrix_type, num_state>)
       .def("init_aux_vars",               &init_aux_vars              <heom_type, T, matrix_type, num_state>)
       // .def("construct_commutator",        &construct_commutator       <heom_type, T, matrix_type>)
       // .def("apply_commutator",            &apply_commutator           <heom_type, T, matrix_type>)
-      .def("time_evolution",              &time_evolution             <heom_type, T, matrix_type, num_state>)
-      .def("flatten_hierarchy_dimension", &flatten_hierarchy_dimension<heom_type, T, matrix_type, num_state>)
-      .def("allocate_hierarchy_space",    &allocate_hierarchy_space   <heom_type, T, matrix_type, num_state>)
+      .def("solve",              &solve             <heom_type, T, matrix_type, num_state>)
+      .def("linearize", &linearize<heom_type, T, matrix_type, num_state>)
+      .def("alloc_hrchy",    &alloc_hrchy   <heom_type, T, matrix_type, num_state>)
       .def("set_device_number",           &set_device_number          <heom_type, T, matrix_type, num_state>);
 }
 
