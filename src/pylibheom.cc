@@ -196,9 +196,8 @@ int allocate_hierarchy_space(heom_type<T, matrix_type, num_state>& obj,
   obj.n_hierarchy
       = allocate_hierarchy_space(obj.hs,
                                  max_depth,
-                                 [&](double progress) {
-                                   // std::cout << ":progress " << progress << std::endl;
-                                   // callback(progress);
+                                 [&](int lidx, int estimated_max_lidx) {
+                                   callback(lidx, estimated_max_lidx);
                                  },
                                  interval_callback,
                                  [&](std::vector<int> index, int depth) -> bool {

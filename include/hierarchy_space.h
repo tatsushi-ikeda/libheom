@@ -25,8 +25,8 @@ public:
 
 int allocate_hierarchy_space(hierarchy_space& hs,
                              int max_depth,
-                             std::function<void(double)> callback
-                             = [](int) { return; },
+                             std::function<void(int, int)> callback
+                             = [](int, int) { return; },
                              int interval_callback = 1024,
                              std::function<bool(std::vector<int>, int)> hierarchy_filter
                              = [](std::vector<int> index, int depth) -> bool { return true; },

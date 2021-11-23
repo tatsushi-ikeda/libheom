@@ -85,8 +85,9 @@ void set_hierarchy_space_sub(hierarchy_space& hs,
                              int k,
                              int depth,
                              int max_depth,
-                             std::function<void(int)> callback,
+                             std::function<void(int, int)> callback,
                              int interval_callback,
+                             int estimated_max_lidx,
                              std::function<bool(std::vector<int>, int)> hierarchy_filter,
                              bool filter_flag) {
   for (int j_k = 0; j_k <= max_depth - depth; ++j_k) {
@@ -95,6 +96,9 @@ void set_hierarchy_space_sub(hierarchy_space& hs,
     bool pass = (depth <= max_depth) && (!filter_flag || hierarchy_filter(index, depth));
     if (pass) {
       if (k == 0) {
+        if (lidx % interval_callback == 0) {
+          callback(lidx, estimated_max_lidx);
+        }
         if (depth == max_depth && filter_flag) {
           std::cerr << "[Warning]: hierarchy_filter has reached max_depth ";
           print_index(index, std::cerr);
@@ -123,7 +127,7 @@ void set_hierarchy_space_sub(hierarchy_space& hs,
 
 int allocate_hierarchy_space(hierarchy_space& hs,
                              int max_depth,
-                             std::function<void(double)> callback,
+                             std::function<void(int, int)> callback,
                              int interval_callback,
                              std::function<bool(std::vector<int>, int)> hierarchy_filter,
                              bool filter_flag) {
@@ -138,17 +142,17 @@ int allocate_hierarchy_space(hierarchy_space& hs,
   int last_modified = 0;
 #endif  
 
+  long long estimated_max_lidx = calc_hierarchy_element_count(max_depth, n_dim);
   std::fill(index.begin(), index.end(), 0);
 #if   ORDER_TYPE == ORIGINAL_ORDER
-  set_hierarchy_space_sub(hs, index, lidx, n_dim - 1, 0, max_depth, callback, interval_callback, hierarchy_filter, filter_flag);
+  set_hierarchy_space_sub(hs, index, lidx, n_dim - 1, 0, max_depth, callback, interval_callback, estimated_max_lidx, hierarchy_filter, filter_flag);
 #elif (ORDER_TYPE == BREADTH_FIRST_ORDER) || (ORDER_TYPE == DEPTH_FIRST_ORDER)
   next_element.AUX_STRUCT_PUSH(index);
   k_last_modified.AUX_STRUCT_PUSH(last_modified);
-  long long estimated_max_lidx = calc_hierarchy_element_count(max_depth, n_dim);
   
   while (!next_element.empty()) {
     if (lidx % interval_callback == 0) {
-      callback(lidx/static_cast<double>(estimated_max_lidx));
+      callback(lidx, estimated_max_lidx);
     }
     index = next_element.AUX_STRUCT_TOP();
     next_element.AUX_STRUCT_POP();
