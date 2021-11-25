@@ -221,10 +221,10 @@ void heom_ll<T, matrix_type, num_state>::calc_diff
   dense_vector<T,num_state_liou> tmp_Psi(this->n_state_liou);
 
   for (int lidx = 0; lidx < n_hrchy; ++lidx) {
-    // auto rho_n     = rho.block(lidx*n_state_liou,0,n_state_liou,1);
-    // auto drho_dt_n = drho_dt.block(lidx*n_state_liou,0,n_state_liou,1);
-    auto rho_n     = block<num_state_liou,1>::value(rho, lidx*n_state_liou,0,n_state_liou,1);
-    auto drho_dt_n = block<num_state_liou,1>::value(drho_dt, lidx*n_state_liou,0,n_state_liou,1);
+    // auto rho_n     = rho.blk(lidx*n_state_liou,0,n_state_liou,1);
+    // auto drho_dt_n = drho_dt.blk(lidx*n_state_liou,0,n_state_liou,1);
+    auto rho_n     = blk<num_state_liou,1>::value(rho, lidx*n_state_liou,0,n_state_liou,1);
+    auto drho_dt_n = blk<num_state_liou,1>::value(drho_dt, lidx*n_state_liou,0,n_state_liou,1);
 
     // 0 terms
     // drho_dt_n      = beta*drho_dt_n;
@@ -247,7 +247,7 @@ void heom_ll<T, matrix_type, num_state>::calc_diff
           int lidx_m1j, lidx_m1jp1k;
           if ((lidx_m1j = ptr_m1[lidx][lk_u[j]]) != ptr_void
               && (lidx_m1jp1k = ptr_p1[lidx_m1j][lk_u[k]]) != ptr_void)  {
-            auto rho_m1jp1k = block<num_state_liou,1>::value(
+            auto rho_m1jp1k = blk<num_state_liou,1>::value(
                 rho, lidx_m1jp1k*n_state_liou,0,n_state_liou,1);
             auto n_k_float = static_cast<real_t<T>>(n[lidx][lk_u[k]]);
             auto n_j_float = static_cast<real_t<T>>(n[lidx][lk_u[j]]);
@@ -265,7 +265,7 @@ void heom_ll<T, matrix_type, num_state>::calc_diff
       // +1 terms
       for (int k = 0; k < len_gamma_u; ++k) {
         int lidx_p1 = ptr_p1[lidx][lk_u[k]];
-        auto rho_np1 = block<num_state_liou,1>::value(rho, lidx_p1*n_state_liou,0,n_state_liou,1);
+        auto rho_np1 = blk<num_state_liou,1>::value(rho, lidx_p1*n_state_liou,0,n_state_liou,1);
         auto n_float = static_cast<real_t<T>>(n[lidx][lk_u[k]]);
         tmp_Phi.noalias() += sigma_u.coeff(k)*std::sqrt(n_float + 1)*rho_np1;
       }
@@ -273,7 +273,7 @@ void heom_ll<T, matrix_type, num_state>::calc_diff
       // -1 terms
       for (int k = 0; k < len_gamma_u; ++k) {
         int lidx_m1 = ptr_m1[lidx][lk_u[k]];
-        auto rho_nm1 = block<num_state_liou,1>::value(rho, lidx_m1*n_state_liou,0,n_state_liou,1);
+        auto rho_nm1 = blk<num_state_liou,1>::value(rho, lidx_m1*n_state_liou,0,n_state_liou,1);
         auto n_float = static_cast<real_t<T>>(n[lidx][lk_u[k]]);
         tmp_Phi.noalias() += std::sqrt(n_float)*S_u.coeff(k)*rho_nm1;
         if (A_u.coeff(k) != zero<T>()) {

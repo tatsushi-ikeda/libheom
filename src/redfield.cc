@@ -222,8 +222,8 @@ void redfield_l<T, matrix_type, num_state>::calc_diff
      real_t<T> beta)
 {
   auto n_state_liou   = this->n_state_liou;
-  auto rho     = block<num_state_liou,1>::value(rho_raw, 0,0,n_state_liou,1);
-  auto drho_dt = block<num_state_liou,1>::value(drho_dt_raw,0,0,n_state_liou,1);
+  auto rho     = blk<num_state_liou,1>::value(rho_raw, 0,0,n_state_liou,1);
+  auto drho_dt = blk<num_state_liou,1>::value(drho_dt_raw,0,0,n_state_liou,1);
 
   drho_dt *= beta;
   drho_dt.noalias() += -alpha*this->R_redfield_impl*rho;

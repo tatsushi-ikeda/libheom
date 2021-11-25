@@ -28,7 +28,7 @@ constexpr inline int n_state_prod(int a, int b)
 
 template <int P, int Q,
           bool static_flag = ((P != Eigen::Dynamic) && (Q != Eigen::Dynamic))>
-class block
+class blk
 {
  public:
   template<typename matrix_type>
@@ -40,7 +40,7 @@ class block
 };
 
 template <int P, int Q>
-class block<P, Q, false>
+class blk<P, Q, false>
 {
  public:
   template<typename matrix_type>
