@@ -455,6 +455,17 @@ py::class_<heom_type<T, matrix_type, num_state>> declare_heom_gpu_binding
 }
 
 
+#define STR_(x) #x
+#define STR(x) STR_(x)
+
+std::string version
+/**/()
+{
+  return (STR(VERSION_MAJOR)"."STR(VERSION_MINOR)"."STR(VERSION_PATCH)": "
+          "build: "STR(BUILD_TYPE)", "
+          "compiler: "STR(COMPILER_NAME)" "STR(COMPILER_VERSION)".");
+}
+
 PYBIND11_MODULE(pylibheom, m)
 {
   m.doc() = "low-level python binding of libheom";
@@ -462,6 +473,7 @@ PYBIND11_MODULE(pylibheom, m)
   m.attr("support_gpu_parallelization") = py::cast(support_gpu_parallelization);
   m.def("gpu_device_count", &get_gpu_device_count);
   m.def("gpu_device_name",  &get_gpu_device_name);
+  m.def("version",          &version);
 
   py::class_<coo_matrix<complex64 >>(m, "coo_matrix_c")
       .def(py::init<int, int, int,

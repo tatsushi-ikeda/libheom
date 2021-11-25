@@ -120,9 +120,12 @@ class CMakeBuild(build_ext):
             ["cmake", "--build", "."] + build_args, cwd=self.build_temp
         )
 
+with open('VERSION.txt', 'r') as inp:
+    version = inp.read()
+    
 setup(
     name='pylibheom',
-    version='0.6.9',
+    version=version,
     author='Tatsushi IKEDA',
     author_email='ikeda.tatsushi.37u@kyoto-u.jp',
     # packages=[''],
