@@ -43,7 +43,6 @@ class CMakeBuild(build_ext):
         # Set Python_EXECUTABLE instead if you use PYBIND11_FINDPYTHON
         # EXAMPLE_VERSION_INFO shows you how to pass a value into the C++ code
         # from Python.
-        print('check!', extdir)
         cmake_args = [
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}".format(extdir),
             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
@@ -56,9 +55,9 @@ class CMakeBuild(build_ext):
             cmake_args += [item for item in os.environ["CMAKE_ARGS"].split(" ") if item]
 
         # In this example, we pass in the version to C++. You might not need to.
-        cmake_args += [
-            "-DEXAMPLE_VERSION_INFO={}".format(self.distribution.get_version())
-        ]
+        # cmake_args += [
+        #     "-DEXAMPLE_VERSION_INFO={}".format(self.distribution.get_version())
+        # ]
 
         if self.compiler.compiler_type != "msvc":
             # Using Ninja-build since it a) is available as a wheel and b)
@@ -121,7 +120,7 @@ class CMakeBuild(build_ext):
         )
 
 with open('VERSION.txt', 'r') as inp:
-    version = inp.read()
+    version = inp.read().strip()
     
 setup(
     name='pylibheom',
