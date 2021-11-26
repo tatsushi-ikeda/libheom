@@ -48,6 +48,8 @@ endif()
 if(EXISTS "${CMAKE_SOURCE_DIR}/3rdparty/Eigen")
   include_directories(3rdparty/Eigen)
   message(STATUS "Found Eigen Library in 3rdparty/ directory")
+else()
+  message(FATAL_ERROR "Could not find Eigen Library")
 endif()
 
 # pybind11 library
@@ -55,7 +57,7 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/3rdparty/pybind11")
   add_subdirectory(3rdparty/pybind11)
   message(STATUS "Found pybind11 Library in 3rdparty/ directory")
 else()
-  find_package(pybind11 REQUIRED)  
+  find_package(pybind11 REQUIRED)
 endif()
 
 # experimental cmake modules
@@ -120,11 +122,39 @@ if (COMPILER_OPT_FABI_VERSION_SUPPORTED)
 endif ()
 
 find_package(OpenMP REQUIRED)
-if(OpenMP_FOUND)
+if (OpenMP_FOUND)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-find_package(MKL)
+# if (NOT MKL_LINK_MODE)
+#   set(MKL_LINK_MODE "static")
+# endif()
+# The above option causes the following error:
+# INTEL MKL ERROR: /opt/oneapi/mkl/2021.2.0/lib/intel64/libmkl_avx512.so.1: undefined symbol: mkl_sparse_optimize_bsr_trsm_i8
+
+set(ENABLE_MKL AUTO CACHE STRING "Enable MKL support")
+set_property(CACHE ENABLE_MKL PROPERTY STRINGS AUTO ON OFF)
+if (NOT (ENABLE_MKL STREQUAL "OFF"))
+  if (NOT MKL_LINK_MODE)
+    set(MKL_LINK_MODE "SDL")
+  endif ()
+  if (NOT MKL_THREADING_LAYER)
+    set(MKL_THREADING_LAYER "OpenMP")
+  endif ()
+  find_package(MKL)
+endif ()
+
+if (ENABLE_MKL STREQUAL "ON")
+  if (NOT MKL_FOUND)
+    message(FATAL_ERROR "Could not find MKL Library while ENABLE_MKL=${ENABLE_MKL}")
+  endif ()
+endif ()
+
+if (MKL_FOUND)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMKL_SUPPORT=enabled")
+else ()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMKL_SUPPORT=disabled")
+endif ()
 # Find the BLAS
 # set(BLA_VENDOR Intel10_64lp)
 # find_package(BLAS)

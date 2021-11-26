@@ -461,9 +461,11 @@ py::class_<heom_type<T, matrix_type, num_state>> declare_heom_gpu_binding
 std::string version
 /**/()
 {
-  return (STR(VERSION_MAJOR)"."STR(VERSION_MINOR)"."STR(VERSION_PATCH)": "
-          "build: "STR(BUILD_TYPE)", "
-          "compiler: "STR(COMPILER_NAME)" "STR(COMPILER_VERSION)".");
+  return (STR(VERSION_MAJOR) "." STR(VERSION_MINOR) "." STR(VERSION_PATCH) ": "
+          "build: " STR(BUILD_TYPE) ", "
+          "compiler: " STR(COMPILER_NAME) " " STR(COMPILER_VERSION) ", "
+          "mkl: " STR(MKL_SUPPORT)
+          ".");
 }
 
 PYBIND11_MODULE(pylibheom, m)
