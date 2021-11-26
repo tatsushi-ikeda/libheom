@@ -19,7 +19,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}\
     -DVERSION_PATCH=${PROJECT_VERSION_PATCH}")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Prepare GPGPU option
+# prepare gpgpu option
 set(ENABLE_GPU_PARALLELIZATION AUTO CACHE STRING "Enable GPU parallelization support")
 set_property(CACHE ENABLE_GPU_PARALLELIZATION PROPERTY STRINGS AUTO ON OFF)
 if(ENABLE_GPU_PARALLELIZATION STREQUAL "AUTO")
@@ -43,13 +43,13 @@ if(ENABLE_GPU_PARALLELIZATION)
   endif ()
 endif()
 
-# Eigen Library
+# eigen library
 if(EXISTS "${CMAKE_SOURCE_DIR}/3rdparty/Eigen")
   include_directories(3rdparty/Eigen)
   message(STATUS "Found Eigen Library in 3rdparty/ directory")
 endif()
 
-# pybind11 Library
+# pybind11 library
 if(EXISTS "${CMAKE_SOURCE_DIR}/3rdparty/pybind11")
   add_subdirectory(3rdparty/pybind11)
   message(STATUS "Found pybind11 Library in 3rdparty/ directory")
@@ -57,6 +57,12 @@ else()
   find_package(pybind11 REQUIRED)  
 endif()
 
+# experimental cmake modules
+if(EXISTS "${CMAKE_SOURCE_DIR}/3rdparty/cmake/Modules")
+  list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/cmake/Modules)
+  message(STATUS "Found cmake/Modules in 3rdparty/ directory")
+endif()
+  
 string(TOLOWER ${CMAKE_CXX_COMPILER_ID} CMAKE_CXX_COMPILER_ID_LOWER)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}\
     -DCOMPILER_NAME=${CMAKE_CXX_COMPILER_ID_LOWER}\
@@ -112,19 +118,15 @@ if (COMPILER_OPT_FABI_VERSION_SUPPORTED)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fabi-version=0")
 endif ()
 
-# Detect OpenMP options.
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  # This code is for old Cmake (2.8.12.2), in which OpenMP option for Intel compiler is not treated properly.
-  set(OpenMP_CXX_FLAGS "-qopenmp")
-else()
-  find_package(OpenMP REQUIRED)
-  if(OpenMP_FOUND)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  endif()
+find_package(OpenMP REQUIRED)
+if(OpenMP_FOUND)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-# Find the BLAS stuff
-# list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+find_package(MKL)
+# Find the BLAS
+# set(BLA_VENDOR Intel10_64lp)
+# find_package(BLAS)
 
 # set(BLA_DEFINITIONS)
 
@@ -136,7 +138,7 @@ endif()
 #   # message(STATUS "MKLROOT is not set. Please source the Intel MKL mklvars.sh file.")
 # endif()
 
-# if (USE_MKL)
+# if (BLAS_FOUND)
 #   option(MKL_USE_parallel "Use MKL parallel" True)
 #   option(MKL_USE_sdl "Single Dynamic Library or static/dynamic" False)
 #   option(BLA_STATIC "Single Static Library" True)
@@ -151,11 +153,11 @@ endif()
 #   find_package(MKL REQUIRED)
 # endif()
 
-# user defined options for MKL
+# # user defined options for MKL
 
-# if (MKL_FOUND)
-#     set(BLA_INCLUDED_IR ${MKL_INCLUDE_DIR})
-#     set(BLAS_LIBRARIES ${MKL_LIBRARIES})
+# if (BLAS_FOUND)
+#     set(BLAS_INCLUDE_DIR ${_INCLUDE_DIR})
+#     set(BLAS_LIBRARIES   ${MKL_LIBRARIES})
 #     set(BLA_DEFINITIONS USE_MKL)
 # endif()
 

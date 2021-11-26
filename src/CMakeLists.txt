@@ -38,14 +38,15 @@ endif()
 # foreach(dir ${dirs})
 #   message(STATUS "dir='${dir}'")
 # endforeach()
-# if(USE_MKL)
-#   # target_compile_definitions(libheom PUBLIC MKL_DIRECT_CALL)
-#   target_link_libraries(libheom PRIVATE ${MKL_LIBRARIES})
-#   target_include_directories(libheom
-#     INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
-#     PRIVATE ${MKL_INCLUDE_DIR})
-# else()
-# endif()
+
+if(USE_MKL)
+  # target_compile_definitions(libheom PUBLIC MKL_DIRECT_CALL)
+  target_link_libraries(libheom PRIVATE ${MKL_LIBRARIES})
+  target_include_directories(libheom
+    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
+    PRIVATE ${MKL_INCLUDE_DIR})
+else()
+endif()
 
 if(ENABLE_GPU_PARALLELIZATION)
   target_link_libraries(libheom PRIVATE ${CUDA_LIBRARIES})
