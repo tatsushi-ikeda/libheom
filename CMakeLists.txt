@@ -60,12 +60,6 @@ else()
   find_package(pybind11 REQUIRED)
 endif()
 
-# experimental cmake modules
-if(EXISTS "${CMAKE_SOURCE_DIR}/3rdparty/cmake/Modules")
-  list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/cmake/Modules)
-  message(STATUS "Found cmake/Modules in 3rdparty/ directory")
-endif()
-  
 string(TOLOWER ${CMAKE_CXX_COMPILER_ID} CMAKE_CXX_COMPILER_ID_LOWER)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}\
     -DCOMPILER_NAME=${CMAKE_CXX_COMPILER_ID_LOWER}\
@@ -126,81 +120,30 @@ if(OpenMP_FOUND)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-# if(NOT MKL_LINK_MODE)
-#   set(MKL_LINK_MODE "static")
-# endif()
-# The above option causes the following error:
-# INTEL MKL ERROR: /opt/oneapi/mkl/2021.2.0/lib/intel64/libmkl_avx512.so.1: undefined symbol: mkl_sparse_optimize_bsr_trsm_i8
-
 set(ENABLE_MKL AUTO CACHE STRING "Enable MKL support")
 set_property(CACHE ENABLE_MKL PROPERTY STRINGS AUTO ON OFF)
+message(STATUS "ENABLE_MKL=${ENABLE_MKL}")
+
 if(NOT (ENABLE_MKL STREQUAL "OFF"))
-  if(NOT MKL_LINK_MODE)
-    set(MKL_LINK_MODE "SDL")
-  endif()
-  if(NOT MKL_THREADING_LAYER)
-    set(MKL_THREADING_LAYER "OpenMP")
-  endif()
-  find_package(MKL)
+  set(BLA_VENDOR Intel10_64lp)
+  find_package(BLAS)
 endif()
 
 if(ENABLE_MKL STREQUAL "ON")
-  if(NOT MKL_FOUND)
-    message(FATAL_ERROR "Could not find MKL Library while ENABLE_MKL=${ENABLE_MKL}")
+  if(NOT BLAS_FOUND)
+    message(FATAL_ERROR "Could not find Intel(R) Math Kernel Library while ENABLE_MKL=${ENABLE_MKL}")
   endif()
 endif()
 
-if(MKL_FOUND)
+if(BLAS_FOUND)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMKL_SUPPORT=enabled")
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMKL_SUPPORT=disabled")
 endif()
-# Find the BLAS
-# set(BLA_VENDOR Intel10_64lp)
-# find_package(BLAS)
-
-# set(BLA_DEFINITIONS)
-
-# if("$ENV{MKLROOT}" STREQUAL "")
-#   message(FATAL_ERROR "MKLROOT is not set. Intel(R) MKL is not detected.")
-#   # set(USE_MKL OFF)
-# else()
-#   set(USE_MKL ON)
-#   # message(STATUS "MKLROOT is not set. Please source the Intel MKL mklvars.sh file.")
-# endif()
-
-# if(BLAS_FOUND)
-#   option(MKL_USE_parallel "Use MKL parallel" True)
-#   option(MKL_USE_sdl "Single Dynamic Library or static/dynamic" False)
-#   option(BLA_STATIC "Single Static Library" True)
-#   set(MKL_USE_interface "lp64" CACHE STRING "for Intel(R)64 compatible arch: ilp64/lp64 or for ia32 arch: cdecl/stdcall")
-
-#   if(BLA_VENDOR MATCHES "_seq")
-#     set(MKL_USE_parallel OFF)
-#   else()
-#     set(MKL_USE_parallel ON)
-#   endif()
-
-#   find_package(MKL REQUIRED)
-# endif()
-
-# # user defined options for MKL
-
-# if(BLAS_FOUND)
-#     set(BLAS_INCLUDE_DIR ${_INCLUDE_DIR})
-#     set(BLAS_LIBRARIES   ${MKL_LIBRARIES})
-#     set(BLA_DEFINITIONS USE_MKL)
-# endif()
-
-# message(STATUS "BLAS Libraries: ${BLAS_LIBRARIES}")
 
 include_directories(include)
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-# set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-# set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
 add_subdirectory(src)
 file(INSTALL include DESTINATION ${CMAKE_BINARY_DIR})
 
-# add_subdirectory(test)
 

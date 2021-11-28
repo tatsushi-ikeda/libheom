@@ -39,14 +39,10 @@ endif()
 #   message(STATUS "dir='${dir}'")
 # endforeach()
 
-if(MKL_FOUND)
-  # target_compile_definitions(libheom PUBLIC MKL_DIRECT_CALL)
+if(BLAS_FOUND)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_USE_MKL_ALL")
-  target_link_libraries(libheom PUBLIC "${MKL_LIBRARIES}")
-  target_link_libraries(libheom PUBLIC "${MKL_BASE_LIBRARIES}")
-  target_include_directories(libheom
-    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
-    PRIVATE ${MKL_INCLUDE_DIRS})
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${BLAS_LINKER_FLAGS}")
+  target_link_libraries(libheom PUBLIC "${BLAS_LIBRARIES}")
 endif()
 
 if(ENABLE_GPU_PARALLELIZATION)
@@ -61,11 +57,5 @@ endif()
 
 pybind11_add_module(pylibheom pylibheom.cc)
 target_link_libraries(pylibheom PRIVATE libheom)
-if(MKL_FOUND)
-  # target_compile_definitions(libheom PUBLIC MKL_DIRECT_CALL)
-  target_link_libraries(pylibheom PRIVATE "${MKL_LIBRARIES}")
-  target_link_libraries(pylibheom PRIVATE "${MKL_BASE_LIBRARIES}")
-else()
-endif()
 
 set_property(TARGET pylibheom PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
