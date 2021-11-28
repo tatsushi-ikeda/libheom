@@ -13,7 +13,7 @@ First you need to install the dependent libraries, Eigen and pybind11.
 * pybind11: You need to put the library into 3rdparty/ directory. Make sure that the location of the following file:
 `3rdparty/pybind11/include/pybind11/pybind11.h`
 
-These two libraries will be automatically placed by the following command:
+These libraries will be automatically placed by the following command:
 
 ```bash
 git submodule update --init --recursive
@@ -27,14 +27,20 @@ Type the following command from the source tree directory:
 pip install .
 ```
 
-For developers, the following commands may be useful. 
+You can pass arguments for CMake via the environment variable `CMAKE_ARGS`:
+
+```bash
+CMAKE_ARGS="-DCMAKE_CXX_COMPILER=icc" pip install .
+```
+
+For developers, the following commands may be useful.
 
 ```bash
 cd /path/to/your/test/directory
 python3 -m venv heom
 source heom/bin/activate
-pip install -e /path/to/libheom
-pip install -e /path/to/pyheom
+pip install -e /path/to/libheom -v
+pip install -e /path/to/pyheom  -v
 ```
 
 ## Build only
@@ -49,3 +55,13 @@ cmake --build .
 ```
 
 Then binaries are generated in the `build/src` directory.
+
+## CMake Options
+
+| name                 | meaning          | values                  |
+|----------------------|------------------|-------------------------|
+| `CMAKE_CXX_COMPILER` | C++ compiler     |                         |
+| `CMAKE_BUILD_TYPE`   | Build type       | `Release`* or `Debug`   |
+| `ENABLE_MKL`         | Use Intel(R) MKL | `AUTO`*, `ON`, or `OFF` |
+
+
