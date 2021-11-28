@@ -9,7 +9,7 @@
 #define ORIGINAL_ORDER      0
 #define BREADTH_FIRST_ORDER 1
 #define DEPTH_FIRST_ORDER   2
-#define ORDER_TYPE  BREADTH_FIRST_ORDER
+#define ORDER_TYPE BREADTH_FIRST_ORDER
 
 #if   ORDER_TYPE == BREADTH_FIRST_ORDER
 #  include <queue>
@@ -123,15 +123,16 @@ void set_hrchy_space_sub
         ++lidx;
       } else {
         set_hrchy_space_sub(hs,
-                                index,
-                                lidx,
-                                k - 1,
-                                depth_current,
-                                max_depth,
-                                callback,
-                                interval_callback,
-                                hrchy_filter,
-                                filrer_flag);
+                            index,
+                            lidx,
+                            k - 1,
+                            depth_current,
+                            max_depth,
+                            callback,
+                            interval_callback,
+                            estimated_max_lidx,
+                            hrchy_filter,
+                            filter_flag);
       }
     }
   }
@@ -207,8 +208,8 @@ int alloc_hrchy_space
   n_hrchy = lidx;
   hs.ptr_void = lidx;
   
-  hs.ptr_p1.resize(n_hrchy);
-  hs.ptr_m1.resize(n_hrchy);
+  hs.ptr_p1.resize(n_hrchy + 1);
+  hs.ptr_m1.resize(n_hrchy + 1);
   for (int lidx = 0; lidx < n_hrchy; ++lidx) {
     index = hs.n[lidx];
     hs.ptr_p1[lidx].resize(n_dim);
@@ -230,6 +231,10 @@ int alloc_hrchy_space
       ++index[k];
     }
   }
+  hs.ptr_p1[hs.ptr_void].resize(n_dim);
+  std::fill(hs.ptr_p1[hs.ptr_void].begin(), hs.ptr_p1[hs.ptr_void].end(), hs.ptr_void);
+  hs.ptr_m1[hs.ptr_void].resize(n_dim);
+  std::fill(hs.ptr_m1[hs.ptr_void].begin(), hs.ptr_m1[hs.ptr_void].end(), hs.ptr_void);
   return n_hrchy;
 }
 
