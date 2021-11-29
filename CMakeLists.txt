@@ -4,7 +4,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Type of build" FORCE)
 endif()
-message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+message(STATUS "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}\
@@ -87,9 +87,9 @@ endif()
 
 include(CheckCXXCompilerFlag)
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  set(CMAKE_CXX_FLAGS_RELEASE "-fast -DNDEBUG")
-endif()
+# if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+#   set(CMAKE_CXX_FLAGS_RELEASE "-fast -DNDEBUG")
+# endif()
 # set(CMAKE_CXX_FLAGS "/Ox /Ob2 /fp:fast ${CMAKE_CXX_FLAGS_RELEASE}")
 
 
@@ -110,12 +110,13 @@ else()
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
   endif()
 endif()
+
 CHECK_CXX_COMPILER_FLAG("-fabi-version=0" COMPILER_OPT_FABI_VERSION_SUPPORTED)
 if(COMPILER_OPT_FABI_VERSION_SUPPORTED)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fabi-version=0")
 endif()
 
-find_package(OpenMP REQUIRED)
+find_package(OpenMP)
 if(OpenMP_FOUND)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
@@ -142,6 +143,9 @@ else()
 endif()
 
 include_directories(include)
+
+message("STATUS" "CMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}")
+message("STATUS" "CMAKE_CXX_FLAGS_RELEASE=${CMAKE_CXX_FLAGS_RELEASE}")
 
 add_subdirectory(src)
 file(INSTALL include DESTINATION ${CMAKE_BINARY_DIR})

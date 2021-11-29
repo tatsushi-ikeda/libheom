@@ -46,7 +46,7 @@ if(BLAS_FOUND)
 endif()
 
 if(ENABLE_GPU_PARALLELIZATION)
-  target_link_libraries(libheom PRIVATE ${CUDA_LIBRARIES})
+  target_link_libraries(libheom PRIVATE "${CUDA_LIBRARIES}")
 else()
 endif()
 

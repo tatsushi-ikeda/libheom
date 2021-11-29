@@ -257,6 +257,7 @@ template<template <typename,
 void init_aux_vars
 /**/(qme_type<T, matrix_type, num_state>& obj)
 {
+  // omp_set_num_threads(n);
   obj.init();
   obj.init_aux_vars();
 }
@@ -314,8 +315,8 @@ void calc_diff
      real_t<T>            alpha,
      real_t<T>            beta)
 {
-  obj.calc_diff(Eigen::Map<dense_vector<T,Eigen::Dynamic>>(drho_dt.mutable_data(), obj.size_rho),
-                Eigen::Map<const dense_vector<T,Eigen::Dynamic>>(rho.data(), obj.size_rho),
+  obj.calc_diff(Eigen::Map<dense_vector<T,Eigen::Dynamic>, Eigen::Aligned64>(drho_dt.mutable_data(), obj.size_rho),
+                Eigen::Map<const dense_vector<T,Eigen::Dynamic>, Eigen::Aligned64>(rho.data(), obj.size_rho),
                 alpha,
                 beta);
 }
@@ -336,7 +337,7 @@ void solve
      int            count,
      py::function&  callback)
 {
-  obj.solve(Eigen::Map<dense_vector<T,Eigen::Dynamic>>(rho.mutable_data(), obj.size_rho),
+  obj.solve(Eigen::Map<dense_vector<T,Eigen::Dynamic>, Eigen::Aligned64>(rho.mutable_data(), obj.size_rho),
             dt__unit,
             dt,
             interval,
@@ -487,23 +488,25 @@ PYBIND11_MODULE(pylibheom, m)
                     py::array_t<int>,
                     py::array_t<int>,
                     py::array_t<complex128>>());
-    
-  declare_heom_binding    <heom_ll,    complex128, dense_matrix, Eigen::Dynamic>(m, "heom_zdll");
-  declare_heom_binding    <heom_ll,    complex128, csr_matrix,   Eigen::Dynamic>(m, "heom_zsll");
-  declare_heom_binding    <heom_lh,    complex128, dense_matrix, Eigen::Dynamic>(m, "heom_zdlh");
-  declare_heom_binding    <heom_lh,    complex128, csr_matrix,   Eigen::Dynamic>(m, "heom_zslh");
-  declare_redfield_binding<redfield_h, complex128, dense_matrix, Eigen::Dynamic>(m, "redfield_zdh");
-  declare_redfield_binding<redfield_h, complex128, csr_matrix,   Eigen::Dynamic>(m, "redfield_zsh");
-  declare_redfield_binding<redfield_l, complex128, dense_matrix, Eigen::Dynamic>(m, "redfield_zdl");
-  declare_redfield_binding<redfield_l, complex128, csr_matrix,   Eigen::Dynamic>(m, "redfield_zsl");
-  // declare_heom_binding<heom_ll,    complex128, dense_matrix, 2>(m, "heom_zdll");
-  // declare_heom_binding<heom_ll,    complex128, csr_matrix,   2>(m, "heom_zsll");
-  // declare_heom_binding<heom_lh,    complex128, dense_matrix, 2>(m, "heom_zdlh");
-  // declare_heom_binding<heom_lh,    complex128, csr_matrix,   2>(m, "heom_zslh");
-  // declare_qme_binding <redfield_h, complex128, dense_matrix, 2>(m, "redfield_zdh");
-  // declare_qme_binding <redfield_h, complex128, csr_matrix,   2>(m, "redfield_zsh");
-  // declare_qme_binding <redfield_l, complex128, dense_matrix, 2>(m, "redfield_zdl");
-  // declare_qme_binding <redfield_l, complex128, csr_matrix,   2>(m, "redfield_zsl");
+
+  constexpr int d = Eigen::Dynamic;
+  declare_heom_binding    <heom_ll,    complex128, dense_matrix, d>(m, "heom_zdll");
+  declare_heom_binding    <heom_ll,    complex128, csr_matrix,   d>(m, "heom_zsll");
+  declare_heom_binding    <heom_lh,    complex128, dense_matrix, d>(m, "heom_zdlh");
+  declare_heom_binding    <heom_lh,    complex128, csr_matrix,   d>(m, "heom_zslh");
+  declare_redfield_binding<redfield_h, complex128, dense_matrix, d>(m, "redfield_zdh");
+  declare_redfield_binding<redfield_h, complex128, csr_matrix,   d>(m, "redfield_zsh");
+  declare_redfield_binding<redfield_l, complex128, dense_matrix, d>(m, "redfield_zdl");
+  declare_redfield_binding<redfield_l, complex128, csr_matrix,   d>(m, "redfield_zsl");
+  
+  declare_heom_binding    <heom_ll,    complex128, dense_matrix, 2>(m, "heom_zdll_2");
+  declare_heom_binding    <heom_ll,    complex128, csr_matrix,   2>(m, "heom_zsll_2");
+  declare_heom_binding    <heom_lh,    complex128, dense_matrix, 2>(m, "heom_zdlh_2");
+  declare_heom_binding    <heom_lh,    complex128, csr_matrix,   2>(m, "heom_zslh_2");
+  declare_redfield_binding<redfield_h, complex128, dense_matrix, 2>(m, "redfield_zdh_2");
+  declare_redfield_binding<redfield_h, complex128, csr_matrix,   2>(m, "redfield_zsh_2");
+  declare_redfield_binding<redfield_l, complex128, dense_matrix, 2>(m, "redfield_zdl_2");
+  declare_redfield_binding<redfield_l, complex128, csr_matrix,   2>(m, "redfield_zsl_2");
 
 #ifdef SUPPORT_GPU_PARALLELIZATION
   declare_heom_gpu_binding    <heom_lh_gpu,   complex128, dense_matrix, Eigen::Dynamic>(m, "heom_zdlh_gpu");

@@ -116,7 +116,7 @@ namespace libheom
                                const int steps);                        \
   template void qme<T>::evolve_1(ref<dense_vector<T,Eigen::Dynamic>> rho, real_t<T> dt);
 
-DECLARE_EXPLICIT_INSTANTIATIONS(complex64 );
+// DECLARE_EXPLICIT_INSTANTIATIONS(complex64 );
 DECLARE_EXPLICIT_INSTANTIATIONS(complex128);
 
 }
