@@ -222,8 +222,8 @@ void redfield_l<T, matrix_type, num_state>::calc_diff
      real_t<T> beta)
 {
   auto n_state_liou   = this->n_state_liou;
-  auto rho     = blk<num_state_liou,1>::value(rho_raw, 0,0,n_state_liou,1);
-  auto drho_dt = blk<num_state_liou,1>::value(drho_dt_raw,0,0,n_state_liou,1);
+  auto rho     = blk<T,num_state_liou,1>::value(rho_raw,    0,0,n_state_liou,1);
+  auto drho_dt = blk<T,num_state_liou,1>::value(drho_dt_raw,0,0,n_state_liou,1);
 
   drho_dt *= beta;
   drho_dt.noalias() += -alpha*this->R_redfield_impl*rho;
@@ -280,5 +280,15 @@ DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex64,  dense_matrix, 2);
 DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex64,  csr_matrix,   2);
 DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex128, dense_matrix, 2);
 DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex128, csr_matrix,   2);
+
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_h, complex64,  dense_matrix, 3);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_h, complex64,  csr_matrix,   3);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_h, complex128, dense_matrix, 3);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_h, complex128, csr_matrix,   3);
+
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex64,  dense_matrix, 3);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex64,  csr_matrix,   3);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex128, dense_matrix, 3);
+DECLARE_EXPLICIT_INSTANTIATIONS(redfield_l, complex128, csr_matrix,   3);
 
 }

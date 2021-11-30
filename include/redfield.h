@@ -24,6 +24,9 @@ class redfield
   std::vector<T>                                 sub_vector;
   
   void init_aux_vars();
+  
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 

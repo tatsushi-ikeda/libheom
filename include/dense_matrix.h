@@ -22,10 +22,6 @@
 namespace libheom
 {
 
-template<typename T>
-using ref = Eigen::Ref<T,Eigen::Aligned64>;  // 
-
-
 template<typename T,
          int N>
 // using dense_vector = Eigen::Matrix<T,1,N,Eigen::RowMajor>;
@@ -37,6 +33,17 @@ template<typename T,
 // using dense_matrix = Eigen::Matrix<T,N,N,Eigen::RowMajor>;
 using dense_matrix = Eigen::Matrix<T,N,N,Eigen::ColMajor>;
 
+template <typename T>
+inline constexpr int alignment();
+
+template<>
+inline constexpr int alignment<complex64 >() { return Eigen::Aligned64; };
+
+template<>
+inline constexpr int alignment<complex128>() { return Eigen::Aligned64; };
+
+template<typename T>
+using ref = Eigen::Ref<T,alignment<typename T::Scalar>()>;
 
 }
 #endif /* DENSE_MATRIX_H */

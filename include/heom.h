@@ -37,6 +37,9 @@ class heom
   
   void init_aux_vars
   /**/();
+  
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 
@@ -59,6 +62,9 @@ class heom_l
 
   void init_aux_vars
   /**/();
+
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 

@@ -227,55 +227,13 @@ void heom_ll<T, matrix_type, num_state>::calc_diff
   for (int lidx = 0; lidx < n_hrchy; ++lidx) {
     // auto rho_n     = rho.blk(lidx*n_state_liou,0,n_state_liou,1);
     // auto drho_dt_n = drho_dt.blk(lidx*n_state_liou,0,n_state_liou,1);
-    auto rho_n     = blk<num_state_liou,1>::value(rho,     lidx*n_state_liou,0,n_state_liou,1);
-    auto drho_dt_n = blk<num_state_liou,1>::value(drho_dt, lidx*n_state_liou,0,n_state_liou,1);
+    auto rho_n     = blk<T,num_state_liou,1>::value(rho,     lidx*n_state_liou,0,n_state_liou,1);
+    auto drho_dt_n = blk<T,num_state_liou,1>::value(drho_dt, lidx*n_state_liou,0,n_state_liou,1);
 
     // 0 terms
     // drho_dt_n      = beta*drho_dt_n;
     tmp.noalias()  = R_heom_0_impl*rho_n;
     tmp.noalias() += ngamma_diag[lidx]*rho_n;
-
-    // // begin unrolltest
-    // auto& lk_u            = lk[0];
-    // auto  len_gamma_u     = len_gamma[0];
-    // auto& gamma_offdiag_u = gamma_offdiag[0];
-    // auto& sigma_u         = sigma[0];
-    // auto& S_u             = S[0];
-    // auto& A_u             = A[0];
-
-    // auto& Phi_impl_u = this->Phi_impl[0];
-    // auto& Psi_impl_u = this->Psi_impl[0];
-      
-    // tmp_Phi.setZero();
-    // tmp_Psi.setZero();
-      
-    // // +1 terms
-    // for (int k = 0; k < len_gamma_u; ++k) {
-    //   int lidx_p1 = ptr_p1[lidx][lk_u[k]];
-    //   auto rho_np1 = blk<num_state_liou,1>::value(rho, lidx_p1*n_state_liou,0,n_state_liou,1);
-    //   auto n_float = static_cast<real_t<T>>(n[lidx][lk_u[k]]);
-    //   tmp_Phi.noalias() += sigma_u.coeff(k)*rho_np1;
-    // }
-
-    //   // -1 terms
-    // for (int k = 0; k < len_gamma_u; ++k) {
-    //   int lidx_m1 = ptr_m1[lidx][lk_u[k]];
-    //   auto rho_nm1 = blk<num_state_liou,1>::value(rho, lidx_m1*n_state_liou,0,n_state_liou,1);
-    //   auto n_float = static_cast<real_t<T>>(n[lidx][lk_u[k]]);
-    //   tmp_Phi.noalias() += n_float*S_u.coeff(k)*rho_nm1;
-    // }
-
-    // for (int k = 0; k < 1; ++k) {
-    //   int lidx_m1 = ptr_m1[lidx][lk_u[k]];
-    //   auto rho_nm1 = blk<num_state_liou,1>::value(rho, lidx_m1*n_state_liou,0,n_state_liou,1);
-    //   auto n_float = static_cast<real_t<T>>(n[lidx][lk_u[k]]);
-    //   tmp_Psi.noalias() -= n_float*A_u.coeff(k)*rho_nm1;
-    //   // }
-    // }
-    
-    // tmp.noalias() += Phi_impl_u*tmp_Phi;
-    // tmp.noalias() += Psi_impl_u*tmp_Psi;
-    // // end unrolltest
     
     for (int u = 0; u < n_noise; ++u) {
       auto& lk_u            = lk[u];
@@ -292,14 +250,17 @@ void heom_ll<T, matrix_type, num_state>::calc_diff
           const T& val = gamma_offdiag_u.valuePtr()[ptr];
           int lidx_m1j    = ptr_m1[lidx][lk_u[j]];
           int lidx_m1jp1k = ptr_p1[lidx_m1j][lk_u[k]];
-          // if (lidx_m1j != ptr_void && lidx_m1jp1k != ptr_void)  {
-          auto rho_m1jp1k = blk<num_state_liou,1>::value(
-              rho, lidx_m1jp1k*n_state_liou,0,n_state_liou,1);
-          auto n_k_float = static_cast<real_t<T>>(n[lidx][lk_u[k]]);
-          auto n_j_float = static_cast<real_t<T>>(n[lidx][lk_u[j]]);
-          tmp.noalias() += val*std::sqrt(n_j_float*(n_k_float + 1))*rho_m1jp1k;
-          // tmp.noalias() += val*n_j_float*rho_m1jp1k;
-          // }
+          if (lidx_m1j != ptr_void && lidx_m1jp1k != ptr_void) {
+            auto rho_m1jp1k = blk<T,num_state_liou,1>::value(
+                rho, lidx_m1jp1k*n_state_liou,0,n_state_liou,1);
+            auto n_j_float = static_cast<real_t<T>>(n[lidx][lk_u[j]]);
+#ifdef LIBHEOM_SQRT_NORMALIZATION            
+            auto n_k_float = static_cast<real_t<T>>(n[lidx][lk_u[k]]);
+            tmp.noalias() += val*std::sqrt(n_j_float*(n_k_float + 1))*rho_m1jp1k;
+#else            
+            tmp.noalias() += val*n_j_float*rho_m1jp1k;
+#endif            
+          }
         }
       }
       
@@ -312,23 +273,27 @@ void heom_ll<T, matrix_type, num_state>::calc_diff
       // +1 terms
       for (int k = 0; k < len_gamma_u; ++k) {
         int lidx_p1 = ptr_p1[lidx][lk_u[k]];
-        auto rho_np1 = blk<num_state_liou,1>::value(rho, lidx_p1*n_state_liou,0,n_state_liou,1);
+        auto rho_np1 = blk<T,num_state_liou,1>::value(rho, lidx_p1*n_state_liou,0,n_state_liou,1);
+#ifdef LIBHEOM_SQRT_NORMALIZATION            
         auto n_float = static_cast<real_t<T>>(n[lidx][lk_u[k]]);
         tmp_Phi.noalias() += sigma_u.coeff(k)*std::sqrt(n_float + 1)*rho_np1;
-         // tmp_Phi.noalias() += sigma_u.coeff(k)*rho_np1;
+#else        
+        tmp_Phi.noalias() += sigma_u.coeff(k)*rho_np1;
+#endif
       }
 
       // -1 terms
       for (int k = 0; k < len_gamma_u; ++k) {
         int lidx_m1 = ptr_m1[lidx][lk_u[k]];
-        auto rho_nm1 = blk<num_state_liou,1>::value(rho, lidx_m1*n_state_liou,0,n_state_liou,1);
+        auto rho_nm1 = blk<T,num_state_liou,1>::value(rho, lidx_m1*n_state_liou,0,n_state_liou,1);
         auto n_float = static_cast<real_t<T>>(n[lidx][lk_u[k]]);
+#ifdef LIBHEOM_SQRT_NORMALIZATION            
         tmp_Phi.noalias() += std::sqrt(n_float)*S_u.coeff(k)*rho_nm1;
-        // tmp_Phi.noalias() += n_float*S_u.coeff(k)*rho_nm1;
-        // if (A_u.coeff(k) != zero<T>()) {
         tmp_Psi.noalias() -= std::sqrt(n_float)*A_u.coeff(k)*rho_nm1;
-        // tmp_Psi.noalias() -= n_float*A_u.coeff(k)*rho_nm1;
-        // }
+#else        
+        tmp_Phi.noalias() += n_float*S_u.coeff(k)*rho_nm1;
+        tmp_Psi.noalias() -= n_float*A_u.coeff(k)*rho_nm1;
+#endif        
       }
       
       tmp.noalias() += Phi_impl_u*tmp_Phi;
@@ -388,8 +353,11 @@ void heom_lh<T, matrix_type, num_state>::init_aux_vars
             for (auto& Theta_kv: this->Theta[u][k].data[a]) {
               int b = Theta_kv.first;
               T val = Theta_kv.second;
+#ifdef LIBHEOM_SQRT_NORMALIZATION            
               val *= std::sqrt(static_cast<real_t<T>>(this->hs.n[lidx][this->lk[u][k]]));
-              // val *= static_cast<real_t<T>>(this->hs.n[lidx][this->lk[u][k]]);
+#else              
+              val *= static_cast<real_t<T>>(this->hs.n[lidx][this->lk[u][k]]);
+#endif              
               if (val != zero<T>()) {
                 this->R_heom.push(lidx*this->n_state_liou + a,
                                   lidx_m1*this->n_state_liou + b,
@@ -417,10 +385,16 @@ void heom_lh<T, matrix_type, num_state>::init_aux_vars
                 && (lidx_m1jp1k = this->hs.ptr_p1[lidx_m1j][this->lk[u][k]])
                 != this->hs.ptr_void)  {
               auto n_j_float = static_cast<real_t<T>>(this->hs.n[lidx][this->lk[u][j]]);
+#ifdef LIBHEOM_SQRT_NORMALIZATION            
               auto n_k_float = static_cast<real_t<T>>(this->hs.n[lidx][this->lk[u][k]]);
               this->R_heom.push(lidx*this->n_state_liou + a,
                                 lidx_m1jp1k*this->n_state_liou + a,
                                 val*std::sqrt(n_j_float*(n_k_float + 1)));
+#else
+              this->R_heom.push(lidx*this->n_state_liou + a,
+                                lidx_m1jp1k*this->n_state_liou + a,
+                                val*n_j_float);
+#endif              
             }
           }
         }
@@ -446,7 +420,9 @@ void heom_lh<T, matrix_type, num_state>::init_aux_vars
             for (auto& Phi_kv: this->Phi[u].data[a]) {
               int b = Phi_kv.first;
               T val = Phi_kv.second;
+#ifdef LIBHEOM_SQRT_NORMALIZATION            
               val *= std::sqrt(static_cast<real_t<T>>(this->hs.n[lidx][this->lk[u][k]]+1));
+#endif              
               val *= this->sigma[u].coeff(k);
               if (val != zero<T>()) { 
                 this->R_heom.push(lidx*this->n_state_liou + a,
@@ -530,7 +506,6 @@ void heom_lh<T, matrix_type, num_state>::calc_diff
 //   copy(this->size_rho, this->sub_vector.data(), rho);
 // }
 
-
 }
 
 // Explicit instantiations
@@ -555,24 +530,34 @@ template void heom<complex128>::init();
 //     int interval_callback);                                           \
 // template void qme_type<T, matrix_type>::ApplyCommutator(ref<dense_vector<T>> rho);
 
-// DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex64,  dense_matrix, Eigen::Dynamic);
-// DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex64,  csr_matrix,   Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex64,  dense_matrix, Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex64,  csr_matrix,   Eigen::Dynamic);
 DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex128, dense_matrix, Eigen::Dynamic);
 DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex128, csr_matrix,   Eigen::Dynamic);
 
-// DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex64,  dense_matrix, Eigen::Dynamic);
-// DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex64,  csr_matrix,   Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex64,  dense_matrix, Eigen::Dynamic);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex64,  csr_matrix,   Eigen::Dynamic);
 DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex128, dense_matrix, Eigen::Dynamic);
 DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex128, csr_matrix,   Eigen::Dynamic);
 
-// DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex64,  dense_matrix, 2);
-// DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex64,  csr_matrix,   2);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex64,  dense_matrix, 2);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex64,  csr_matrix,   2);
 DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex128, dense_matrix, 2);
 DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex128, csr_matrix,   2);
 
-// DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex64,  dense_matrix, 2);
-// DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex64,  csr_matrix,   2);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex64,  dense_matrix, 2);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex64,  csr_matrix,   2);
 DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex128, dense_matrix, 2);
 DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex128, csr_matrix,   2);
+
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex64,  dense_matrix, 3);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex64,  csr_matrix,   3);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex128, dense_matrix, 3);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_ll, complex128, csr_matrix,   3);
+
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex64,  dense_matrix, 3);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex64,  csr_matrix,   3);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex128, dense_matrix, 3);
+DECLARE_EXPLICIT_INSTANTIATIONS(heom_lh, complex128, csr_matrix,   3);
 
 }

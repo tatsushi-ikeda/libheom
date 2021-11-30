@@ -26,8 +26,10 @@ constexpr inline int n_state_prod(int a, int b)
 }
 
 
-template <int P, int Q,
-          bool static_flag = ((P != Eigen::Dynamic) && (Q != Eigen::Dynamic))>
+template <typename T,
+          int P, int Q,
+          bool static_flag        = ((P != Eigen::Dynamic) && (Q != Eigen::Dynamic)),
+          bool static_vector_flag = ((P != Eigen::Dynamic) && (Q == 1))>
 class blk
 {
  public:
@@ -39,8 +41,27 @@ class blk
   }
 };
 
-template <int P, int Q>
-class blk<P, Q, false>
+
+template <typename T, int P, int Q>
+class blk<T, P, Q, true, true>
+{
+ public:
+  static inline Eigen::Map<dense_vector<T,P>,alignment<T>()> value
+  /**/(ref<dense_vector<T,Eigen::Dynamic>> matrix, int i, int j, int p, int q)
+  {
+    return dense_vector<T,P>::MapAligned(matrix.data() + i);
+  }
+
+  static inline const Eigen::Map<const dense_vector<T,P>,alignment<T>()> value
+  /**/(const ref<const dense_vector<T,Eigen::Dynamic>>& matrix, int i, int j, int p, int q)
+  {
+    return dense_vector<T,P>::MapAligned(matrix.data() + i);
+  }
+};
+
+
+template <typename T, int P, int Q>
+class blk<T, P, Q, false, false>
 {
  public:
   template<typename matrix_type>
@@ -128,6 +149,9 @@ public:
   qme(const qme&)            = delete;
   qme& operator=(const qme&) = delete;
   virtual ~qme()             = default;
+
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 }

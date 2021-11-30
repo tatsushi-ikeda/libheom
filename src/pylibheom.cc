@@ -508,6 +508,15 @@ PYBIND11_MODULE(pylibheom, m)
   declare_redfield_binding<redfield_l, complex128, dense_matrix, 2>(m, "redfield_zdl_2");
   declare_redfield_binding<redfield_l, complex128, csr_matrix,   2>(m, "redfield_zsl_2");
 
+  declare_heom_binding    <heom_ll,    complex128, dense_matrix, 3>(m, "heom_zdll_3");
+  declare_heom_binding    <heom_ll,    complex128, csr_matrix,   3>(m, "heom_zsll_3");
+  declare_heom_binding    <heom_lh,    complex128, dense_matrix, 3>(m, "heom_zdlh_3");
+  declare_heom_binding    <heom_lh,    complex128, csr_matrix,   3>(m, "heom_zslh_3");
+  declare_redfield_binding<redfield_h, complex128, dense_matrix, 3>(m, "redfield_zdh_3");
+  declare_redfield_binding<redfield_h, complex128, csr_matrix,   3>(m, "redfield_zsh_3");
+  declare_redfield_binding<redfield_l, complex128, dense_matrix, 3>(m, "redfield_zdl_3");
+  declare_redfield_binding<redfield_l, complex128, csr_matrix,   3>(m, "redfield_zsl_3");
+  
 #ifdef SUPPORT_GPU_PARALLELIZATION
   declare_heom_gpu_binding    <heom_lh_gpu,   complex128, dense_matrix, Eigen::Dynamic>(m, "heom_zdlh_gpu");
   declare_heom_gpu_binding    <heom_lh_gpu,   complex128, csr_matrix,   Eigen::Dynamic>(m, "heom_zslh_gpu");
