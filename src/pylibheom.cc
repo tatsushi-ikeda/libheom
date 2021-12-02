@@ -197,6 +197,28 @@ void set_noise_func
 
 template<template <typename,
                    template <typename, int> class,
+                   int> class redfield_type,
+         typename T,
+         template<typename, int> class matrix_type,
+         int num_state>
+void set_redfield_options
+/**/(redfield_type<T, matrix_type, num_state>& obj,
+     coo_matrix<T>& H_c,
+     bool secular)
+{
+  if (H_c.rows != H_c.cols) {
+    throw std::runtime_error("Hamiltonian must be a square matrix");
+  }
+  if (H_c.rows != obj.n_state) {
+    throw std::runtime_error("[Error] Hamiltonian and H_c operators must have the same dimension");
+  }
+  H_c.dump(obj.H_c);
+  obj.secular = secular;
+}
+
+
+template<template <typename,
+                   template <typename, int> class,
                    int> class heom_type,
          typename T,
          template<typename, int> class matrix_type, 
@@ -406,7 +428,8 @@ py::class_<redfield_type<T, matrix_type, num_state>> declare_redfield_binding
      const char* class_name)
 {
   return declare_qme_binding<redfield_type, T, matrix_type, num_state>(m, class_name)
-      .def("set_noise_func", &set_noise_func <redfield_type, T, matrix_type, num_state>);
+      .def("set_noise_func",       &set_noise_func      <redfield_type, T, matrix_type, num_state>)
+      .def("set_redfield_options", &set_redfield_options<redfield_type, T, matrix_type, num_state>);
 }
 
 

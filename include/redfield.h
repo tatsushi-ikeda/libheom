@@ -18,6 +18,9 @@ class redfield
 {
  public:
   lil_matrix<T> Z;
+  lil_matrix<T> H_c;
+  bool secular;
+  
   std::unique_ptr<bool[]>                        use_corr_func;
   std::unique_ptr<std::function<T(real_t<T>)>[]> corr_func;
   std::unique_ptr<lil_matrix<T>[]>               Lambda;

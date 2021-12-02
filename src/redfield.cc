@@ -88,8 +88,16 @@ void redfield_h<T, matrix_type, num_state>::init_aux_vars
 {
   redfield<T>::init_aux_vars();
 
-  this->H.template dump<num_state>(this->H_impl);
+  if (this->secular) {
+    std::cerr << "[Error] Secular approximation is supported only in Liouville space." << std::endl;
+    std::exit(1);
+  }
 
+  this->H.template dump<num_state>(this->H_impl);
+  matrix_type<T, num_state> H_c_impl;
+  this->H_c.template dump<num_state>(H_c_impl);
+  this->H_impl += H_c_impl;
+  
   this->V_impl.reset(new matrix_hilb[this->n_noise]);
   this->Lambda_impl.reset(new matrix_hilb[this->n_noise]);
   this->Lambda_dagger_impl.reset(new matrix_hilb[this->n_noise]);
@@ -189,10 +197,29 @@ void redfield_l<T, matrix_type, num_state>::init_aux_vars
   }
 
   this->R_redfield.set_shape(this->n_state_liou, this->n_state_liou);
-  axpy(one<T>(), this->L, this->R_redfield);
+  kron_identity_right(+i_unit<T>(), this->H_c, zero<T>(), this->R_redfield);
+  kron_identity_left (-i_unit<T>(), this->H_c, one<T>(),  this->R_redfield);
   for (int s = 0; s < this->n_noise; ++s) {
     gemm(-one<T>(), this->Phi[s], this->Theta[s], one<T>(), this->R_redfield);
   }
+  if (this->secular) {
+    dense_matrix<T,num_state_liou> i_omega;
+    this->L.optimize();
+    this->L.template dump<num_state_liou>(i_omega);
+    this->R_redfield.optimize();
+    for (auto& ijv : this->R_redfield.data) {
+      int i = ijv.first;
+      for (auto& jv: ijv.second) {
+        int j = jv.first;
+        if (abs(i_omega(i,i) - i_omega(j,j))
+            >= std::numeric_limits<typename T::value_type>::epsilon()) {
+          jv.second = zero<T>();
+        }
+      }
+    }
+    this->R_redfield.optimize();
+  }
+  axpy(one<T>(), this->L, this->R_redfield);
   this->R_redfield.optimize();
 
   R_redfield.template dump<num_state_liou>(this->R_redfield_impl);
