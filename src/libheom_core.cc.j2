@@ -1,0 +1,36 @@
+/* -*- mode:c++ -*-
+ * LibHEOM
+ * Copyright (c) Tatsushi Ikeda
+ * This library is distributed under BSD 3-Clause License.
+ * See LINCENSE.txt for licence.
+ *------------------------------------------------------------------------*/
+
+#include "qme_solver.h"
+
+namespace libheom {
+
+{% for dtype, dtype_symbol in types %}
+{%   for order, order_symbol in orders %}
+
+{%     for engine in engines %}
+template class qme<{{dtype}},{{order}},{{engine}}>;
+template class solver_base<{{dtype}},{{order}},{{engine}}>;
+template class ql_solver<{{dtype}},{{order}},{{engine}}>;
+{%       for format, format_symbol in formats %}
+{%         for num, num_symbol in num_list[engine] %}
+template class ql_hilb<{{num}},{{dtype}},{{format}},{{order}},{{engine}}>;
+{%           for order_liou, order_liou_symbol in orders %}
+template class ql_liou<{{num}},{{dtype}},{{format}},{{order}},{{order_liou}},{{engine}}>;
+{%           endfor %}
+{%         endfor %}
+{%       endfor %}
+
+template class rk4<{{dtype}},{{order}},{{engine}}>;
+template class lsrk4<{{dtype}},{{order}},{{engine}}>;
+template class rkdp<{{dtype}},{{order}},{{engine}}>;
+{%     endfor %}
+
+{%   endfor %}
+{% endfor %}
+
+}

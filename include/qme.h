@@ -1,5 +1,6 @@
-/*
- * LibHEOM, Copyright (c) Tatsushi Ikeda
+/* -*- mode:c++ -*-
+ * LibHEOM
+ * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
@@ -7,151 +8,75 @@
 #ifndef QME_H
 #define QME_H
 
-#include <memory>
-#include <functional>
-
-#include <Eigen/Core>
-
 #include "type.h"
-#include "lil_matrix.h"
-#include "dense_matrix.h"
+#include "const.h"
+
+#include "env.h"
+
+#include "linalg_engine/matrix_base.h"
+#include "linalg_engine/lil_matrix.h"
+#include "linalg_engine/linalg_engine.h"
 
 namespace libheom
 {
 
-
-constexpr inline int n_state_prod(int a, int b)
-{
-  return ((a == Eigen::Dynamic) || (b == Eigen::Dynamic)) ? Eigen::Dynamic : a*b;
-}
-
-
-template <typename T,
-          int P, int Q,
-          bool static_flag        = ((P != Eigen::Dynamic) && (Q != Eigen::Dynamic)),
-          bool static_vector_flag = ((P != Eigen::Dynamic) && (Q == 1))>
-class blk
+template<typename dtype, bool order, typename linalg_engine>
+class qme_base
 {
  public:
-  template<typename matrix_type>
-  static inline Eigen::Block<matrix_type,P,Q> value
-  /**/(matrix_type& matrix, int i, int j, int p, int q)
-  {
-    return matrix.template block<P,Q>(i,j);
-  }
-};
+  using env = engine_env<linalg_engine>;
 
-
-template <typename T, int P, int Q>
-class blk<T, P, Q, true, true>
-{
- public:
-  static inline Eigen::Map<dense_vector<T,P>,alignment<T>()> value
-  /**/(ref<dense_vector<T,Eigen::Dynamic>> matrix, int i, int j, int p, int q)
-  {
-    return dense_vector<T,P>::MapAligned(matrix.data() + i);
-  }
-
-  static inline const Eigen::Map<const dense_vector<T,P>,alignment<T>()> value
-  /**/(const ref<const dense_vector<T,Eigen::Dynamic>>& matrix, int i, int j, int p, int q)
-  {
-    return dense_vector<T,P>::MapAligned(matrix.data() + i);
-  }
-};
-
-
-template <typename T, int P, int Q>
-class blk<T, P, Q, false, false>
-{
- public:
-  template<typename matrix_type>
-  static inline Eigen::Block<matrix_type> value
-  /**/(matrix_type& matrix, int i, int j, int p, int q)
-  {
-    return matrix.block(i,j,p,q);
-  }
-};
-
-
-template<typename T>
-class qme
-{
-public:
-  int n_state;
-  lil_matrix<T> H;
+  qme_base(): n_level(0)
+  {};
   
+  int n_level;
+  int n_level_2;
+  
+  lil_matrix<dynamic,dtype,order,nil> H_lil;
+
   int n_noise;
-  std::unique_ptr<lil_matrix<T>[]> V;
   
-  std::vector<std::vector<int>> lk;
+  std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> V_lil;
 
   std::unique_ptr<int[]> len_gamma;
-  std::unique_ptr<Eigen::SparseMatrix<T, Eigen::RowMajor>[]> gamma;
-  std::unique_ptr<Eigen::Matrix<T,Eigen::Dynamic,1>[]> phi_0;
-  std::unique_ptr<Eigen::Matrix<T,Eigen::Dynamic,1>[]> sigma;
-  std::unique_ptr<Eigen::SparseMatrix<T, Eigen::RowMajor>[]> s;
-  std::unique_ptr<T[]> S_delta;
-  std::unique_ptr<Eigen::SparseMatrix<T, Eigen::RowMajor>[]> a;
-
-  T coef_l_X;
-  T coef_r_X;
-  lil_matrix<T> x;
-
-  int size_rho;
-
-  dense_vector<T,Eigen::Dynamic> sub_vector;
+  std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> gamma_lil;
+  std::unique_ptr<vector<dtype>[]> phi_0;
+  std::unique_ptr<vector<dtype>[]> sigma;
   
-  void alloc_noise
-  /**/(int n_noise);
+  std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> S_lil;
+  std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> A_lil;
+  std::unique_ptr<dtype[]> s_delta;
   
-  void init
-  /**/();
-  
-  void fin
-  /**/();
+  virtual int main_size() { return 0; };
 
-  void solve
-  /**/(ref<dense_vector<T,Eigen::Dynamic>> rho,
-       real_t<T> dt__unit,
-       real_t<T> dt,
-       int interval,
-       int count,
-       std::function<void(real_t<T>)> callback);
+  virtual int temp_size() { return 0; };
 
-  virtual void calc_diff
-  /**/(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
-       const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-       real_t<T> alpha,
-       real_t<T> beta) = 0;
+  void alloc_noises(int n_noise)
+  {
+    this->n_noise = n_noise;
   
-  virtual void evolve
-  /**/(ref<dense_vector<T,Eigen::Dynamic>> rho,
-       real_t<T> dt,
-       const int steps);
+    this->V_lil.reset(new lil_matrix<dynamic,dtype,order,nil>[n_noise]);
+    this->len_gamma.reset(new int [n_noise]);
+    this->gamma_lil.reset(new lil_matrix<dynamic,dtype,order,nil>[n_noise]);
+    this->phi_0.reset(new vector<dtype>[n_noise]);
+    this->sigma.reset(new vector<dtype>[n_noise]);
   
-  virtual void evolve_1
-  /**/(ref<dense_vector<T,Eigen::Dynamic>> rho,
-       real_t<T> dt);
-  
-  // virtual void ConstructCommutator(lil_matrix<T>& x,
-  //                                  T coef_l,
-  //                                  T coef_r,
-  //                                  std::function<void(int)> callback
-  //                                  = [](int) { return; },
-  //                                  int interval_callback = 1024) = 0;
-  
-  // virtual void ApplyCommutator(Eigen::ref<dense_vector<T>> rho) = 0;
+    this->S_lil.reset(new lil_matrix<dynamic,dtype,order,nil>[n_noise]);
+    this->s_delta.reset(new dtype [n_noise]);
+    this->A_lil.reset(new lil_matrix<dynamic,dtype,order,nil>[n_noise]);
+  }
 
-  void init_aux_vars
-  /**/() {};
+  virtual void set_param(linalg_engine* obj)
+  {
+    CALL_TRACE();
+  }
 
-  qme()                      = default;
-  qme(const qme&)            = delete;
-  qme& operator=(const qme&) = delete;
-  virtual ~qme()             = default;
-
- public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  virtual inline void calc_diff_impl(linalg_engine* linalg_engine_obj,
+                                     device_t<dtype,env>* drho_dt,
+                                     device_t<dtype,env>* rho,
+                                     dtype alpha,
+                                     dtype beta,
+                                     device_t<dtype,env>* temp) {};
 };
 
 }

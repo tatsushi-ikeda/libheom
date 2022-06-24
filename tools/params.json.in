@@ -1,0 +1,19 @@
+{
+    "engines":   [@ENGINE_LIST_STR@],
+    "types":     [@DTYPE_LIST_STR@],
+    "orders":    [["row_major", "r"], ["col_major",  "c"]],
+    "formats":   [["dense_matrix", "d"], ["sparse_matrix", "s"]],
+    "num_list": {
+        "eigen": [["dynamic", "n"], [1, "1"], [2, "2"], [3, "3"], [4, "4"]],
+        "mkl":   [["dynamic", "n"]],
+        "cuda":  [["dynamic", "n"]]
+    },
+    "real_type_char": {
+        "c": "s",
+        "z": "d"
+    },
+    "eigen_dynamic_param": [
+        [false, "n_level_c", "int n_level_c, ", "n_level_c"],
+        [true,  "dynamic",       "",                    "Eigen::Dynamic"]
+    ]
+}

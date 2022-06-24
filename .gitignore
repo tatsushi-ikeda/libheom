@@ -21,3 +21,4 @@ libheom/*
 build/*
 dist/*
 *.egg-info/*
+test/*

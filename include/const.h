@@ -1,4 +1,4 @@
-/*
+/* -*- mode:c++ -*-
  * LibHEOM
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
@@ -11,12 +11,6 @@
 #include "type.h"
 
 namespace libheom {
-
-#ifdef SUPPORT_GPU_PARALLELIZATION
-const bool support_gpu_parallelization = true;
-#else
-const bool support_gpu_parallelization = false;
-#endif
 
 // imaginary unit with given complex type
 template <typename T>
@@ -50,23 +44,27 @@ inline constexpr complex64  one<complex64>()  { return complex64 (one<float32>()
 template <>
 inline constexpr complex128 one<complex128>() { return complex128(one<float64>()); }
 
-// Fraction constant with given complex type
+// fraction constant with given complex type
 template <typename T>
 inline constexpr T frac(int num, int denom);
 template <>
-inline constexpr float32    frac<float32>    (int num, int den) {
+inline constexpr float32    frac<float32>    (int num, int den)
+{
   return static_cast<float32>(num)/static_cast<float32>(den);
 }
 template <>
-inline constexpr float64    frac<float64>    (int num, int den) {
+inline constexpr float64    frac<float64>    (int num, int den)
+{
   return static_cast<float64>(num)/static_cast<float64>(den);
 }
 template <>
-inline constexpr complex64  frac<complex64> (int num, int den) {
+inline constexpr complex64  frac<complex64> (int num, int den)
+{
   return complex64(frac<float32>(num, den));
 }
 template <>
-inline constexpr complex128 frac<complex128>(int num, int den) {
+inline constexpr complex128 frac<complex128>(int num, int den)
+{
   return complex128(frac<float64>(num, den));
 }
 

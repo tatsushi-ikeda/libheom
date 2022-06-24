@@ -1,5 +1,6 @@
-/*
- * LibHEOM: Copyright (c) Tatsushi Ikeda
+/* -*- mode:c++ -*-
+ * LibHEOM
+ * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
@@ -32,17 +33,14 @@
 namespace libheom
 {
 
-template<typename T>
-T calc_gcd
-/**/(T m, T n)
+template<typename dtype>
+dtype calc_gcd(dtype m, dtype n)
 {
   if (m < n) {
-    T swap = m;
-    m = n;
-    n = swap;
+    std::swap(m, n);
   }
   while (n != 0) {
-    T swap = n;
+    dtype swap = n;
     n = m%n;
     m = swap;
   }
@@ -50,17 +48,16 @@ T calc_gcd
 }
 
 
-template<typename T>
-T calc_multicombination
-/**/(T n, T r)
+template<typename dtype>
+dtype calc_multicombination(dtype n, dtype r)
 {
-  T num, den;
+  dtype num, den;
   num = 1;
   den = 1;
-  for(T i = 1; i <= r; ++i) {
+  for(dtype i = 1; i <= r; ++i) {
     num *= n + i - 1;
     den *= i;
-    T gcd = calc_gcd(num, den);
+    dtype gcd = calc_gcd(num, den);
     num /= gcd;
     den /= gcd;
   }
@@ -68,16 +65,13 @@ T calc_multicombination
 }
 
 
-long long calc_hrchy_element_count
-/**/(int level,
-     int dim)
+long long calc_hrchy_element_count(int level, int dim)
 {
   return calc_multicombination<long long>(dim + 1, level);
 }
 
 
-void print_index
-/**/(std::vector<int>& index, std::ostream& out)
+void print_index(vector<int>& index, std::ostream& out)
 {
   out << "[";
   if (index.size() > 0) {
@@ -91,18 +85,17 @@ void print_index
 
 
 #if ORDER_TYPE == ORIGINAL_ORDER
-void set_hrchy_space_sub
-/**/(hrchy_space& hs,
-     std::vector<int>& index,
-     int& lidx,
-     int  k,
-     int  depth,
-     int  max_depth,
-     std::function<void(int, int)> callback,
-     int  interval_callback,
-     int  estimated_max_lidx,
-     std::function<bool(std::vector<int>, int)> hrchy_filter,
-     bool filter_flag)
+void set_hrchy_space_sub(hrchy_space& hs,
+                         vector<int>& index,
+                         int& lidx,
+                         int  k,
+                         int  depth,
+                         int  max_depth,
+                         std::function<void(int, int)> callback,
+                         int  interval_callback,
+                         int  estimated_max_lidx,
+                         std::function<bool(vector<int>, int)> hrchy_filter,
+                         bool filter_flag)
 {
   for (int n_k = 0; n_k <= max_depth - depth; ++n_k) {
     index[k] = n_k;
@@ -141,22 +134,21 @@ void set_hrchy_space_sub
 #endif
 
 
-int alloc_hrchy_space
-/**/(hrchy_space& hs,
-     int  max_depth,
-     std::function<void(int, int)> callback,
-     int  interval_callback,
-     std::function<bool(std::vector<int>, int)> hrchy_filter,
-     bool filter_flag)
+int alloc_hrchy_space(hrchy_space& hs,
+                      int  max_depth,
+                      std::function<void(int, int)> callback,
+                      int  interval_callback,
+                      std::function<bool(vector<int>, int)> hrchy_filter,
+                      bool filter_flag)
 {
   int n_dim = hs.n_dim;
   
-  std::vector<int> index(n_dim);
+  vector<int> index(n_dim);
   int n_hrchy   = 0;
   int lidx          = 0;
 #if (ORDER_TYPE == BREADTH_FIRST_ORDER) || (ORDER_TYPE == DEPTH_FIRST_ORDER)
-  AUX_STRUCT<std::vector<int>> next_element;
-  AUX_STRUCT<int>              k_last_modified;
+  AUX_STRUCT<vector<int>> next_element;
+  AUX_STRUCT<int>         k_last_modified;
   int last_modified = 0;
 #endif  
 

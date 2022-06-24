@@ -1,61 +1,43 @@
-set(LIBHEOM_SRC
-  hrchy_space.cc
-  qme.cc
-  heom.cc
-  redfield.cc
-  printer.cc
-  # mkl_wrapper.cc
-  )
+# -*- mode:cmake -*-
+#  LibHEOM
+#  Copyright (c) Tatsushi Ikeda
+#  This library is distributed under BSD 3-Clause License.
+#  See LINCENSE.txt for licence.
+# ------------------------------------------------------------------------*/
 
-if(ENABLE_GPU_PARALLELIZATION)
-  list(APPEND LIBHEOM_SRC
-    heom_gpu.cu
-    redfield_gpu.cu
-    handle_gpu.cu
-    utility_gpu.cu
-    gpu_info.cu)
-  set(CUDA_LIBRARIES
-    cuda
-    cudart
-    cublas
-    cusparse)
+set(NONHEADER_SOURCE    hrchy_space.cc utility_mkl.cc utility.cc)
+set(NONHEADER_SOURCE_CU linalg_engine_cuda.cu utility_cuda.cu)
+set(LIBRARIES_CU        cuda cudart cublas cusparse cusolver)
+
+if (ENABLE_CUDA)
+  add_library(libheom_core STATIC ${NONHEADER_SOURCE} ${NONHEADER_SOURCE_CU})
+  target_link_libraries(libheom_core PRIVATE "${LIBRARIES_CU}")
+  set_target_properties(libheom_core PROPERTIES CUDA_ARCHITECTURES "${CUDA_ARCH_LIST}")
 else()
-  list(APPEND LIBHEOM_SRC
-    gpu_info.cc)
+  add_library(libheom_core STATIC ${NONHEADER_SOURCE})
 endif()
 
-if(ENABLE_GPU_PARALLELIZATION)
-  cuda_add_library(libheom STATIC ${LIBHEOM_SRC})
-else()
-  add_library(libheom STATIC ${LIBHEOM_SRC})
-endif()
+target_include_directories(libheom_core
+  PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+add_dependencies(libheom_core generated_headers)
 
-if(ENABLE_GPU_PARALLELIZATION)
-  target_compile_definitions(libheom PUBLIC SUPPORT_GPU_PARALLELIZATION)
-endif()
-
-# get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-# foreach(dir ${dirs})
-#   message(STATUS "dir='${dir}'")
-# endforeach()
-
-if(BLAS_FOUND)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_USE_MKL_ALL")
+if (ENABLE_MKL AND BLAS_FOUND)
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${BLAS_LINKER_FLAGS}")
-  target_link_libraries(libheom PUBLIC "${BLAS_LIBRARIES}")
+  target_link_libraries(libheom_core PRIVATE libmkl_rt.so "${BLAS_LIBRARIES}")
 endif()
 
-if(ENABLE_GPU_PARALLELIZATION)
-  target_link_libraries(libheom PRIVATE "${CUDA_LIBRARIES}")
-else()
-endif()
+# set(PYBIND11_PYTHON_VERSION "3.6")
 
-# add_library(libheom::libheom ALAS libheom)
-# install(TARGETS libheom
-#         LIBRARY DESTINATION lib
-#         ARCHIVE DESTINATION lib)
-
-pybind11_add_module(pylibheom pylibheom.cc)
-target_link_libraries(pylibheom PRIVATE libheom)
-
-set_property(TARGET pylibheom PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
+# if (ENABLE_CUDA)
+#   process_jinja2(entrypoint.cu SOURCE entrypoint.cc.j2)
+#   pybind11_add_module(libheom entrypoint.cu)
+#   set_target_properties(libheom PROPERTIES LINKER_LANGUAGE CUDA)
+#   set_target_properties(libheom PROPERTIES CUDA_ARCHITECTURES "${CUDA_ARCH_LIST}")
+# else()
+#   process_jinja2(entrypoint.cc)
+#   pybind11_add_module(libheom entrypoint.cc)
+#   target_link_libraries(libheom PRIVATE libheom_core)
+# endif()
+# target_link_libraries(libheom PRIVATE libheom_core)

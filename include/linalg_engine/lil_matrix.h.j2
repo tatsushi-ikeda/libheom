@@ -1,0 +1,212 @@
+/* -*- mode:c++ -*-
+ * LibHEOM
+ * Copyright (c) Tatsushi Ikeda
+ * This library is distributed under BSD 3-Clause License.
+ * See LINCENSE.txt for licence.
+ *------------------------------------------------------------------------*/
+
+#ifndef LIL_MATRIX_H
+#define LIL_MATRIX_H
+
+#include <vector>
+#include <map>
+#include <limits>
+#include <numeric>
+#include "linalg_engine/matrix_base.h"
+
+namespace libheom {
+
+// Sparse matrix class by using list in list (LIL) format.
+// While the name includes `list`, this is implemented by using std::map.
+
+template <int num_level, typename dtype, bool order, typename linalg_engine>
+class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
+{
+ public:
+  typedef std::map<int,std::map<int,dtype>> lil_type;
+  typedef typename lil_type::const_iterator lil_itr;
+  std::tuple<int, int> shape;
+  int major_stride;
+  lil_type data;
+
+  lil_matrix()
+  {
+    CALL_TRACE();
+  }
+
+  lil_matrix(int rows, int cols)
+      : shape(rows, cols)
+  {
+    CALL_TRACE();
+  }
+
+  void set_shape(int rows, int cols)
+  {
+    CALL_TRACE();
+    std::get<0>(shape) = rows;
+    std::get<1>(shape) = cols;
+    data.clear();
+  }
+
+  void clear() {
+    CALL_TRACE();
+    data.clear();
+  }
+
+  void set_identity(int n)
+  {
+    CALL_TRACE();
+    set_shape(n, n);
+    for (int i = 0; i < n; ++i) {
+      this->data[i][i] = one<dtype>();
+    }
+  }
+
+  void set_adjoint(lil_matrix<num_level,dtype,order,linalg_engine> src)
+  {
+    CALL_TRACE();
+    set_shape(std::get<1>(src.shape), std::get<0>(src.shape));
+    for (auto& m_ijv : src.data) {
+      int i = m_ijv.first;
+      for (auto& m_jv: m_ijv.second) {
+        int j = m_jv.first;
+        dtype val = m_jv.second;
+        this->data[j][i] = std::conj(val);
+      }
+    }
+  }
+
+  void optimize(real_t<dtype> tol = std::numeric_limits<real_t<dtype>>::epsilon())
+  {
+    CALL_TRACE();
+    real_t<dtype> max = zero<real_t<dtype>>();
+
+    for (auto& ijv : data) {
+      int i = ijv.first;
+      for (auto& jv: ijv.second) {
+        int j = jv.first;
+        max = std::max(std::abs(jv.second), max);
+      }
+    }
+
+    if (max == 0) {
+      max = 1;
+    }
+
+    std::vector<std::tuple<int,int>> dead_idx;
+    for (auto& ijv : data) {
+      int i = ijv.first;
+      for (auto& jv: ijv.second) {
+        int j = jv.first;
+        if (std::abs(jv.second) <= tol*max) {
+          dead_idx.push_back(std::make_tuple(i,j));
+        }
+      }
+    }
+
+    for (auto& ij: dead_idx) {
+      int i = std::get<0>(ij);
+      int j = std::get<1>(ij);
+      data.at(i).erase(j);
+    }
+
+    std::vector<int> dead;
+    for (auto& ijv : data) {
+      int i = ijv.first;
+      if (ijv.second.empty()) {
+        dead.push_back(i);
+      }
+    }
+
+    for (auto& i: dead) {
+      data.erase(i);
+    }
+  }
+
+  // template <bool order_out>
+  // lil_matrix<dtype, order_out> T
+  // /**/() const
+  // {
+  //   lil_matrix<dtype, order_out> out(std::get<1>(shape), std::get<0>(shape));
+  //   for (auto& data_ijv : data) {
+  //     int i = data_ijv.first;
+  //     for (auto& data_jv: data_ijv.second) {
+  //       int j = data_jv.first;
+  //       out.push(j,i,data_jv.second);
+  //     }
+  //   }
+  //   return std::move(out);
+  // }
+
+  // template <bool order_out>
+  // lil_matrix<dtype, order_out> H
+  // /**/() const
+  // {
+  //   lil_matrix<dtype, order_out> out(std::get<1>(shape), std::get<0>(shape));
+  //   for (auto& data_ijv : data) {
+  //     int i = data_ijv.first;
+  //     for (auto& data_jv: data_ijv.second) {
+  //       int j = data_jv.first;
+  //       out.push(j,i,std::conj(data_jv.second));
+  //     }
+  //   }
+  //   return std::move(out);
+  // }
+
+  void push(const int row, const int col, const dtype& value)
+  {
+    CALL_TRACE();
+    if constexpr (order == row_major) {
+      this->data[row][col] += value;
+    } else {
+      this->data[col][row] += value;
+    }
+  }
+
+  bool exists(const int row, const int col) const
+  {
+    CALL_TRACE();
+    if constexpr (order == row_major) {
+      auto itr = this->data.find(row);
+      if (itr == this->data.end()) {
+        return false;
+      } else {
+        return itr->second.find(col) != itr->second.end();
+      }
+    } else {
+      auto itr = this->data.find(col);
+      if (itr == this->data.end()) {
+        return false;
+      } else {
+        return itr->second.find(row) != itr->second.end();
+      }
+    }
+  }
+};
+
+
+template <int n_level, typename dtype, bool order, typename linalg_engine>
+std::ostream& operator <<(std::ostream& out, const lil_matrix<n_level,dtype,order,linalg_engine>& m)
+{
+  out << "lil matrix" << std::endl;
+  out << "  internal data:" << std::endl;
+  out << "  - shape: "   << std::get<0>(m.shape) << ", " << std::get<1>(m.shape) << std::endl;
+  out << "  - data: " << std::endl;
+  for (auto& m_ijv : m.data) {
+    int i = m_ijv.first;
+    for (auto& m_jv: m_ijv.second) {
+      int j = m_jv.first;
+      const dtype& val = m_jv.second;
+      if constexpr (order == row_major) {
+        out << "    (" << i << ", " << j << ") = " << val << std::endl;
+      } else {
+        out << "    (" << j << ", " << i << ") = " << val << std::endl;
+      }
+    }
+  }
+  return out;
+};
+
+};
+
+#endif /* LIL_MATRIX_H */
