@@ -10,42 +10,33 @@ Master branch could be unstable.
 ## Introduction
 
 `libheom` is a cross-platform, open-source library that supports open quantum dynamics simulations based on the hierarchical equations of motion (HEOM) theory.
-This library provides low-level API to solve HEOM written in ~~C++11~~C++17/CUDA and its Python 3 binding (`pylibheom`).
-High-level API, including calculations of parameters of HEOM from specific spectral density models, is provided in [pyheom](https://github.com/tatsushi-ikeda/pyheom) package.
-
-The version of C++ that is used is temporarily changed to C++17 because of [alignment issues](https://eigen.tuxfamily.org/dox/group__TopicUnalignedArrayAssert.html) in Eigen.
+This library provides low-level APIs to solve HEOM written C++17/CUDA.
+Python 3 binding (`pylibheom`) and high-level APIs, including calculations of parameters of HEOM from specific spectral density models, is provided in [pyheom](https://github.com/tatsushi-ikeda/pyheom) package.
 
 This library is still under development, and some optional functions are not implemented.
-There are no guarantees about backward compatibility as of now (Version 0.6.0).
+There are no guarantees about backward compatibility as of now (Version 1.0.0a1).
 
 ## TODO
 
 -   Write API documentation
--   Update GPU modules which are temporarily disabled
 -   Rewrite codes for non-linear spectra calculations which are temporarily removed
--   Implement explicit use of Intel MKL library (low priority)
--   Implement Fermion version of the HEOM (low priority)
 
 ## Required Packages
 
--   Eigen: 
+At least one of the following is required.
+
+-   Eigen:
     [http://eigen.tuxfamily.org](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 
--   pybind11:
-    [https://github.com/pybind/pybind11](https://github.com/pybind/pybind11)
+-   Intel MKL:
+    [https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html)
 
--   numpy:
-    [https://numpy.org/](https://numpy.org/)
-
-## Optional Dependencies
-
--   Compute Unified Device Architecture (CUDA) : [https://developer.nvidia.com/cuda-zone](https://developer.nvidia.com/cuda-zone)
--   cuBLAS &middot; cuSPARSE : [https://developer.nvidia.com/gpu-accelerated-libraries](https://developer.nvidia.com/gpu-accelerated-libraries)
+-   CUDA &middot; cuBLAS &middot; cuSPARSE &middot; cuSOLVE:
+    [https://developer.nvidia.com/cuda-zone](https://developer.nvidia.com/cuda-zone), [https://developer.nvidia.com/gpu-accelerated-libraries](https://developer.nvidia.com/gpu-accelerated-libraries)
 
 ## Installation
 
-**CMake** is employed for cross-platform building. For details, see
-[INSTALL.md](INSTALL.md).
+**CMake** is employed for cross-platform building. For details, see [INSTALL.md](INSTALL.md).
 
 ## Authors
 
