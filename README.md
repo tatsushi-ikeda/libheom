@@ -11,7 +11,7 @@ Master branch could be unstable.
 
 `libheom` is a cross-platform, open-source library that supports open quantum dynamics simulations based on the hierarchical equations of motion (HEOM) theory.
 This library provides low-level APIs to solve HEOM written C++17/CUDA.
-Python 3 binding (`pylibheom`) and high-level APIs, including calculations of parameters of HEOM from specific spectral density models, is provided in [pyheom](https://github.com/tatsushi-ikeda/pyheom) package.
+Python 3 binding (`pylibheom`) and high-level APIs, including calculations of parameters of HEOM from specific spectral density models, are provided in [pyheom](https://github.com/tatsushi-ikeda/pyheom) package.
 
 This library is still under development, and some optional functions are not implemented.
 There are no guarantees about backward compatibility as of now (Version 1.0.0a1).
