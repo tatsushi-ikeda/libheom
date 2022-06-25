@@ -1,0 +1,134 @@
+#  -*- mode:cmake -*-
+#  LibHEOM
+#  Copyright (c) Tatsushi Ikeda
+#  This library is distributed under BSD 3-Clause License.
+#  See LINCENSE.txt for licence.
+# ------------------------------------------------------------------------*/
+
+enable_language(CXX)
+
+if(EXISTS "${PROJECT_SOURCE_DIR}/3rdparty/eigen")
+  add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty/eigen)
+endif()
+
+set(LIBHEOM_ENABLE_EIGEN AUTO CACHE STRING "Enable Eigen support")
+set_property(CACHE LIBHEOM_ENABLE_EIGEN PROPERTY STRINGS AUTO ON OFF)
+
+set(LIBHEOM_ENABLE_MKL   AUTO CACHE STRING "Enable Intel MKL support")
+set_property(CACHE LIBHEOM_ENABLE_MKL   PROPERTY STRINGS AUTO ON OFF)
+
+set(LIBHEOM_ENABLE_CUDA  AUTO CACHE STRING "Enable CUDA support")
+set_property(CACHE LIBHEOM_ENABLE_CUDA  PROPERTY STRINGS AUTO ON OFF)
+
+set(LIBHEOM_ENABLE_SINGLE OFF CACHE STRING "Enable single point precision")
+set_property(CACHE LIBHEOM_ENABLE_SINGLE PROPERTY STRINGS ON OFF)
+
+set(LIBHEOM_ENABLE_DOUBLE ON CACHE STRING "Enable double point precision")
+set_property(CACHE LIBHEOM_ENABLE_DOUBLE PROPERTY STRINGS ON OFF)
+
+set(LIBHEOM_STACKTRACE OFF CACHE STRING "Enable call stack trace support for debug")
+set_property(CACHE LIBHEOM_STACKTRACE PROPERTY STRINGS ON OFF)
+
+set(LIBHEOM_MACRO_DEFS)
+set(LIBHEOM_CXX_FLAGS)
+set(LIBHEOM_SHARED_LINKER_FLAGS)
+set(LIBHEOM_INCLUDES "@PROJECT_SOURCE_DIR@/include")
+set(LIBHEOM_LIBRARIES)
+
+macro(_libheom_check_eigen_support)
+  if(LIBHEOM_ENABLE_EIGEN STREQUAL "AUTO")
+    find_package(Eigen3)
+    if (Eigen3_FOUND)
+      set(LIBHEOM_ENABLE_EIGEN_INTERNAL ON)
+    else()
+      set(LIBHEOM_ENABLE_EIGEN_INTERNAL OFF)
+    endif()
+    message(STATUS "LIBHEOM_ENABLE_EIGEN: AUTO (${LIBHEOM_ENABLE_EIGEN_INTERNAL})")
+  else()
+    set(LIBHEOM_ENABLE_EIGEN_INTERNAL "${LIBHEOM_ENABLE_EIGEN}")
+    message(STATUS "LIBHEOM_ENABLE_EIGEN: ${LIBHEOM_ENABLE_EIGEN}")
+  endif()
+  
+  if(LIBHEOM_ENABLE_EIGEN_INTERNAL)
+    find_package(Eigen3 REQUIRED)
+    list(APPEND LIBHEOM_INCLUDES "${Eigen3_SOURCE_DIR}")
+    set(LIBHEOM_MACRO_DEFS "${LIBHEOM_MACRO_DEFS} -DENABLE_EIGEN")
+  endif()
+endmacro()
+
+macro(_libheom_check_mkl_support)
+  if(LIBHEOM_ENABLE_MKL STREQUAL "AUTO")
+    include(CheckIncludeFileCXX)
+    CHECK_INCLUDE_FILE_CXX(mkl.h MKL_PATH)
+    if(MKL_PATH)
+      set(LIBHEOM_ENABLE_MKL_INTERNAL ON)
+    else()
+      set(LIBHEOM_ENABLE_MKL_INTERNAL OFF)
+    endif()
+    message(STATUS "LIBHEOM_ENABLE_MKL:   AUTO (${LIBHEOM_ENABLE_MKL_INTERNAL})")
+  else()
+    set(LIBHEOM_ENABLE_MKL_INTERNAL "${LIBHEOM_ENABLE_MKL}")
+    message(STATUS "LIBHEOM_ENABLE_MKL:   ${LIBHEOM_ENABLE_MKL}")
+  endif()
+
+  if(LIBHEOM_ENABLE_MKL_INTERNAL)
+    set(LIBHEOM_MACRO_DEFS "${LIBHEOM_MACRO_DEFS} -DENABLE_MKL")
+    set(BLA_STATIC OFF)
+    set(BLA_VENDOR Intel10_64lp)
+    find_package(BLAS)
+    if(NOT BLAS_FOUND)
+      message(FATAL_ERROR "Could not find MKL Library while LIBHEOM_ENABLE_MKL=ON")
+    else()
+      set(LIBHEOM_SHARED_LINKER_FLAGS "${LIBHEOM_SHARED_LINKER_FLAGS} ${BLAS_LINKER_FLAGS}")
+      set(LIBHEOM_LIBRARIES           "${LIBHEOM_LIBRARIES}" "${BLAS_LIBRARIES}" mkl_rt)
+    endif()
+  endif()
+endmacro()
+
+macro(_libheom_check_cuda_support)
+  if (LIBHEOM_ENABLE_CUDA STREQUAL "AUTO")
+    find_program(NVCC_PATH nvcc)
+    if(NVCC_PATH STREQUAL "NVCC_PATH-NOTFOUND")
+      set(LIBHEOM_ENABLE_CUDA_INTERNAL OFF)
+    else()
+      set(LIBHEOM_ENABLE_CUDA_INTERNAL ON)
+    endif()
+    message(STATUS "LIBHEOM_ENABLE_CUDA:  AUTO (${LIBHEOM_ENABLE_CUDA_INTERNAL})")
+  else()
+    set(LIBHEOM_ENABLE_CUDA_INTERNAL "${LIBHEOM_ENABLE_CUDA}")
+    message(STATUS "LIBHEOM_ENABLE_CUDA:  ${LIBHEOM_ENABLE_CUDA}")
+  endif()
+
+  if(LIBHEOM_ENABLE_CUDA_INTERNAL)
+    enable_language(CUDA)
+    set(LIBHEOM_MACRO_DEFS "${LIBHEOM_MACRO_DEFS} -DENABLE_CUDA")
+    set(LIBHEOM_LIBRARIES "${LIBHEOM_LIBRARIES}" cuda cudart cublas cusparse cusolver)
+  endif()
+endmacro()
+
+_libheom_check_eigen_support()
+_libheom_check_mkl_support()
+_libheom_check_cuda_support()
+
+if(LIBHEOM_STACKTRACE)
+  set(LIBHEOM_MACRO_DEFS "${LIBHEOM_MACRO_DEFS} -DSTACKTRACE")
+endif()
+
+if(LIBHEOM_ENABLE_SINGLE)
+  set(LIBHEOM_MACRO_DEFS "${LIBHEOM_MACRO_DEFS} -DENABLE_SINGLE")
+endif()
+
+if(LIBHEOM_ENABLE_DOUBLE)
+  set(LIBHEOM_MACRO_DEFS "${LIBHEOM_MACRO_DEFS} -DENABLE_DOUBLE")
+endif()
+
+set(LIBHEOM_CXX_FLAGS  "${LIBHEOM_CXX_FLAGS}  ${LIBHEOM_MACRO_DEFS}")
+set(LIBHEOM_CUDA_FLAGS "${LIBHEOM_CUDA_FLAGS} ${LIBHEOM_MACRO_DEFS}")
+  
+find_package(OpenMP REQUIRED)
+if(OpenMP_FOUND)
+  set(LIBHEOM_CXX_FLAGS  "${LIBHEOM_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  set(LIBHEOM_CUDA_FLAGS "${LIBHEOM_CUDA_FLAGS} ${OpenMP_CXX_FLAGS}")
+  set(LIBHEOM_SHARED_LINKER_FLAGS "${LIBHEOM_SHARED_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+

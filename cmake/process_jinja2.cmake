@@ -8,6 +8,7 @@
 set(J2_SCRIPT "${PROJECT_SOURCE_DIR}/tools/process_jinja2.py" CACHE INTERNAL "" FORCE)
 set(J2_PARAMS "${PROJECT_BINARY_DIR}/tools/params.json" CACHE INTERNAL "" FORCE)
 
+find_package(PythonInterp 3.6 REQUIRED)
 function(process_jinja2 filename)
   cmake_parse_arguments(J2 "" "SOURCE" "" ${ARGN})
   if(NOT J2_SOURCE)

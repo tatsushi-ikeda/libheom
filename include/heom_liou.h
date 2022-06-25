@@ -240,6 +240,8 @@ class heom_liou : public heom<dtype,order,linalg_engine>
         
         gemv<n_level_c_2>(obj,  one<dtype>(), this->Phi[u], temp_Phi, one<dtype>(), drho_dt_n, n_level_2);
         gemv<n_level_c_2>(obj,  one<dtype>(), this->Psi[u], temp_Psi, one<dtype>(), drho_dt_n, n_level_2);
+
+        
       }
       scal<n_level_c_2>(obj, beta, &drho_dt[lidx*n_level_2], n_level_2);
       axpy<n_level_c_2>(obj, -alpha, drho_dt_n, &drho_dt[lidx*n_level_2], n_level_2);

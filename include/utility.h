@@ -18,10 +18,10 @@
 #define INLINE inline
 #endif
 
-#ifdef QL_NDEBUG
-#  define CALL_TRACE() {}
-#else
+#ifdef STACKTRACE
 #  define CALL_TRACE() stack_funcname_operation call_trace_temp_symbol(std::string(__func__) + " @ " + std::string(__FILE__) + ", " + std::to_string(__LINE__));
+#else
+#  define CALL_TRACE() {}
 #endif
 
 namespace libheom {
@@ -32,7 +32,7 @@ class stack_funcname_operation {
   ~stack_funcname_operation();
 };
 
-#if !defined(QL_NDEBUG)
+#if STACKTRACE
 extern std::vector<std::string> stack_funcname;
 #endif
 void terminate_handler();

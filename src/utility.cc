@@ -29,15 +29,15 @@ stack_funcname_operation::~stack_funcname_operation()
 
 void terminate_handler()
 {
-#ifdef QL_NDEBUG
-  std::cerr << "Call trace is deactivated. Compile without -DQL_NDEBUG." << std::endl;
-#else
+#ifdef STACKTRACE
   int i = 0;
-  std::cerr << "============ Call Trace ============" << std::endl;
+  std::cerr << "============ call stack trace ============" << std::endl;
   for (const auto& elem : stack_funcname ) {
     std::cerr << "  " << ++i << " : " << elem << std::endl;
   }
-  std::cerr << "====================================" << std::endl;
+  std::cerr << "==========================================" << std::endl;
+#else
+  std::cerr << "call stack trace is deactivated. Compile with -DSTACKTRACE." << std::endl;
 #endif
 }
 

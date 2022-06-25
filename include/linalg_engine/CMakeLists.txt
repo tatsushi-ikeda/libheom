@@ -5,6 +5,8 @@
 #  See LINCENSE.txt for licence.
 # ------------------------------------------------------------------------*/
 
+include(process_jinja2)
+
 set(GERENATED_HEADERS
   lil_matrix.h
   linalg_engine_eigen.h
