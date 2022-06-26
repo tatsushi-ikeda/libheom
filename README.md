@@ -4,8 +4,10 @@
 
 # LibHEOM: Library to Simulate Open Quantum Dynamics based on HEOM Theory
 
-[The current stable version is v0.5](https://github.com/tatsushi-ikeda/libheom/tree/v0.5).
-Master branch could be unstable.
+The current stable version is [v0.5](https://github.com/tatsushi-ikeda/libheom/tree/v0.5).
+
+Version [1.0 (alpha)](https://github.com/tatsushi-ikeda/libheom/tree/develop) is under development.
+The Master branch could be unstable.
 
 ## Introduction
 
@@ -23,15 +25,23 @@ There are no guarantees about backward compatibility as of now (Version 1.0.0a1)
 
 ## Required Packages
 
-At least one of the following is required.
+-   [CMake](https://cmake.org/):
 
--   Eigen:
+    Cross-platform building system. Version 3.9 or later.
+
+-   Python 3.6 or later and [Jinja2](https://github.com/pallets/jinja/):
+
+    These are used to generate C++/CUDA codes from templates.
+
+Additionally, at least one of the following is required as a part of linear algebra libraries.
+
+-   Eigen3:
     [http://eigen.tuxfamily.org](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 
 -   Intel MKL:
     [https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html)
 
--   CUDA &middot; cuBLAS &middot; cuSPARSE &middot; cuSOLVE:
+-   CUDA &middot; cuBLAS &middot; cuSPARSE &middot; cuSOLVER:
     [https://developer.nvidia.com/cuda-zone](https://developer.nvidia.com/cuda-zone), [https://developer.nvidia.com/gpu-accelerated-libraries](https://developer.nvidia.com/gpu-accelerated-libraries)
 
 ## Installation
@@ -74,6 +84,6 @@ At least one of the following is required.
 </p>
 
 -   A prototype of this library was developed for projects supported by [Japan Society for the Promotion of Science](https://www.jsps.go.jp/). 
-    The current version is being developed for projects supported by JSPS again.
+    The current version is being developed for projects funded by JSPS again.
 -   The version for the above research paper (v0.5) was developed in [the Scholes group](http://chemlabs.princeton.edu/scholes/) for projects supported by [the Gordon and Betty Moore Foundation](https://www.moore.org/).
 
