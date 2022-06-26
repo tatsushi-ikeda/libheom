@@ -170,16 +170,14 @@ class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
       auto itr = this->data.find(row);
       if (itr == this->data.end()) {
         return false;
-      } else {
-        return itr->second.find(col) != itr->second.end();
       }
+      return itr->second.find(col) != itr->second.end();
     } else {
       auto itr = this->data.find(col);
       if (itr == this->data.end()) {
         return false;
-      } else {
-        return itr->second.find(row) != itr->second.end();
       }
+      return itr->second.find(row) != itr->second.end();
     }
   }
 };
