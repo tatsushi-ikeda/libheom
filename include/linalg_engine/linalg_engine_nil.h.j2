@@ -340,8 +340,7 @@ struct lu_impl<dtype,row_major>
       int i = A_ijv.first;
       for (auto& A_jv: A_ijv.second) {
         int j = A_jv.first;
-        dtype v = A_jv.second;
-        U.data[i][j] = v;
+        U.data[i][j] = A_jv.second;
       }
     }
   
@@ -381,10 +380,9 @@ struct lu_impl<dtype,row_major>
       int i = U_ijv.first;
       for (auto& U_jv: U_ijv.second) {
         int j = U_jv.first;
-        dtype v = U_jv.second;
         if (i > j) {
-          L.data[i][j] = U.data[i][j];
-          U.data[i][j] = zero<dtype>();
+          L.data[i][j] = U_jv.second;
+          U_jv.second = zero<dtype>();
         }
       }
     }

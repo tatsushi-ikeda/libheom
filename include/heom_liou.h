@@ -127,7 +127,7 @@ class heom_liou : public heom<dtype,order,linalg_engine>
     ++this->count;
     
     auto n_hrchy        = this->n_hrchy;
-    auto n_level        = this->n_level;
+    // auto n_level        = this->n_level;
     auto n_level_2      = this->n_level_2;
     auto n_noise        = this->n_noise;
     auto& ngamma_diag   = this->ngamma_diag;
@@ -155,7 +155,7 @@ class heom_liou : public heom<dtype,order,linalg_engine>
       
       // 0 terms
       gemv<n_level_c_2>(obj, one<dtype>(), this->R_0, rho_n, zero<dtype>(), drho_dt_n, n_level_2);
-      axpy<n_level_c_2>(obj, this->ngamma_diag[lidx], rho_n, drho_dt_n, n_level_2);
+      axpy<n_level_c_2>(obj, ngamma_diag[lidx], rho_n, drho_dt_n, n_level_2);
 
       for (int u = 0; u < n_noise; ++u) {
         auto& lk_u                = this->lk[u];

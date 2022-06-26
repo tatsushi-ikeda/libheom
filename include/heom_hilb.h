@@ -103,7 +103,7 @@ class heom_hilb : public heom<dtype,order,linalg_engine>
       gemm<n_level_c>(obj,  i_unit<dtype>(), this->H, rho_n, zero<dtype>(), drho_dt_n, n_level);
       gemm<n_level_c>(obj, -i_unit<dtype>(), rho_n, this->H, one<dtype>(),  drho_dt_n, n_level);
       
-      axpy<n_level_c_2>(obj, this->ngamma_diag[lidx], rho_n, drho_dt_n, n_level_2);
+      axpy<n_level_c_2>(obj, ngamma_diag[lidx], rho_n, drho_dt_n, n_level_2);
       for (int u = 0; u < n_noise; ++u) {
         gemm<n_level_c>(obj,  one<dtype>(), this->V[u], rho_n, zero<dtype>(), temp_Phi, n_level);
         gemm<n_level_c>(obj, -one<dtype>(), rho_n, this->V[u], one<dtype>(),  temp_Phi, n_level);

@@ -82,9 +82,9 @@ class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
     real_t<dtype> max = zero<real_t<dtype>>();
 
     for (auto& ijv : data) {
-      int i = ijv.first;
+      // int i = ijv.first;
       for (auto& jv: ijv.second) {
-        int j = jv.first;
+        // int j = jv.first;
         max = std::max(std::abs(jv.second), max);
       }
     }
