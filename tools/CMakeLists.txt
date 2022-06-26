@@ -6,13 +6,13 @@
 # ------------------------------------------------------------------------*/
 
 set(ENGINE_LIST)
-if(LIBHEOM_ENABLE_EIGEN)
+if(LIBHEOM_ENABLE_EIGEN_INTERNAL)
   list(APPEND ENGINE_LIST "\"eigen\"")
 endif()
-if(LIBHEOM_ENABLE_MKL)
+if(LIBHEOM_ENABLE_MKL_INTERNAL)
   list(APPEND ENGINE_LIST "\"mkl\"")
 endif()
-if(LIBHEOM_ENABLE_CUDA)
+if(LIBHEOM_ENABLE_CUDA_INTERNAL)
   list(APPEND ENGINE_LIST "\"cuda\"")
 endif()
 string(REPLACE ";" ", " ENGINE_LIST_STR "${ENGINE_LIST}")
