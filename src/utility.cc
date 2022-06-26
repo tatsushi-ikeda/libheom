@@ -37,7 +37,7 @@ void terminate_handler()
   }
   std::cerr << "==========================================" << std::endl;
 #else
-  std::cerr << "call stack trace is deactivated. Compile with -DSTACKTRACE." << std::endl;
+  std::cerr << "call stack trace is deactivated. Compile with -DLIBHEOM_STACKTRACE." << std::endl;
 #endif
 }
 
