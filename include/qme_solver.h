@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-#include "qme.h"
+#include "qme_base.h"
 #include "solver/solver_base.h"
 
 namespace libheom {

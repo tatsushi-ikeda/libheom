@@ -11,7 +11,7 @@
 #include "utility.h"
 
 #include "linalg_engine/linalg_engine.h"
-#include "qme.h"
+#include "qme_base.h"
 
 #include <functional>
 

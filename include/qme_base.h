@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef QME_H
-#define QME_H
+#ifndef QME_BASE_H
+#define QME_BASE_H
 
 #include "type.h"
 #include "const.h"
