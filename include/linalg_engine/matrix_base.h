@@ -16,10 +16,11 @@
 namespace libheom
 {
 
-constexpr bool row_major = true;
-constexpr bool col_major = false;
+using order_t = bool;
+constexpr order_t row_major = true;
+constexpr order_t col_major = false;
 
-template<bool order>
+template<order_t order>
 constexpr int shape_index = 0;
 
 template<>
@@ -27,8 +28,7 @@ constexpr int shape_index<row_major> = 0;
 template<>
 constexpr int shape_index<col_major> = 1;
 
-
-template<int num_level, typename dtype, bool order, typename linalg_engine>
+template<int num_level, typename dtype, order_t order, typename linalg_engine>
 class matrix_base
 {};
 

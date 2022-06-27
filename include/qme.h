@@ -20,11 +20,15 @@
 namespace libheom
 {
 
-template<typename dtype, bool order, typename linalg_engine>
+template<typename dtype, order_t order, typename linalg_engine>
 class qme_base
 {
  public:
-  using env = engine_env<linalg_engine>;
+  using dtype_impl = dtype;
+  static constexpr order_t order_impl = order;
+  using linalg_engine_impl = linalg_engine;
+  
+  using env  = engine_env<linalg_engine>;
 
   qme_base(): n_level(0)
   {};

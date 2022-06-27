@@ -171,9 +171,9 @@ struct errnrm1_impl<{{n_level}},dtype_real,eigen>
 template<{{n_level_template}}
          template <int n_level_c_,
                    typename dtype_,
-                   bool order_,
+                   order_t order_,
                    typename linalg_engine_> class matrix_base,
-         typename dtype, bool order>
+         typename dtype, order_t order>
 struct gemm_impl<{{n_level}},dtype,matrix_base,order,eigen>
 {
   static INLINE void func(eigen* engine_obj,
@@ -208,9 +208,9 @@ struct gemm_impl<{{n_level}},dtype,matrix_base,order,eigen>
 template<{{n_level_template}}
          template <int n_level_c_,
                    typename dtype_,
-                   bool order_,
+                   order_t order_,
                    typename linalg_engine_> class matrix_base,
-         typename dtype, bool order>
+         typename dtype, order_t order>
 struct gemv_impl<{{n_level}},dtype,matrix_base,order,eigen>
 {
   static INLINE void func(eigen* engine_obj,
@@ -229,7 +229,7 @@ struct gemv_impl<{{n_level}},dtype,matrix_base,order,eigen>
 };
 
 template<{{n_level_template}}
-         typename dtype, bool order>
+         typename dtype, order_t order>
 struct eig_impl<{{n_level}},dtype,dense_matrix,order,eigen>
 {
   static INLINE void func(eigen* engine_obj,
@@ -249,7 +249,7 @@ struct eig_impl<{{n_level}},dtype,dense_matrix,order,eigen>
 };
 
 template<{{n_level_template}}
-         typename dtype, bool order>
+         typename dtype, order_t order>
     struct utf_impl<{{n_level}},dtype,dense_matrix,order,eigen>
 {
   static INLINE void func(eigen* engine_obj,
@@ -267,7 +267,7 @@ template<{{n_level_template}}
 
 
 template<{{n_level_template}}
-         typename dtype, bool order>
+         typename dtype, order_t order>
     struct utb_impl<{{n_level}},dtype,dense_matrix,order,eigen>
 {
   static INLINE void func(eigen* engine_obj,

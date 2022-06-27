@@ -20,7 +20,7 @@
 
 namespace libheom {
 
-template<typename dtype, bool order>
+template<typename dtype, order_t order>
 class dense_matrix<dynamic,dtype,order,cuda>
     : public matrix_base<dynamic,dtype,order,cuda>
 {

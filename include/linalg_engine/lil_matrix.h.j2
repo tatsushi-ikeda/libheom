@@ -19,7 +19,7 @@ namespace libheom {
 // Sparse matrix class by using list in list (LIL) format.
 // While the name includes `list`, this is implemented by using std::map.
 
-template <int num_level, typename dtype, bool order, typename linalg_engine>
+template <int num_level, typename dtype, order_t order, typename linalg_engine>
 class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
 {
  public:
@@ -123,7 +123,7 @@ class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
     }
   }
 
-  // template <bool order_out>
+  // template <order_t order_out>
   // lil_matrix<dtype, order_out> T
   // /**/() const
   // {
@@ -138,7 +138,7 @@ class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
   //   return std::move(out);
   // }
 
-  // template <bool order_out>
+  // template <order_t order_out>
   // lil_matrix<dtype, order_out> H
   // /**/() const
   // {
@@ -183,7 +183,7 @@ class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
 };
 
 
-template <int n_level, typename dtype, bool order, typename linalg_engine>
+template <int n_level, typename dtype, order_t order, typename linalg_engine>
 std::ostream& operator <<(std::ostream& out, const lil_matrix<n_level,dtype,order,linalg_engine>& m)
 {
   out << "lil matrix" << std::endl;

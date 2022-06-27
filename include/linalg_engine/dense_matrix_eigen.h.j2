@@ -27,7 +27,7 @@ namespace libheom
 {
 
 {% for dynamic, n_level, n_level_template, eigen_n_level in eigen_dynamic_param %}
-template<{{n_level_template}}typename dtype, bool order>
+template<{{n_level_template}}typename dtype, order_t order>
 class dense_matrix<{{n_level}},dtype,order,eigen>
     : public matrix_base<{{n_level}},dtype,order,eigen>
 {

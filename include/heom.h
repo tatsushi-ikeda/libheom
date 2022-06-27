@@ -19,7 +19,7 @@ namespace libheom
 {
 
 
-template<typename dtype, bool order, typename linalg_engine>
+template<typename dtype, order_t order, typename linalg_engine>
 class heom : public qme_base<dtype,order,linalg_engine>
 {
  public:

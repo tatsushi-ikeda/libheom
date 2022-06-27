@@ -17,9 +17,9 @@ template<int n_level_c,
          typename dtype,
          template <int n_level_c_,
                    typename dtype_,
-                   bool order_,
+                   order_t order_,
                    typename linalg_engine_> class matrix_base,
-         bool order,
+         order_t order,
          typename linalg_engine>
 class redfield_hilb : public redfield<dtype,order,linalg_engine>
 {

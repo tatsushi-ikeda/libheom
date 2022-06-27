@@ -24,7 +24,7 @@
 namespace libheom
 {
 
-template<bool order>
+template<order_t order>
 constexpr cublasOperation_t cublas_op = CUBLAS_OP_T;
 
 template<>
@@ -254,7 +254,7 @@ struct gemm_impl<dynamic,{{dtype}},dense_matrix,{{order}},cuda>
 };
 {%   endfor %}
 
-template<bool order>
+template<order_t order>
 struct gemv_impl<dynamic,{{dtype}},dense_matrix,order,cuda>
 {
   static inline void func(cuda* obj,
@@ -277,7 +277,7 @@ struct gemv_impl<dynamic,{{dtype}},dense_matrix,order,cuda>
   }
 };
 
-template<bool order>
+template<order_t order>
 struct eig_impl<dynamic,{{dtype}},dense_matrix,order,cuda>
 {
   static inline void func(cuda* obj,
@@ -336,7 +336,7 @@ struct eig_impl<dynamic,{{dtype}},dense_matrix,order,cuda>
   }
 };
 
-template<bool order>
+template<order_t order>
     struct utf_impl<dynamic,{{dtype}},dense_matrix,order,cuda>
 {
   static inline void func(cuda* obj,
@@ -371,7 +371,7 @@ template<bool order>
   }
 };
 
-template<bool order>
+template<order_t order>
     struct utb_impl<dynamic,{{dtype}},dense_matrix,order,cuda>
 {
   static inline void func(cuda* obj,
@@ -408,7 +408,7 @@ template<bool order>
 
 {% endfor %}
 
-template<typename dtype, bool order>
+template<typename dtype, order_t order>
 struct gemm_impl<dynamic,dtype,sparse_matrix,order,cuda>
 {
   static inline void func(cuda* obj,
@@ -496,7 +496,7 @@ struct gemm_impl<dynamic,dtype,sparse_matrix,order,cuda>
   }
 };
 
-template<typename dtype, bool order>
+template<typename dtype, order_t order>
 struct gemv_impl<dynamic,dtype,sparse_matrix,order,cuda>
 {
   static inline void func(cuda* obj,

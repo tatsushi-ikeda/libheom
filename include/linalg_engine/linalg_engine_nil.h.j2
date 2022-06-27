@@ -35,7 +35,7 @@ struct dotu_impl<dynamic,dtype,nil>
 };
 
 
-template<typename dtype, bool order>
+template<typename dtype, order_t order>
 struct axpym_impl<dynamic,dtype,lil_matrix,order,nil>
 {
   inline static void func(nil* obj,
@@ -301,7 +301,7 @@ struct kron_1_x_T_impl<dynamic,dtype,lil_matrix,{{order}},{{order_kron}},nil>
 {% endfor %}
 
 
-template<typename dtype, bool order>
+template<typename dtype, order_t order>
 struct lu_impl
 {
   inline static void func(const lil_matrix<dynamic,dtype,order,nil>& A,
@@ -310,7 +310,7 @@ struct lu_impl
                           lil_matrix<dynamic,dtype,order,nil>& U);
 };
 
-template<typename dtype, bool order>
+template<typename dtype, order_t order>
 void lu(const lil_matrix<dynamic,dtype,order,nil>& A,
         vector<int>& pivot,
         lil_matrix<dynamic,dtype,order,nil>& L,
@@ -463,7 +463,7 @@ struct lu_impl<dtype,col_major>
 };
 
 
-template<typename dtype, bool order>
+template<typename dtype, order_t order>
 struct lu_solve_impl
 {
   inline static void func(const lil_matrix<dynamic,dtype,order,nil>& A,
@@ -471,7 +471,7 @@ struct lu_solve_impl
                           vector<dtype>& x);
 };
 
-template<typename dtype, bool order>
+template<typename dtype, order_t order>
 void lu_solve(const lil_matrix<dynamic,dtype,order,nil>& A,
               const vector<dtype>& b,
               vector<dtype>& x)

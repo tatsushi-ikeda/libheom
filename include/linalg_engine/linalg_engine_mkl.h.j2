@@ -57,7 +57,7 @@ class mkl : public linalg_engine_base
   }
 };
 
-template<bool order>
+template<order_t order>
 constexpr CBLAS_LAYOUT mkl_order = CblasRowMajor;
 
 template<>
@@ -65,7 +65,7 @@ constexpr CBLAS_LAYOUT mkl_order<row_major> = CblasRowMajor;
 template<>
 constexpr CBLAS_LAYOUT mkl_order<col_major> = CblasColMajor;
 
-template<bool order>
+template<order_t order>
 constexpr sparse_layout_t mkl_sparse_layout = SPARSE_LAYOUT_ROW_MAJOR;
 
 template<>
@@ -74,7 +74,7 @@ template<>
 constexpr sparse_layout_t mkl_sparse_layout<col_major> = SPARSE_LAYOUT_COLUMN_MAJOR;
 
 
-template<bool order>
+template<order_t order>
 constexpr sparse_layout_t mkl_sparse_layout_transpose = SPARSE_LAYOUT_COLUMN_MAJOR;
 
 template<>
@@ -83,7 +83,7 @@ template<>
 constexpr sparse_layout_t mkl_sparse_layout_transpose<col_major> = SPARSE_LAYOUT_ROW_MAJOR;
 
 
-template<bool order>
+template<order_t order>
 constexpr sparse_operation_t mkl_sparse_operation = SPARSE_OPERATION_NON_TRANSPOSE;
 
 template<>
@@ -92,7 +92,7 @@ template<>
 constexpr sparse_operation_t mkl_sparse_operation<col_major> = SPARSE_OPERATION_TRANSPOSE;
 
 
-template<bool order>
+template<order_t order>
 constexpr int lapack_layout = LAPACK_ROW_MAJOR;
 
 template<>
@@ -211,7 +211,7 @@ struct errnrm1_impl<dynamic,real_t<{{dtype}}>,mkl>
   }
 };
 
-template<bool order>
+template<order_t order>
 struct gemm_impl<dynamic,{{dtype}},dense_matrix,order,mkl>
 {
   static inline void func(mkl* engine_obj,
@@ -275,7 +275,7 @@ struct gemm_impl<dynamic,{{dtype}},dense_matrix,order,mkl>
   }
 };
 
-template<bool order>
+template<order_t order>
 struct gemv_impl<dynamic,{{dtype}},dense_matrix,order,mkl>
 {
   static inline void func(mkl* engine_obj,
@@ -341,7 +341,7 @@ struct gemm_impl<dynamic,{{dtype}},sparse_matrix,{{order}},mkl>
 
 {%   endfor %}
 
-template<bool order>
+template<order_t order>
 struct gemv_impl<dynamic,{{dtype}},sparse_matrix,order,mkl>
 {
   static inline void func(mkl* engine_obj,
@@ -361,7 +361,7 @@ struct gemv_impl<dynamic,{{dtype}},sparse_matrix,order,mkl>
   }
 };
 
-template<bool order>
+template<order_t order>
 struct eig_impl<dynamic,{{dtype}},dense_matrix,order,mkl>
 {
   static inline void func(mkl* engine_obj,
@@ -386,7 +386,7 @@ struct eig_impl<dynamic,{{dtype}},dense_matrix,order,mkl>
   }
 };
 
-template<bool order>
+template<order_t order>
     struct utf_impl<dynamic,{{dtype}},dense_matrix,order,mkl>
 {
   static inline void func(mkl* engine_obj,
@@ -418,7 +418,7 @@ template<bool order>
   }
 };
 
-template<bool order>
+template<order_t order>
     struct utb_impl<dynamic,{{dtype}},dense_matrix,order,mkl>
 {
   static inline void func(mkl* engine_obj,

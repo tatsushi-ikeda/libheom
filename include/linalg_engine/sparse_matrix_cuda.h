@@ -38,7 +38,7 @@ template <>
 constexpr cudaDataType_t cuda_type_const<complex128> = CUDA_C_64F;
 
 
-template<bool order>
+template<order_t order>
 constexpr cusparseOrder_t cusparse_order = CUSPARSE_ORDER_ROW;
 
 template<>
@@ -47,7 +47,7 @@ template<>
 constexpr cusparseOrder_t cusparse_order<col_major> = CUSPARSE_ORDER_COL;
 
 
-template<bool order>
+template<order_t order>
 constexpr cusparseOrder_t cusparse_order_t = CUSPARSE_ORDER_COL;
 
 template<>
@@ -56,7 +56,7 @@ template<>
 constexpr cusparseOrder_t cusparse_order_t<col_major> = CUSPARSE_ORDER_ROW;
 
 
-template<bool order>
+template<order_t order>
 constexpr cusparseSpMMAlg_t cusparse_alg = CUSPARSE_SPMM_CSR_ALG2;
 
 template<>
@@ -64,7 +64,7 @@ constexpr cusparseSpMMAlg_t cusparse_alg<row_major> = CUSPARSE_SPMM_CSR_ALG2;
 template<>
 constexpr cusparseSpMMAlg_t cusparse_alg<col_major> = CUSPARSE_SPMM_CSR_ALG1;
 
-template<bool order>
+template<order_t order>
 constexpr cusparseSpMMAlg_t cusparse_alg_t = CUSPARSE_SPMM_CSR_ALG1;
 
 template<>
@@ -72,7 +72,7 @@ constexpr cusparseSpMMAlg_t cusparse_alg_t<row_major> = CUSPARSE_SPMM_CSR_ALG1;
 template<>
 constexpr cusparseSpMMAlg_t cusparse_alg_t<col_major> = CUSPARSE_SPMM_CSR_ALG2;
 
-template<bool order>
+template<order_t order>
 inline cusparseStatus_t cusparse_create(cusparseSpMatDescr_t* dsc,
                                         int64_t rows, int64_t cols, int64_t nnz,
                                         void* outer, void* inner, void* data,
@@ -106,7 +106,7 @@ inline cusparseStatus_t cusparse_create<col_major>(cusparseSpMatDescr_t* dsc,
                            dtype_const);
 }
 
-template<typename dtype, bool order>
+template<typename dtype, order_t order>
 class sparse_matrix<dynamic,dtype,order,cuda>
     : public matrix_base<dynamic,dtype,order,cuda>
 {

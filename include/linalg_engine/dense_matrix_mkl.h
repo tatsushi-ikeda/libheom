@@ -25,7 +25,7 @@
 namespace libheom
 {
 
-template<bool order>
+template<order_t order>
 constexpr MKL_LAYOUT mkl_layout = MKL_ROW_MAJOR;
 
 template<>
@@ -33,7 +33,7 @@ constexpr MKL_LAYOUT mkl_layout<row_major> = MKL_ROW_MAJOR;
 template<>
 constexpr MKL_LAYOUT mkl_layout<col_major> = MKL_COL_MAJOR;
 
-template<int num_level, typename dtype, bool order>
+template<int num_level, typename dtype, order_t order>
 class dense_matrix<num_level,dtype,order,mkl>
     : public matrix_base<num_level,dtype,order,mkl>
 {

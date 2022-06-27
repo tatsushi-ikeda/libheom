@@ -15,7 +15,7 @@
 
 namespace libheom {
 
-template<typename dtype, bool order, typename linalg_engine>
+template<typename dtype, order_t order, typename linalg_engine>
 class qme_solver
 {
  public:

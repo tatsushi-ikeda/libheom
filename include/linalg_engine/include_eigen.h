@@ -37,7 +37,7 @@
 namespace libheom
 {
 
-template<bool order>
+template<order_t order>
 constexpr enum Eigen::StorageOptions eigen_order = Eigen::RowMajor;
 
 template<>

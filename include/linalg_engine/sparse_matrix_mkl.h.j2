@@ -28,7 +28,7 @@
 namespace libheom
 {
 
-template<bool order>
+template<order_t order>
 constexpr int mkl_sparse_base_int = 0;
 
 template<>
@@ -37,7 +37,7 @@ template<>
 constexpr int mkl_sparse_base_int<col_major> = 1;
 
 
-template<typename dtype, bool order>
+template<typename dtype, order_t order>
 inline sparse_status_t mkl_sparse_create(sparse_matrix_t* hdl,
                                          sparse_index_base_t base,
                                          int rows, int cols,
@@ -60,7 +60,7 @@ inline sparse_status_t mkl_sparse_create<{{dtype}},{{order}}>(sparse_matrix_t* h
 {%   endfor %}
 {% endfor %}
 
-template<typename dtype, bool order>
+template<typename dtype, order_t order>
 class sparse_matrix<dynamic,dtype,order,mkl>
     : public matrix_base<dynamic,dtype,order,mkl>
 {

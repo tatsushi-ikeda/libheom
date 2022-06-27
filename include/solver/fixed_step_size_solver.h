@@ -12,7 +12,7 @@
 
 namespace libheom {
 
-template<typename dtype, bool order, typename linalg_engine>
+template<typename dtype, order_t order, typename linalg_engine>
 class fixed_step_size_solver : public solver_base<dtype,order,linalg_engine>
 {
  public:

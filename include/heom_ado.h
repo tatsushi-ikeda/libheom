@@ -20,10 +20,10 @@ template<int n_level_c,
          typename dtype,
          template <int n_level_c_,
                    typename dtype_,
-                   bool order_,
+                   order_t order_,
                    typename linalg_engine_> class matrix_base,
-         bool order,
-         bool order_liou,
+         order_t order,
+         order_t order_liou,
          typename linalg_engine>
 class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,linalg_engine>
 {

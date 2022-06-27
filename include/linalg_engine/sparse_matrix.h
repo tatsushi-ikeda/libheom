@@ -12,7 +12,7 @@
 
 namespace libheom {
 
-template<int num_level, typename dtype, bool order, typename linalg_engine>
+template<int num_level, typename dtype, order_t order, typename linalg_engine>
 class sparse_matrix;
 
 }
