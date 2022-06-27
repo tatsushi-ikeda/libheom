@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef SOLVER_BASE_H
-#define SOLVER_BASE_H
+#ifndef LIBHEOM_SOLVER_BASE_H
+#define LIBHEOM_SOLVER_BASE_H
 
 #include "utility.h"
 

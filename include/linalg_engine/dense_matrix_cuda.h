@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef DENSE_MATRIX_CUDA_H
-#define DENSE_MATRIX_CUDA_H
+#ifndef LIBHEOM_DENSE_MATRIX_CUDA_H
+#define LIBHEOM_DENSE_MATRIX_CUDA_H
 
 #ifdef ENABLE_CUDA
 

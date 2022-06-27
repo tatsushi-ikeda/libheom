@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef REDFIELD_HILB_H
-#define REDFIELD_HILB_H
+#ifndef LIBHEOM_REDFIELD_HILB_H
+#define LIBHEOM_REDFIELD_HILB_H
 
 #include "redfield.h"
 

@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef SPARSE_MATRIX_CUDA_H
-#define SPARSE_MATRIX_CUDA_H
+#ifndef LIBHEOM_SPARSE_MATRIX_CUDA_H
+#define LIBHEOM_SPARSE_MATRIX_CUDA_H
 
 #ifdef ENABLE_CUDA
 
@@ -214,4 +214,4 @@ class sparse_matrix<dynamic,dtype,order,cuda>
 
 #endif
 
-#endif /* SPARSE_MATRIX_CUDA_H */
+#endif

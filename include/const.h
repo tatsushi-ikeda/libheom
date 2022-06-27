@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef CONST_H
-#define CONST_H
+#ifndef LIBHEOM_CONST_H
+#define LIBHEOM_CONST_H
 
 #include "type.h"
 

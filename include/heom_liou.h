@@ -5,9 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef HEOM_LIOU_H
-
-#define HEOM_LIOU_H
+#ifndef LIBHEOM_HEOM_LIOU_H
+#define LIBHEOM_HEOM_LIOU_H
 
 #include "heom.h"
 #include <omp.h>

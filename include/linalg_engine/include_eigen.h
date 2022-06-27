@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef INCLUDE_EIGEN_H
-#define INCLUDE_EIGEN_H
+#ifndef LIBHEOM_INCLUDE_EIGEN_H
+#define LIBHEOM_INCLUDE_EIGEN_H
 
 #define EIGEN_NO_DEBUG
 #define EIGEN_NO_CUDA

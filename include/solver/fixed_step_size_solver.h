@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef FIXED_STEP_SIZE_SOLVER_H
-#define FIXED_STEP_SIZE_SOLVER_H
+#ifndef LIBHEOM_FIXED_STEP_SIZE_SOLVER_H
+#define LIBHEOM_FIXED_STEP_SIZE_SOLVER_H
 
 #include "solver_base.h"
 

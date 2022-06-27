@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef RKDP_H
-#define RKDP_H
+#ifndef LIBHEOM_RKDP_H
+#define LIBHEOM_RKDP_H
 
 #include "adaptive_step_size_solver.h"
 

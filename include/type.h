@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef TYPE_H
-#define TYPE_H
+#ifndef LIBHEOM_TYPE_H
+#define LIBHEOM_TYPE_H
 
 #include <memory>
 #include <complex>

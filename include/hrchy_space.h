@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef HRCHY_SPACE_H
-#define HRCHY_SPACE_H
+#ifndef LIBHEOM_HRCHY_SPACE_H
+#define LIBHEOM_HRCHY_SPACE_H
 
 #include <map>
 #include <functional>

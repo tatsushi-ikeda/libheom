@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef LSRK4_H
-#define LSRK4_H
+#ifndef LIBHEOM_LSRK4_H
+#define LIBHEOM_LSRK4_H
 
 #include "fixed_step_size_solver.h"
 

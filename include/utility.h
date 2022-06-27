@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef UTILITY_H
-#define UTILITY_H
+#ifndef LIBHEOM_UTILITY_H
+#define LIBHEOM_UTILITY_H
 
 #include <iostream>
 #include <vector>

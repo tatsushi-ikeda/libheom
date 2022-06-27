@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef UTILITY_GPU_H
-#define UTILITY_GPU_H
+#ifndef LIBHEOM_UTILITY_GPU_H
+#define LIBHEOM_UTILITY_GPU_H
 
 namespace libheom
 {

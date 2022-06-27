@@ -5,9 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef HEOM_H
-
-#define HEOM_H
+#ifndef LIBHEOM_HEOM_H
+#define LIBHEOM_HEOM_H
 
 #include "qme_base.h"
 

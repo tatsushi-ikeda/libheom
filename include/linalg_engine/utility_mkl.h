@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef UTILITY_MKL_H
-#define UTILITY_MKL_H
+#ifndef LIBHEOM_UTILITY_MKL_H
+#define LIBHEOM_UTILITY_MKL_H
 
 #ifdef ENABLE_MKL
 

@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef QME_BASE_H
-#define QME_BASE_H
+#ifndef LIBHEOM_QME_BASE_H
+#define LIBHEOM_QME_BASE_H
 
 #include "type.h"
 #include "const.h"
@@ -24,10 +24,6 @@ template<typename dtype, order_t order, typename linalg_engine>
 class qme_base
 {
  public:
-  using dtype_impl = dtype;
-  static constexpr order_t order_impl = order;
-  using linalg_engine_impl = linalg_engine;
-  
   using env  = engine_env<linalg_engine>;
 
   qme_base(): n_level(0)

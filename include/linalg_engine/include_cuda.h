@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef INCLUDE_CUDA_H
-#define INCLUDE_CUDA_H
+#ifndef LIBHEOM_INCLUDE_CUDA_H
+#define LIBHEOM_INCLUDE_CUDA_H
 
 #include "type.h"
 

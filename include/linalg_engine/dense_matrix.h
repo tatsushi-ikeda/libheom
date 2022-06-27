@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef DENSE_MATRIX_H
-#define DENSE_MATRIX_H
+#ifndef LIBHEOM_DENSE_MATRIX_H
+#define LIBHEOM_DENSE_MATRIX_H
 
 #include "linalg_engine/matrix_base.h"
 

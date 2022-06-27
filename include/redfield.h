@@ -5,9 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef REDFIELD_H
-
-#define REDFIELD_H
+#ifndef LIBHEOM_REDFIELD_H
+#define LIBHEOM_REDFIELD_H
 
 #include "qme_base.h"
 

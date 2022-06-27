@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef SPARSE_MATRIX_H
-#define SPARSE_MATRIX_H
+#ifndef LIBHEOM_SPARSE_MATRIX_H
+#define LIBHEOM_SPARSE_MATRIX_H
 
 #include "linalg_engine/matrix_base.h"
 
@@ -16,4 +16,4 @@ template<int num_level, typename dtype, order_t order, typename linalg_engine>
 class sparse_matrix;
 
 }
-#endif /* SPARSE_MATRIX_H */
+#endif

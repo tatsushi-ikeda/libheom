@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef LINALG_ENGINE_H
-#define LINALG_ENGINE_H
+#ifndef LIBHEOM_LINALG_ENGINE_H
+#define LIBHEOM_LINALG_ENGINE_H
 
 #include <stdexcept>
 #include "type.h"

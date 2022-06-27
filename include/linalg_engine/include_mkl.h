@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef INCLUDE_MKL_H
-#define INCLUDE_MKL_H
+#ifndef LIBHEOM_INCLUDE_MKL_H
+#define LIBHEOM_INCLUDE_MKL_H
 
 #include "type.h"
 

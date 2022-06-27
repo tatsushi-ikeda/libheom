@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef QME_SOLVER_H
-#define QME_SOLVER_H
+#ifndef LIBHEOM_QME_SOLVER_H
+#define LIBHEOM_QME_SOLVER_H
 
 #include <iostream>
 

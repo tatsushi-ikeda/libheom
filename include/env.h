@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef ENV_H
-#define ENV_H
+#ifndef LIBHEOM_ENV_H
+#define LIBHEOM_ENV_H
 
 #include "type.h"
 #include "utility.h"

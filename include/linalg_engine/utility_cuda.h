@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef UTILITY_CUDA_H
-#define UTILITY_CUDA_H
+#ifndef LIBHEOM_UTILITY_CUDA_H
+#define LIBHEOM_UTILITY_CUDA_H
 
 #include <iostream>
 #include <string>

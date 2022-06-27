@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef DENSE_MATRIX_MKL_H
-#define DENSE_MATRIX_MKL_H
+#ifndef LIBHEOM_DENSE_MATRIX_MKL_H
+#define LIBHEOM_DENSE_MATRIX_MKL_H
 
 #ifdef ENABLE_MKL
 
@@ -116,4 +116,4 @@ class dense_matrix<num_level,dtype,order,mkl>
 
 #endif
 
-#endif /* DENSE_MATRIX_MKL_H */
+#endif

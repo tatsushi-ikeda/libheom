@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef ENV_GPU_H
-#define ENV_GPU_H
+#ifndef LIBHEOM_ENV_GPU_H
+#define LIBHEOM_ENV_GPU_H
 
 #include "env.h"
 

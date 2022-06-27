@@ -5,8 +5,8 @@
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef MATRIX_H
-#define MATRIX_H
+#ifndef LIBHEOM_MATRIX_H
+#define LIBHEOM_MATRIX_H
 
 #ifdef __INTEL_COMPILER
 #include <aligned_new>
@@ -34,4 +34,4 @@ class matrix_base
 
 }
 
-#endif /* MATRIX_H */
+#endif
