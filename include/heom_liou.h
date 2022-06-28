@@ -32,15 +32,17 @@ class heom_liou : public heom<dtype,order,linalg_engine>
   using env = engine_env<linalg_engine>;
   using heom<dtype,order,linalg_engine>::heom;
 
-  lil_matrix<dynamic,dtype,order_liou,nil> L_lil;
-  lil_matrix<dynamic,dtype,order_liou,nil> R_0_lil;
-  std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]> Phi_lil;
-  std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]> Psi_lil;
-  std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]> Xi_lil;
+  lil_matrix<dynamic,dtype,order_liou,nil> L;
+  lil_matrix<dynamic,dtype,order_liou,nil> R_0;
+  std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]> Phi;
+  std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]> Psi;
+  std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]> Xi;
 
-  matrix_base<n_level_c_2,dtype,order_liou,linalg_engine> R_0;
-  std::unique_ptr<matrix_base<n_level_c_2,dtype,order_liou,linalg_engine>[]> Phi;
-  std::unique_ptr<matrix_base<n_level_c_2,dtype,order_liou,linalg_engine>[]> Psi;
+  struct {
+    matrix_base<n_level_c_2,dtype,order_liou,linalg_engine> R_0;
+    std::unique_ptr<matrix_base<n_level_c_2,dtype,order_liou,linalg_engine>[]> Phi;
+    std::unique_ptr<matrix_base<n_level_c_2,dtype,order_liou,linalg_engine>[]> Psi;
+  } impl;
   
   heom_liou(): heom<dtype,order,linalg_engine>()
   {
@@ -64,52 +66,51 @@ class heom_liou : public heom<dtype,order,linalg_engine>
     CALL_TRACE();
     heom<dtype,order,linalg_engine>::set_param(obj);
 
-    this->L_lil.set_shape(this->n_level_2, this->n_level_2);
-    kron_x_1  <dynamic>(nilobj, +i_unit<dtype>(), this->H_lil, zero<dtype>(), this->L_lil);
-    kron_1_x_T<dynamic>(nilobj, -i_unit<dtype>(), this->H_lil,  one<dtype>(), this->L_lil);
+    this->L.set_shape(this->n_level_2, this->n_level_2);
+    kron_x_1  <dynamic>(nilobj, +i_unit<dtype>(), this->H, zero<dtype>(), this->L);
+    kron_1_x_T<dynamic>(nilobj, -i_unit<dtype>(), this->H,  one<dtype>(), this->L);
     
-    this->Phi_lil.reset(new lil_matrix<dynamic,dtype,order_liou,nil>[this->n_noise]);
-    this->Psi_lil.reset(new lil_matrix<dynamic,dtype,order_liou,nil>[this->n_noise]);
-    this->Xi_lil.reset (new lil_matrix<dynamic,dtype,order_liou,nil>[this->n_noise]);
+    this->Phi.reset(new lil_matrix<dynamic,dtype,order_liou,nil>[this->n_noise]);
+    this->Psi.reset(new lil_matrix<dynamic,dtype,order_liou,nil>[this->n_noise]);
+    this->Xi.reset (new lil_matrix<dynamic,dtype,order_liou,nil>[this->n_noise]);
     
     for (int u = 0; u < this->n_noise; ++u) {
-      this->Phi_lil[u].set_shape(this->n_level_2, this->n_level_2);
-      kron_x_1  <dynamic>(nilobj, +i_unit<dtype>(), this->V_lil[u], zero<dtype>(), this->Phi_lil[u]);
-      kron_1_x_T<dynamic>(nilobj, -i_unit<dtype>(), this->V_lil[u],  one<dtype>(), this->Phi_lil[u]);
-      this->Phi_lil[u].optimize();
+      this->Phi[u].set_shape(this->n_level_2, this->n_level_2);
+      kron_x_1  <dynamic>(nilobj, +i_unit<dtype>(), this->V[u], zero<dtype>(), this->Phi[u]);
+      kron_1_x_T<dynamic>(nilobj, -i_unit<dtype>(), this->V[u],  one<dtype>(), this->Phi[u]);
+      this->Phi[u].optimize();
       
-      this->Psi_lil[u].set_shape(this->n_level_2, this->n_level_2);
-      kron_x_1  <dynamic>(nilobj, +one<dtype>(), this->V_lil[u], zero<dtype>(), this->Psi_lil[u]);
-      kron_1_x_T<dynamic>(nilobj, +one<dtype>(), this->V_lil[u],  one<dtype>(), this->Psi_lil[u]);
-      this->Psi_lil[u].optimize();
+      this->Psi[u].set_shape(this->n_level_2, this->n_level_2);
+      kron_x_1  <dynamic>(nilobj, +one<dtype>(), this->V[u], zero<dtype>(), this->Psi[u]);
+      kron_1_x_T<dynamic>(nilobj, +one<dtype>(), this->V[u],  one<dtype>(), this->Psi[u]);
+      this->Psi[u].optimize();
       
-      this->Xi_lil[u].set_shape(this->n_level_2, this->n_level_2);
-      gemm<dynamic>(nilobj, -this->s_delta[u], this->Phi_lil[u], this->Phi_lil[u], zero<dtype>(), this->Xi_lil[u], this->n_level_2);
-      this->Xi_lil[u].optimize();
+      this->Xi[u].set_shape(this->n_level_2, this->n_level_2);
+      gemm<dynamic>(nilobj, -this->s_delta[u], this->Phi[u], this->Phi[u], zero<dtype>(), this->Xi[u], this->n_level_2);
+      this->Xi[u].optimize();
     }
 
-    this->R_0_lil.set_shape(this->n_level_2, this->n_level_2);
-    axpy<dynamic>(nilobj, one<dtype>(), this->L_lil, this->R_0_lil, this->n_level_2);
+    this->R_0.set_shape(this->n_level_2, this->n_level_2);
+    axpy<dynamic>(nilobj, one<dtype>(), this->L, this->R_0, this->n_level_2);
     for (int u = 0; u < this->n_noise; ++u) {
-      axpy<dynamic>(nilobj, one<dtype>(), this->Xi_lil[u], this->R_0_lil, this->n_level_2);
+      axpy<dynamic>(nilobj, one<dtype>(), this->Xi[u], this->R_0, this->n_level_2);
     }
 
-    this->R_0.import(this->R_0_lil);
-    this->Phi.reset(new matrix_base<n_level_c_2,dtype,order_liou,linalg_engine>[this->n_noise]);
-    this->Psi.reset(new matrix_base<n_level_c_2,dtype,order_liou,linalg_engine>[this->n_noise]);
+    this->impl.R_0.import(this->R_0);
+    this->impl.Phi.reset(new matrix_base<n_level_c_2,dtype,order_liou,linalg_engine>[this->n_noise]);
+    this->impl.Psi.reset(new matrix_base<n_level_c_2,dtype,order_liou,linalg_engine>[this->n_noise]);
     for (int u = 0; u < this->n_noise; ++u) {
-      this->Phi[u].import(this->Phi_lil[u]);
-      this->Psi[u].import(this->Psi_lil[u]);
+      this->impl.Phi[u].import(this->Phi[u]);
+      this->impl.Psi[u].import(this->Psi[u]);
     }
 
     for (int u = 0; u < this->n_noise; ++u) {
-      auto& gamma_offdiag_u_lil = this->gamma_offdiag_lil[u];
-      for (auto& gamma_jkv : gamma_offdiag_u_lil.data) {
+      auto& gamma_offdiag_u = this->gamma_offdiag[u];
+      for (auto& gamma_jkv : gamma_offdiag_u.data) {
         int j = gamma_jkv.first;
         for (auto& gamma_kv: gamma_jkv.second) {
           int k = gamma_kv.first;
           const dtype& v = gamma_kv.second;
-          std::cout << j << ", " << k << ": " << v << std::endl;
         }
       }
     }
@@ -126,9 +127,14 @@ class heom_liou : public heom<dtype,order,linalg_engine>
     ++this->count;
     
     auto n_hrchy        = this->n_hrchy;
-    // auto n_level        = this->n_level;
+    // auto n_level        = this->n_level; unused
     auto n_level_2      = this->n_level_2;
     auto n_noise        = this->n_noise;
+    
+    auto& R_0           = this->impl.R_0;
+    auto& Phi           = this->impl.Phi;
+    auto& Psi           = this->impl.Psi;
+    
     auto& ngamma_diag   = this->ngamma_diag;
     auto& n             = this->hs.n;
     auto& ptr_m1        = this->hs.ptr_m1;
@@ -153,19 +159,19 @@ class heom_liou : public heom<dtype,order,linalg_engine>
       auto temp_Psi  = &temp_base[(3*thread_id+2)*n_level_2];
       
       // 0 terms
-      gemv<n_level_c_2>(obj, one<dtype>(), this->R_0, rho_n, zero<dtype>(), drho_dt_n, n_level_2);
+      gemv<n_level_c_2>(obj, one<dtype>(), R_0, rho_n, zero<dtype>(), drho_dt_n, n_level_2);
       axpy<n_level_c_2>(obj, ngamma_diag[lidx], rho_n, drho_dt_n, n_level_2);
 
       for (int u = 0; u < n_noise; ++u) {
-        auto& lk_u                = this->lk[u];
-        auto  len_gamma_u         = this->len_gamma[u];
-        auto& gamma_offdiag_u_lil = this->gamma_offdiag_lil[u];
-        auto& sigma_u             = this->sigma[u];
-        auto& s_u                 = this->s[u];
-        auto& a_u                 = this->a[u];
+        auto& lk_u            = this->lk[u];
+        auto  len_gamma_u     = this->len_gamma[u];
+        auto& gamma_offdiag_u = this->gamma_offdiag[u];
+        auto& sigma_u         = this->sigma[u];
+        auto& s_u             = this->s[u];
+        auto& a_u             = this->a[u];
 
         
-        for (auto& gamma_jkv : gamma_offdiag_u_lil.data) {
+        for (auto& gamma_jkv : gamma_offdiag_u.data) {
           int j = gamma_jkv.first;
           for (auto& gamma_kv: gamma_jkv.second) {
             int k = gamma_kv.first;
@@ -237,8 +243,8 @@ class heom_liou : public heom<dtype,order,linalg_engine>
           }
         }
         
-        gemv<n_level_c_2>(obj,  one<dtype>(), this->Phi[u], temp_Phi, one<dtype>(), drho_dt_n, n_level_2);
-        gemv<n_level_c_2>(obj,  one<dtype>(), this->Psi[u], temp_Psi, one<dtype>(), drho_dt_n, n_level_2);
+        gemv<n_level_c_2>(obj,  one<dtype>(), Phi[u], temp_Phi, one<dtype>(), drho_dt_n, n_level_2);
+        gemv<n_level_c_2>(obj,  one<dtype>(), Psi[u], temp_Psi, one<dtype>(), drho_dt_n, n_level_2);
 
         
       }

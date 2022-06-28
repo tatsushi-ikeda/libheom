@@ -28,7 +28,7 @@ class heom : public qme_base<dtype,order,linalg_engine>
   vector<vector<int>> lk;
 
   vector<dtype> ngamma_diag;
-  std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> gamma_offdiag_lil;
+  std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> gamma_offdiag;
   std::unique_ptr<vector<dtype>[]> s;
   std::unique_ptr<vector<dtype>[]> a;
 
@@ -96,23 +96,23 @@ class heom : public qme_base<dtype,order,linalg_engine>
         for (int k = 0; k < this->len_gamma[u]; ++k) {
           this->ngamma_diag[lidx]
               += static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][k]])
-              *this->gamma_lil[u].data[k][k];
+              *this->gamma[u].data[k][k];
         }
       }
     }
 
     // calculate gamma_offdiag
-    this->gamma_offdiag_lil.reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
+    this->gamma_offdiag.reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
     
     for (int u = 0; u < this->n_noise; ++u) {
-      this->gamma_lil[u].set_shape(this->len_gamma[u], this->len_gamma[u]);
-      for (auto& gamma_ijv : this->gamma_lil[u].data) {
+      this->gamma[u].set_shape(this->len_gamma[u], this->len_gamma[u]);
+      for (auto& gamma_ijv : this->gamma[u].data) {
         int i = gamma_ijv.first;
         for (auto& gamma_jv: gamma_ijv.second) {
           int j = gamma_jv.first;
           const dtype& v = gamma_jv.second;
           if (i != j) {
-            this->gamma_offdiag_lil[u].data[i][j] = v;  // TODO: should be optimized
+            this->gamma_offdiag[u].data[i][j] = v;  // TODO: should be optimized
           }
         }
       }
@@ -126,11 +126,11 @@ class heom : public qme_base<dtype,order,linalg_engine>
       this->s[u].resize(this->len_gamma[u]);
       this->a[u].resize(this->len_gamma[u]);
       gemv(nilobj,
-           one<dtype>(),  this->S_lil[u], &this->phi_0[u][0],
+           one<dtype>(),  this->S[u], &this->phi_0[u][0],
            zero<dtype>(), &this->s[u][0],
            this->len_gamma[u]);
       gemv(nilobj,
-           one<dtype>(),  this->A_lil[u], &this->phi_0[u][0],
+           one<dtype>(),  this->A[u], &this->phi_0[u][0],
            zero<dtype>(), &this->a[u][0],
            this->len_gamma[u]);
     }

@@ -31,8 +31,10 @@ class heom_hilb : public heom<dtype,order,linalg_engine>
   using env = engine_env<linalg_engine>;
   using heom<dtype,order,linalg_engine>::heom;
 
-  matrix_base<n_level_c,dtype,order,linalg_engine> H;
-  std::unique_ptr<matrix_base<n_level_c,dtype,order,linalg_engine>[]> V;
+  struct {
+    matrix_base<n_level_c,dtype,order,linalg_engine> H;
+    std::unique_ptr<matrix_base<n_level_c,dtype,order,linalg_engine>[]> V;
+  } impl;
   
   heom_hilb(): heom<dtype,order,linalg_engine>()
   {};
@@ -54,11 +56,11 @@ class heom_hilb : public heom<dtype,order,linalg_engine>
     CALL_TRACE();
     heom<dtype,order,linalg_engine>::set_param(obj);
 
-    this->H.import(this->H_lil);
-    this->V.reset(new matrix_base<n_level_c,dtype,order,linalg_engine>[this->n_noise]);
+    this->impl.H.import(this->H);
+    this->impl.V.reset(new matrix_base<n_level_c,dtype,order,linalg_engine>[this->n_noise]);
 
     for (int u = 0; u < this->n_noise; ++u) {
-      this->V[u].import(this->V_lil[u]);
+      this->impl.V[u].import(this->V[u]);
     }
   }
 
@@ -75,6 +77,8 @@ class heom_hilb : public heom<dtype,order,linalg_engine>
     auto n_level        = this->n_level;
     auto n_level_2      = this->n_level_2;
     auto n_noise        = this->n_noise;
+    auto& H             = this->impl.H;
+    auto& V             = this->impl.V;
     auto& ngamma_diag   = this->ngamma_diag;
     auto& n             = this->hs.n;
     auto& ptr_m1        = this->hs.ptr_m1;
@@ -99,26 +103,26 @@ class heom_hilb : public heom<dtype,order,linalg_engine>
       auto temp_Psi  = &temp_base[(3*thread_id+2)*n_level_2];
       
       // 0 terms
-      gemm<n_level_c>(obj,  i_unit<dtype>(), this->H, rho_n, zero<dtype>(), drho_dt_n, n_level);
-      gemm<n_level_c>(obj, -i_unit<dtype>(), rho_n, this->H, one<dtype>(),  drho_dt_n, n_level);
+      gemm<n_level_c>(obj,  i_unit<dtype>(), H, rho_n, zero<dtype>(), drho_dt_n, n_level);
+      gemm<n_level_c>(obj, -i_unit<dtype>(), rho_n, H, one<dtype>(),  drho_dt_n, n_level);
       
       axpy<n_level_c_2>(obj, ngamma_diag[lidx], rho_n, drho_dt_n, n_level_2);
       for (int u = 0; u < n_noise; ++u) {
-        gemm<n_level_c>(obj,  one<dtype>(), this->V[u], rho_n, zero<dtype>(), temp_Phi, n_level);
-        gemm<n_level_c>(obj, -one<dtype>(), rho_n, this->V[u], one<dtype>(),  temp_Phi, n_level);
-        gemm<n_level_c>(obj,  this->s_delta[u], this->V[u], temp_Phi, one<dtype>(), drho_dt_n, n_level);
-        gemm<n_level_c>(obj, -this->s_delta[u], temp_Phi, this->V[u], one<dtype>(), drho_dt_n, n_level);
+        gemm<n_level_c>(obj,  one<dtype>(), V[u], rho_n, zero<dtype>(), temp_Phi, n_level);
+        gemm<n_level_c>(obj, -one<dtype>(), rho_n, V[u], one<dtype>(),  temp_Phi, n_level);
+        gemm<n_level_c>(obj,  this->s_delta[u], V[u], temp_Phi, one<dtype>(), drho_dt_n, n_level);
+        gemm<n_level_c>(obj, -this->s_delta[u], temp_Phi, V[u], one<dtype>(), drho_dt_n, n_level);
       }
       
       for (int u = 0; u < n_noise; ++u) {
-        auto& lk_u                = this->lk[u];
-        auto  len_gamma_u         = this->len_gamma[u];
-        auto& gamma_offdiag_u_lil = this->gamma_offdiag_lil[u];
-        auto& sigma_u             = this->sigma[u];
-        auto& s_u                 = this->s[u];
-        auto& a_u                 = this->a[u];
+        auto& lk_u            = this->lk[u];
+        auto  len_gamma_u     = this->len_gamma[u];
+        auto& gamma_offdiag_u = this->gamma_offdiag[u];
+        auto& sigma_u         = this->sigma[u];
+        auto& s_u             = this->s[u];
+        auto& a_u             = this->a[u];
 
-        for (auto& gamma_jkv : gamma_offdiag_u_lil.data) {
+        for (auto& gamma_jkv : gamma_offdiag_u.data) {
           int j = gamma_jkv.first;
           for (auto& gamma_kv: gamma_jkv.second) {
             int k = gamma_kv.first;
@@ -190,14 +194,14 @@ class heom_hilb : public heom<dtype,order,linalg_engine>
           }
         }
 
-        gemm<n_level_c>(obj,  i_unit<dtype>(), this->V[u], temp_Phi,
+        gemm<n_level_c>(obj,  i_unit<dtype>(), V[u], temp_Phi,
                         one<dtype>(), drho_dt_n, n_level);
-        gemm<n_level_c>(obj, -i_unit<dtype>(), temp_Phi, this->V[u],
+        gemm<n_level_c>(obj, -i_unit<dtype>(), temp_Phi, V[u],
                         one<dtype>(), drho_dt_n, n_level);
 
-        gemm<n_level_c>(obj, one<dtype>(), this->V[u], temp_Psi,
+        gemm<n_level_c>(obj, one<dtype>(), V[u], temp_Psi,
                         one<dtype>(), drho_dt_n, n_level);
-        gemm<n_level_c>(obj, one<dtype>(), temp_Psi, this->V[u],
+        gemm<n_level_c>(obj, one<dtype>(), temp_Psi, V[u],
                         one<dtype>(), drho_dt_n, n_level);
       }
       scal<n_level_c_2>(obj, beta, &drho_dt[lidx*n_level_2], n_level_2);

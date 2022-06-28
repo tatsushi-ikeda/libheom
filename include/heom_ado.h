@@ -33,10 +33,13 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
   using heom_liou<n_level_c,dtype,matrix_base,order,order_liou,linalg_engine>::heom_liou;
   int n_level_ado;
   
-  std::unique_ptr<std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]>[]> Theta_lil;
+  std::unique_ptr<std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]>[]> Theta;
 
-  lil_matrix<dynamic,dtype,order_liou,nil> R_lil;
-  matrix_base<dynamic,dtype,order_liou,linalg_engine> R;
+  lil_matrix<dynamic,dtype,order_liou,nil> R;
+
+  struct {
+    matrix_base<dynamic,dtype,order_liou,linalg_engine> R;
+  } impl;
   
   heom_ado(): heom_liou<n_level_c,dtype,matrix_base,order,order_liou,linalg_engine>()
   {};
@@ -58,20 +61,20 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
     CALL_TRACE();
     heom_liou<n_level_c,dtype,matrix_base,order,order_liou,linalg_engine>::set_param(obj);
 
-    this->Theta_lil.reset(new std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]>[this->n_noise]);
+    this->Theta.reset(new std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]>[this->n_noise]);
     
     for (int u = 0; u < this->n_noise; ++u) {
-      this->Theta_lil[u].reset(new lil_matrix<dynamic,dtype,order_liou,nil>[this->len_gamma[u]]);
+      this->Theta[u].reset(new lil_matrix<dynamic,dtype,order_liou,nil>[this->len_gamma[u]]);
       for (int k = 0; k < this->len_gamma[u]; ++k) {
-        this->Theta_lil[u][k].set_shape(this->n_level_2, this->n_level_2);
-        axpy<dynamic>(nilobj, +this->s[u][k], this->Phi_lil[u], this->Theta_lil[u][k], this->n_level_2);
-        axpy<dynamic>(nilobj, -this->a[u][k], this->Psi_lil[u], this->Theta_lil[u][k], this->n_level_2);
-        this->Theta_lil[u][k].optimize();
+        this->Theta[u][k].set_shape(this->n_level_2, this->n_level_2);
+        axpy<dynamic>(nilobj, +this->s[u][k], this->Phi[u], this->Theta[u][k], this->n_level_2);
+        axpy<dynamic>(nilobj, -this->a[u][k], this->Psi[u], this->Theta[u][k], this->n_level_2);
+        this->Theta[u][k].optimize();
       }
     }
 
     this->n_level_ado = this->n_hrchy*this->n_level_2;
-    this->R_lil.set_shape(n_level_ado, n_level_ado);
+    this->R.set_shape(n_level_ado, n_level_ado);
     
     for (int lidx = 0; lidx < this->n_hrchy; ++lidx) {
       for (int a = 0; a < this->n_level_2; ++a) {
@@ -81,7 +84,7 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
             int lidx_m1 = this->hs.ptr_m1[lidx][this->lk[u][k]];
             if (lidx_m1 == this->hs.ptr_void) continue;
             try {
-              for (auto& Theta_kv: this->Theta_lil[u][k].data[a]) {
+              for (auto& Theta_kv: this->Theta[u][k].data[a]) {
                 int b = Theta_kv.first;
                 dtype v = Theta_kv.second;
 #ifdef LIBHEOM_SQRT_NORMALIZATION            
@@ -91,13 +94,13 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
 #endif
                 if (v != zero<dtype>()) {
                   if constexpr (order_liou == row_major) {
-                    this->R_lil.push(lidx*this->n_level_2 + a,
-                                     lidx_m1*this->n_level_2 + b,
-                                     v);
+                    this->R.push(lidx*this->n_level_2 + a,
+                                 lidx_m1*this->n_level_2 + b,
+                                 v);
                   } else {
-                    this->R_lil.push(lidx*this->n_level_2 + b,
-                                     lidx_m1*this->n_level_2 + a,
-                                     v);
+                    this->R.push(lidx*this->n_level_2 + b,
+                                 lidx_m1*this->n_level_2 + a,
+                                 v);
                   }
                 }
               }
@@ -106,12 +109,12 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
         }
       
         // 0 terms
-        this->R_lil.push(lidx*this->n_level_2 + a,
-                         lidx*this->n_level_2 + a,
-                         this->ngamma_diag[lidx]);
+        this->R.push(lidx*this->n_level_2 + a,
+                     lidx*this->n_level_2 + a,
+                     this->ngamma_diag[lidx]);
       
         for (int u = 0; u < this->n_noise; ++u) {
-          for (auto& gamma_jkv : this->gamma_offdiag_lil[u].data) {
+          for (auto& gamma_jkv : this->gamma_offdiag[u].data) {
             int j = gamma_jkv.first;
             for (auto& gamma_kv: gamma_jkv.second) {
               int k = gamma_kv.first;
@@ -124,13 +127,13 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
                 auto n_j_float = static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][j]]);
 #ifdef LIBHEOM_SQRT_NORMALIZATION            
                 auto n_k_float = static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][k]]);
-                this->R_lil.push(lidx*this->n_level_2 + a,
-                                 lidx_m1jp1k*this->n_level_2 + a,
-                                 v*std::sqrt(n_j_float*(n_k_float + 1)));
+                this->R.push(lidx*this->n_level_2 + a,
+                             lidx_m1jp1k*this->n_level_2 + a,
+                             v*std::sqrt(n_j_float*(n_k_float + 1)));
 #else
-                this->R_lil.push(lidx*this->n_level_2 + a,
-                                 lidx_m1jp1k*this->n_level_2 + a,
-                                 v*n_j_float);
+                this->R.push(lidx*this->n_level_2 + a,
+                             lidx_m1jp1k*this->n_level_2 + a,
+                             v*n_j_float);
 #endif              
               }
             }
@@ -138,12 +141,12 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
         }
       
         try {
-          for (auto& R_kv: this->R_0_lil.data[a]) {
+          for (auto& R_kv: this->R_0.data[a]) {
             int b = R_kv.first;
             dtype v = R_kv.second;
-            this->R_lil.push(lidx*this->n_level_2 + a,
-                             lidx*this->n_level_2 + b,
-                             v);
+            this->R.push(lidx*this->n_level_2 + a,
+                         lidx*this->n_level_2 + b,
+                         v);
           }
         } catch (std::out_of_range&) {
         }
@@ -154,7 +157,7 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
             int lidx_p1 = this->hs.ptr_p1[lidx][this->lk[u][k]];
             if (lidx_p1 == this->hs.ptr_void) continue;
             try {
-              for (auto& Phi_kv: this->Phi_lil[u].data[a]) {
+              for (auto& Phi_kv: this->Phi[u].data[a]) {
                 int b = Phi_kv.first;
                 dtype v = Phi_kv.second;
 #ifdef LIBHEOM_SQRT_NORMALIZATION            
@@ -163,13 +166,13 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
                 v *= this->sigma[u][k];
                 if (v != zero<dtype>()) {
                   if constexpr (order_liou == row_major) {
-                    this->R_lil.push(lidx*this->n_level_2 + a,
-                                     lidx_p1*this->n_level_2 + b,
-                                     v);
+                    this->R.push(lidx*this->n_level_2 + a,
+                                 lidx_p1*this->n_level_2 + b,
+                                 v);
                   } else {
-                    this->R_lil.push(lidx*this->n_level_2 + b,
-                                     lidx_p1*this->n_level_2 + a,
-                                     v);
+                    this->R.push(lidx*this->n_level_2 + b,
+                                 lidx_p1*this->n_level_2 + a,
+                                 v);
                   }
                 }
               }
@@ -179,7 +182,7 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
       }
     }
 
-    this->R.import(this->R_lil);
+    this->impl.R.import(this->R);
   }
 
   inline void calc_diff_impl(linalg_engine* obj,
@@ -190,8 +193,9 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
                              device_t<dtype,env>* temp_base)
   {
     CALL_TRACE();
-
-    gemv<dynamic>(obj, -alpha, this->R, rho, beta, drho_dt, this->n_level_ado);
+    auto n_level_ado = this->n_level_ado;
+    auto& R          = this->impl.R;
+    gemv<dynamic>(obj, -alpha, R, rho, beta, drho_dt, n_level_ado);
   }
 };
 

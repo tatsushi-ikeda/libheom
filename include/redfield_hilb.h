@@ -25,10 +25,13 @@ class redfield_hilb : public redfield<dtype,order,linalg_engine>
 {
  public:
   using env = engine_env<linalg_engine>;
-  matrix_base<n_level_c,dtype,order,linalg_engine> H;
-  std::unique_ptr<matrix_base<n_level_c,dtype,order,linalg_engine>[]> V;
-  std::unique_ptr<matrix_base<n_level_c,dtype,order,linalg_engine>[]> Lambda;
-  std::unique_ptr<matrix_base<n_level_c,dtype,order,linalg_engine>[]> Lambda_dgr;
+
+  struct {
+    matrix_base<n_level_c,dtype,order,linalg_engine> H;
+    std::unique_ptr<matrix_base<n_level_c,dtype,order,linalg_engine>[]> V;
+    std::unique_ptr<matrix_base<n_level_c,dtype,order,linalg_engine>[]> Lambda;
+    std::unique_ptr<matrix_base<n_level_c,dtype,order,linalg_engine>[]> Lambda_dgr;
+  } impl;
 
   redfield_hilb(): redfield<dtype,order,linalg_engine>()
   {};
@@ -49,14 +52,14 @@ class redfield_hilb : public redfield<dtype,order,linalg_engine>
   {
     CALL_TRACE();
     redfield<dtype,order,linalg_engine>::set_param(obj);
-    this->H.import(this->H_lil);
-    this->V.reset(new matrix_base<n_level_c,dtype,order,linalg_engine>[this->n_noise]);
-    this->Lambda.reset    (new matrix_base<n_level_c,dtype,order,linalg_engine>[this->n_noise]);
-    this->Lambda_dgr.reset(new matrix_base<n_level_c,dtype,order,linalg_engine>[this->n_noise]);
+    this->impl.H.import(this->H);
+    this->impl.V.reset(new matrix_base<n_level_c,dtype,order,linalg_engine>[this->n_noise]);
+    this->impl.Lambda.reset    (new matrix_base<n_level_c,dtype,order,linalg_engine>[this->n_noise]);
+    this->impl.Lambda_dgr.reset(new matrix_base<n_level_c,dtype,order,linalg_engine>[this->n_noise]);
     for (int s = 0; s < this->n_noise; ++s) {
-      this->V[s].import(this->V_lil[s]);
-      this->Lambda    [s].import(this->Lambda_lil    [s]);
-      this->Lambda_dgr[s].import(this->Lambda_dgr_lil[s]);
+      this->impl.V[s].import(this->V[s]);
+      this->impl.Lambda    [s].import(this->Lambda    [s]);
+      this->impl.Lambda_dgr[s].import(this->Lambda_dgr[s]);
     }
   }
 
@@ -68,25 +71,21 @@ class redfield_hilb : public redfield<dtype,order,linalg_engine>
                              device_t<dtype,env>* temp)
   {
     CALL_TRACE();
-    gemm<n_level_c>(obj, -i_unit<dtype>()*alpha, this->H, rho, beta,         drho_dt, this->n_level);
-    gemm<n_level_c>(obj,  i_unit<dtype>()*alpha, rho, this->H, one<dtype>(), drho_dt, this->n_level);
-// #define OUT(x) std::cout << #x << ":" << x << std::endl;
-//     std::cout << "rho" << ":" << rho[0] << "," << rho[1] << "," << rho[2] << "," << rho[3] << std::endl;
-//     std::cout << "drho_dt" << ":" << drho_dt[0] << "," << drho_dt[1] << "," << drho_dt[2] << "," << drho_dt[3] << std::endl;
-//     OUT(alpha);
-//     OUT(beta);
-//     OUT(this->H.data);
-    // std::cout << "alpha:" << alpha << std::endl;
-    for (int s = 0; s < this->n_noise; ++s) {
-      // OUT(this->Lambda[s].data);
-      // OUT(this->Lambda_dgr[s].data);
-      // OUT(this->V[s].data);
-      gemm<n_level_c>(obj, +i_unit<dtype>(), this->Lambda[s], rho,    zero<dtype>(), temp, this->n_level);
-      gemm<n_level_c>(obj, -i_unit<dtype>(), rho, this->Lambda_dgr[s], one<dtype>(), temp, this->n_level);
-      gemm<n_level_c>(obj, +i_unit<dtype>()*alpha, this->V[s], temp, one<dtype>(), drho_dt, this->n_level);
-      gemm<n_level_c>(obj, -i_unit<dtype>()*alpha, temp, this->V[s], one<dtype>(), drho_dt, this->n_level);
+    auto n_level = this->n_level;
+    auto n_noise = this->n_noise;
+    auto& H = this->impl.H;
+    auto& V = this->impl.V;
+    auto& Lambda = this->impl.Lambda;
+    auto& Lambda_dgr = this->impl.Lambda_dgr;
+    
+    gemm<n_level_c>(obj, -i_unit<dtype>()*alpha, H, rho, beta,         drho_dt, n_level);
+    gemm<n_level_c>(obj,  i_unit<dtype>()*alpha, rho, H, one<dtype>(), drho_dt, n_level);
+    for (int s = 0; s < n_noise; ++s) {
+      gemm<n_level_c>(obj, +i_unit<dtype>(), Lambda[s], rho,    zero<dtype>(), temp, n_level);
+      gemm<n_level_c>(obj, -i_unit<dtype>(), rho, Lambda_dgr[s], one<dtype>(), temp, n_level);
+      gemm<n_level_c>(obj, +i_unit<dtype>()*alpha, V[s], temp, one<dtype>(), drho_dt, n_level);
+      gemm<n_level_c>(obj, -i_unit<dtype>()*alpha, temp, V[s], one<dtype>(), drho_dt, n_level);
     }
-    // std::cout << "drho_dt'" << ":" << drho_dt[0] << "," << drho_dt[1] << "," << drho_dt[2] << "," << drho_dt[3] << std::endl;
   }
 };
 
