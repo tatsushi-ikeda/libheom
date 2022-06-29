@@ -40,8 +40,11 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
   struct {
     matrix_base<dynamic,dtype,order_liou,linalg_engine> R;
   } impl;
+
+  heom_ado() = delete;
   
-  heom_ado(): heom_liou<n_level_c,dtype,matrix_base,order,order_liou,linalg_engine>()
+  heom_ado(int max_depth, int n_inner_threads, int n_outer_threads)
+      : heom_liou<n_level_c,dtype,matrix_base,order,order_liou,linalg_engine>(max_depth, n_inner_threads, n_outer_threads)
   {};
   
   int main_size()
@@ -81,8 +84,8 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
         // -1 terms
         for (int u = 0; u < this->n_noise; ++u) {
           for (int k = 0; k < this->len_gamma[u]; ++k) {
-            int lidx_m1 = this->hs.ptr_m1[lidx][this->lk[u][k]];
-            if (lidx_m1 == this->hs.ptr_void) continue;
+            int lidx_m1 = this->hs.ptr_m1[lidx][this->lk[u][k]]; 
+           if (lidx_m1 == this->hs.ptr_void) continue;
             try {
               for (auto& Theta_kv: this->Theta[u][k].data[a]) {
                 int b = Theta_kv.first;

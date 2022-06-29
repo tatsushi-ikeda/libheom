@@ -35,8 +35,11 @@ class heom_hilb : public heom<dtype,order,linalg_engine>
     matrix_base<n_level_c,dtype,order,linalg_engine> H;
     std::unique_ptr<matrix_base<n_level_c,dtype,order,linalg_engine>[]> V;
   } impl;
+
+  heom_hilb() = delete;
   
-  heom_hilb(): heom<dtype,order,linalg_engine>()
+  heom_hilb(int max_depth, int n_inner_threads, int n_outer_threads)
+      : heom<dtype,order,linalg_engine>(max_depth, n_inner_threads, n_outer_threads)
   {};
   
   int main_size()

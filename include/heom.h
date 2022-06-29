@@ -38,6 +38,8 @@ class heom : public qme_base<dtype,order,linalg_engine>
   
   int n_dim;
   int n_hrchy;
+
+  heom() = delete;
   
   heom(int max_depth, int n_inner_threads, int n_outer_threads)
       : qme_base<dtype,order,linalg_engine>::qme_base()

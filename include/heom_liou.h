@@ -43,10 +43,12 @@ class heom_liou : public heom<dtype,order,linalg_engine>
     std::unique_ptr<matrix_base<n_level_c_2,dtype,order_liou,linalg_engine>[]> Phi;
     std::unique_ptr<matrix_base<n_level_c_2,dtype,order_liou,linalg_engine>[]> Psi;
   } impl;
+
+  heom_liou() = delete;
   
-  heom_liou(): heom<dtype,order,linalg_engine>()
+  heom_liou(int max_depth, int n_inner_threads, int n_outer_threads)
+      : heom<dtype,order,linalg_engine>(max_depth, n_inner_threads, n_outer_threads)
   {
-    count = 0;
   };
   
   int main_size()
