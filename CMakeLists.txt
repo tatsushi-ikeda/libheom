@@ -33,6 +33,6 @@ add_subdirectory(tools)
 add_subdirectory(include)
 add_subdirectory(src)
 
-if(EXISTS test)
+if(EXISTS "${PROJECT_SOURCE_DIR}/test")
   add_subdirectory(test)
 endif()
