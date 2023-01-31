@@ -1,0 +1,459 @@
+/* -*- mode:c++ -*-
+ * LibHEOM
+ * Copyright (c) Tatsushi Ikeda
+ * This library is distributed under BSD 3-Clause License.
+ * See LINCENSE.txt for licence.
+ *------------------------------------------------------------------------*/
+
+#ifndef LIBHEOM_LINALG_ENGINE_MKL_H
+#define LIBHEOM_LINALG_ENGINE_MKL_H
+
+#include "env.h"
+#include "env_gpu.h"
+
+#include "linalg_engine/linalg_engine.h"
+
+#ifdef ENABLE_MKL
+
+#include "linalg_engine/dense_matrix_mkl.h"
+#include "linalg_engine/sparse_matrix_mkl.h"
+
+#include "linalg_engine/include_mkl.h"
+
+namespace libheom
+{
+
+class mkl : public linalg_engine_base
+{
+ public:
+  mkl() : linalg_engine_base() {
+    CALL_TRACE();
+    mkl_set_dynamic(0);
+  }
+
+  mkl(mkl* parent) : linalg_engine_base() {
+    CALL_TRACE();
+  }
+  
+  ~mkl() {
+    CALL_TRACE();
+  }
+
+  mkl* create_child() override
+  {
+    CALL_TRACE();
+    return new mkl (this);
+  }
+  
+  void set_n_inner_threads(int n) override
+  {
+    CALL_TRACE();
+    if (n > 0) {
+      this->n_threads_old = mkl_get_max_threads();
+      mkl_set_num_threads(n);
+    } else {
+      mkl_set_num_threads(this->n_threads_old);
+    }
+  }
+};
+
+template<order_t order>
+constexpr CBLAS_LAYOUT mkl_order = CblasRowMajor;
+
+template<>
+constexpr CBLAS_LAYOUT mkl_order<row_major> = CblasRowMajor;
+template<>
+constexpr CBLAS_LAYOUT mkl_order<col_major> = CblasColMajor;
+
+template<order_t order>
+constexpr sparse_layout_t mkl_sparse_layout = SPARSE_LAYOUT_ROW_MAJOR;
+
+template<>
+constexpr sparse_layout_t mkl_sparse_layout<row_major> = SPARSE_LAYOUT_ROW_MAJOR;
+template<>
+constexpr sparse_layout_t mkl_sparse_layout<col_major> = SPARSE_LAYOUT_COLUMN_MAJOR;
+
+
+template<order_t order>
+constexpr sparse_layout_t mkl_sparse_layout_transpose = SPARSE_LAYOUT_COLUMN_MAJOR;
+
+template<>
+constexpr sparse_layout_t mkl_sparse_layout_transpose<row_major> = SPARSE_LAYOUT_COLUMN_MAJOR;
+template<>
+constexpr sparse_layout_t mkl_sparse_layout_transpose<col_major> = SPARSE_LAYOUT_ROW_MAJOR;
+
+
+template<order_t order>
+constexpr sparse_operation_t mkl_sparse_operation = SPARSE_OPERATION_NON_TRANSPOSE;
+
+template<>
+constexpr sparse_operation_t mkl_sparse_operation<row_major> = SPARSE_OPERATION_NON_TRANSPOSE;
+template<>
+constexpr sparse_operation_t mkl_sparse_operation<col_major> = SPARSE_OPERATION_TRANSPOSE;
+
+
+template<order_t order>
+constexpr int lapack_layout = LAPACK_ROW_MAJOR;
+
+template<>
+constexpr int lapack_layout<row_major> = LAPACK_ROW_MAJOR;
+template<>
+constexpr int lapack_layout<col_major> = LAPACK_COL_MAJOR;
+
+
+{% for dtype, T in types %}
+{% set T_real = real_type_char[T] %}
+template<>
+struct nullify_impl<dynamic,device_t<{{dtype}},env_cpu>,mkl>
+{
+  static inline void func(mkl* engine_obj,
+                          device_t<{{dtype}},env_cpu>* x,
+                          int n_level)
+  {
+    CALL_TRACE();
+    {{dtype}} a = zero<{{dtype}}>();
+    cblas_{{T}}scal(n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&a)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(x)), 1);
+  }
+};
+
+
+template<>
+struct copy_impl<dynamic,device_t<{{dtype}},env_cpu>,mkl>
+{
+  static inline void func(mkl* engine_obj,
+                          device_t<{{dtype}},env_cpu>* x,
+                          device_t<{{dtype}},env_cpu>* y,
+                          int n_level)
+  {
+    CALL_TRACE();
+    cblas_{{T}}copy(n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(x)), 1,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(y)), 1);
+  }
+};
+
+template<>
+struct scal_impl<dynamic,{{dtype}},mkl>
+{
+  static inline void func(mkl* engine_obj,
+                          {{dtype}} a,
+                          device_t<{{dtype}},env_cpu>* y,
+                          int n_level)
+  {
+    CALL_TRACE();
+    cblas_{{T}}scal(n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&a)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(y)), 1);
+  }
+};
+
+template<>
+struct axpy_impl<dynamic,{{dtype}},mkl>
+{
+  static inline void func(mkl* engine_obj,
+                          {{dtype}} a,
+                          device_t<{{dtype}},env_cpu>* x,
+                          device_t<{{dtype}},env_cpu>* y,
+                          int n_level)
+  {
+    CALL_TRACE();
+    cblas_{{T}}axpy(n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&a)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(x)), 1,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(y)), 1);
+  }
+};
+
+template<>
+struct dotc_impl<dynamic,device_t<{{dtype}},env_cpu>,mkl>
+{
+  static inline {{dtype}} func(mkl* engine_obj,
+                               device_t<{{dtype}},env_cpu>* x,
+                               device_t<{{dtype}},env_cpu>* y,
+                               int n_level)
+  {
+    CALL_TRACE();
+    {{dtype}} result;
+    cblas_{{T}}dotc_sub(n_level,
+                        (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(x)), 1,
+                        (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(y)), 1,
+                        (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&result)));
+    return result;
+  }
+};
+
+template<>
+struct errnrm1_impl<dynamic,real_t<{{dtype}}>,mkl>
+{
+  static inline real_t<{{dtype}}> func(mkl* engine_obj,
+                                       device_t<{{dtype}},env_cpu>* e,
+                                       device_t<{{dtype}},env_cpu>* x_1,
+                                       device_t<{{dtype}},env_cpu>* x_2,
+                                       real_t<{{dtype}}> atol,
+                                       real_t<{{dtype}}> rtol,
+                                       int n_level)
+  {
+    CALL_TRACE();
+    // todo: low efficiency, should be rewritten
+    std::vector<real_t<{{dtype}}>> e_real(n_level), x_1_real(n_level), x_2_real(n_level);
+    v{{T}}Abs(n_level, (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(e)), &e_real[0]);
+    v{{T}}Abs(n_level, (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(x_1)), &x_1_real[0]);
+    v{{T}}Abs(n_level, (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(x_2)), &x_2_real[0]);
+    v{{T_real}}MaxMag(n_level, &x_1_real[0], &x_2_real[0], &x_1_real[0]);
+    // note: mkl supports inplace operations; see https://www.intel.com/content/www/us/en/develop/documentation/onemkl-developer-reference-c/top/vector-mathematical-functions/vm-naming-conventions/vm-function-interfaces/vm-output-parameters.html
+    cblas_{{T_real}}axpby(n_level, 1, &atol, 0, rtol, &x_1_real[0], 1);
+    // note: mkl supports incx=0
+    v{{T_real}}Div(n_level, &e_real[0], &x_1_real[0], &e_real[0]);  //
+    return cblas_{{T_real}}nrm2(n_level, &e_real[0], 1)/std::sqrt(n_level);
+
+  }
+};
+
+template<order_t order>
+struct gemm_impl<dynamic,{{dtype}},dense_matrix,order,mkl>
+{
+  static inline void func(mkl* engine_obj,
+                          {{dtype}} alpha,
+                          dense_matrix<dynamic,{{dtype}},order,mkl>& A,
+                          device_t<{{dtype}},env_cpu>* B,
+                          {{dtype}} beta,
+                          device_t<{{dtype}},env_cpu>* C,
+                          int n_level)
+  {
+    CALL_TRACE();
+#ifdef ASSUME_HERMITIAN
+    cblas_{{T}}hemm(mkl_order<order>,
+                    CblasLeft, CblasUpper,
+                    n_level, n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&alpha)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(A.data)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(B)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(C)), n_level);
+#else    
+    cblas_{{T}}gemm(mkl_order<order>,
+                    CblasNoTrans, CblasNoTrans,
+                    n_level, n_level, n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&alpha)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(A.data)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(B)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(C)), n_level);
+#endif
+  }
+
+  static inline void func(mkl* engine_obj,
+                          {{dtype}} alpha,
+                          device_t<{{dtype}},env_cpu>* A,
+                          dense_matrix<dynamic,{{dtype}},order,mkl>& B,
+                          {{dtype}} beta,
+                          device_t<{{dtype}},env_cpu>* C,
+                          int n_level)
+  {
+    CALL_TRACE();
+#ifdef ASSUME_HERMITIAN
+    cblas_{{T}}hemm(mkl_order<order>,
+                    CblasRight, CblasUpper,
+                    n_level, n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&alpha)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(B.data)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(A)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(C)), n_level);
+#else    
+    cblas_{{T}}gemm(mkl_order<order>,
+                    CblasNoTrans, CblasNoTrans,
+                    n_level, n_level, n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&alpha)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(A)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(B.data)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(C)), n_level);
+#endif
+  }
+};
+
+template<order_t order>
+struct gemv_impl<dynamic,{{dtype}},dense_matrix,order,mkl>
+{
+  static inline void func(mkl* engine_obj,
+                          {{dtype}} alpha,
+                          dense_matrix<dynamic,{{dtype}},order,mkl>& A,
+                          device_t<{{dtype}},env_cpu>* x,
+                          {{dtype}} beta,
+                          device_t<{{dtype}},env_cpu>* y,
+                          int n_level)
+  {
+    CALL_TRACE();
+    cblas_{{T}}gemv(mkl_order<order>,
+                    CblasNoTrans,
+                    n_level, n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&alpha)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(A.data)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(x)), 1,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(y)), 1);
+  }
+};
+
+{%   for order, _ in orders %}
+template<>
+struct gemm_impl<dynamic,{{dtype}},sparse_matrix,{{order}},mkl>
+{
+  static inline void func(mkl* engine_obj,
+                          {{dtype}} alpha,
+                          sparse_matrix<dynamic,{{dtype}},{{order}},mkl>& A,
+                          device_t<{{dtype}},env_cpu>* B,
+                          {{dtype}} beta,
+                          device_t<{{dtype}},env_cpu>* C,
+                          int n_level)
+  {
+    CALL_TRACE();
+    mkl_t<{{dtype}}> alpha_mkl = *(reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&alpha));
+    mkl_t<{{dtype}}> beta_mkl  = *(reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta));
+    // MKL_SPARSE_CALL(mkl_sparse_set_mm_hint(A.hdl{{"_0" if order == "row_major" else "_1"}}, SPARSE_OPERATION_NON_TRANSPOSE, A.dsc, mkl_sparse_layout<{{order}}>, n_level, 1));
+    MKL_SPARSE_CALL(mkl_sparse_{{T}}_mm(SPARSE_OPERATION_NON_TRANSPOSE,
+                                        alpha_mkl, A.hdl{{"_0" if order == "row_major" else "_1"}}, A.dsc, mkl_sparse_layout<{{order}}>,
+                                        (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(B)), n_level, n_level, beta_mkl,
+                                        (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(C)), n_level));
+  }
+
+  static inline void func(mkl* engine_obj,
+                          {{dtype}} alpha,
+                          device_t<{{dtype}},env_cpu>* A,
+                          sparse_matrix<dynamic,{{dtype}},{{order}},mkl>& B,
+                          {{dtype}} beta,
+                          device_t<{{dtype}},env_cpu>* C,
+                          int n_level)
+  {
+    CALL_TRACE();
+    mkl_t<{{dtype}}> alpha_mkl = *(reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&alpha));
+    mkl_t<{{dtype}}> beta_mkl  = *(reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta));
+    // MKL_SPARSE_CALL(mkl_sparse_set_mm_hint(B.hdl{{"_1" if order == "row_major" else "_0"}}, SPARSE_OPERATION_TRANSPffffffOSE, B.dsc, mkl_sparse_layout_transpose<{{order}}>, n_level, 1));
+    MKL_SPARSE_CALL(mkl_sparse_{{T}}_mm(SPARSE_OPERATION_TRANSPOSE,
+                                        alpha_mkl, B.hdl{{"_1" if order == "row_major" else "_0"}}, B.dsc, mkl_sparse_layout_transpose<{{order}}>,
+                                        (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(A)), n_level, n_level, beta_mkl,
+                                        (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(C)), n_level));
+  }
+};
+
+{%   endfor %}
+
+template<order_t order>
+struct gemv_impl<dynamic,{{dtype}},sparse_matrix,order,mkl>
+{
+  static inline void func(mkl* engine_obj,
+                          {{dtype}} alpha,
+                          sparse_matrix<dynamic,{{dtype}},order,mkl>& A,
+                          device_t<{{dtype}},env_cpu>* x,
+                          {{dtype}} beta,
+                          device_t<{{dtype}},env_cpu>* y,
+                          int n_level)
+  {
+    CALL_TRACE();
+    mkl_t<{{dtype}}> alpha_mkl = *(reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&alpha));
+    mkl_t<{{dtype}}> beta_mkl  = *(reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta));
+    // MKL_SPARSE_CALL(mkl_sparse_set_mv_hint(A.hdl_0, SPARSE_OPERATION_NON_TRANSPOSE, A.dsc, 1));
+    MKL_SPARSE_CALL(mkl_sparse_{{T}}_mv(SPARSE_OPERATION_NON_TRANSPOSE, alpha_mkl, A.hdl_0, A.dsc, (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(x)),
+                                        beta_mkl, (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(y))));
+  }
+};
+
+template<order_t order>
+struct eig_impl<dynamic,{{dtype}},dense_matrix,order,mkl>
+{
+  static inline void func(mkl* engine_obj,
+                          dense_matrix<dynamic,{{dtype}},order,mkl>& A,
+                          device_t<real_t<{{dtype}}>,env_cpu>* w,
+                          device_t<{{dtype}},env_cpu>* v,
+                          int n_level)
+  {
+    CALL_TRACE();
+    // https://www.intel.com/content/www/us/en/develop/documentation/onemkl-developer-reference-c/top/lapack-routines/lapack-least-squares-and-eigenvalue-problem/lapack-least-squares-eigenvalue-problem-driver/symmetric-eigenvalue-problems-lapack-driver/heev.html
+    cblas_{{T}}copy(n_level*n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(A.data)), 1,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(v)), 1);
+    int err = LAPACKE_{{T}}heev(lapack_layout<order>, 'V', 'U', n_level, (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(v)), n_level, w);
+    if (err != 0) {
+      std::cerr << "[Error:mkl] "
+                << "(error code: " << err << ") "
+                << "at " << __FILE__ << " line " << __LINE__ << std::endl;
+      std::cerr << "HEEV calculaton failed." << std::endl;
+      std::exit(1);
+    }
+  }
+};
+
+template<order_t order>
+    struct utf_impl<dynamic,{{dtype}},dense_matrix,order,mkl>
+{
+  static inline void func(mkl* engine_obj,
+                          dense_matrix<dynamic,{{dtype}},order,mkl>& A,
+                          device_t<{{dtype}},env_cpu>* v,
+                          device_t<{{dtype}},env_cpu>* A_v,
+                          int n_level)
+  {
+    CALL_TRACE();
+    vector<{{dtype}}> tmp(n_level*n_level);
+    {{dtype}} alpha = one<{{dtype}}>();
+    {{dtype}} beta  = zero<{{dtype}}>();
+    cblas_{{T}}gemm(mkl_order<order>,
+                    CblasNoTrans, CblasNoTrans,
+                    n_level, n_level, n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&alpha)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(A.data)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(v)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&tmp[0])), n_level);
+    cblas_{{T}}gemm(mkl_order<order>,
+                    CblasConjTrans, CblasNoTrans,
+                    n_level, n_level, n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&alpha)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(v)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&tmp[0])), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(A_v)), n_level);
+  }
+};
+
+template<order_t order>
+    struct utb_impl<dynamic,{{dtype}},dense_matrix,order,mkl>
+{
+  static inline void func(mkl* engine_obj,
+                          device_t<{{dtype}},env_cpu>* A_v,
+                          device_t<{{dtype}},env_cpu>* v,
+                          dense_matrix<dynamic,{{dtype}},order,mkl>& A,
+                          int n_level)
+  {
+    CALL_TRACE();
+    vector<{{dtype}}> tmp(n_level*n_level);
+    {{dtype}} alpha = one<{{dtype}}>();
+    {{dtype}} beta  = zero<{{dtype}}>();
+    cblas_{{T}}gemm(mkl_order<order>,
+                    CblasNoTrans, CblasConjTrans,
+                    n_level, n_level, n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&alpha)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(A_v)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(v)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&tmp[0])), n_level);
+    cblas_{{T}}gemm(mkl_order<order>,
+                    CblasNoTrans, CblasNoTrans,
+                    n_level, n_level, n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&alpha)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(v)), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&tmp[0])), n_level,
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta)),
+                    (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(A.data)), n_level);
+  }
+};
+
+{% endfor %}
+
+}
+
+#endif
+
+#endif

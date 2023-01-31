@@ -1,0 +1,294 @@
+/* -*- mode:c++ -*-
+ * LibHEOM
+ * Copyright (c) Tatsushi Ikeda
+ * This library is distributed under BSD 3-Clause License.
+ * See LINCENSE.txt for licence.
+ *------------------------------------------------------------------------*/
+
+#ifndef LIBHEOM_LINALG_ENGINE_EIGEN_H
+#define LIBHEOM_LINALG_ENGINE_EIGEN_H
+
+#include "env.h"
+
+#include "linalg_engine/linalg_engine.h"
+
+#ifdef ENABLE_EIGEN
+
+#include "linalg_engine/include_eigen.h"
+
+namespace libheom
+{
+
+class eigen : public linalg_engine_base
+{
+ public:  
+  eigen(): linalg_engine_base() {
+    CALL_TRACE();
+    Eigen::initParallel();
+  }
+
+  eigen(eigen* parent) :linalg_engine_base() {
+    CALL_TRACE();
+  }
+
+  ~eigen() {
+    CALL_TRACE();
+  }
+  
+  eigen* create_child() override
+  {
+    CALL_TRACE();
+    return new eigen (this);
+  }
+
+  void set_n_inner_threads (int n) override
+  {
+    CALL_TRACE();
+    if (n > 0) {
+      this->n_threads_old = Eigen::nbThreads();
+      Eigen::setNbThreads(n);
+    } else {
+      Eigen::setNbThreads(this->n_threads_old);
+    }
+  }
+};
+
+template<typename dtype>
+constexpr Eigen::AlignmentType eigen_align = Eigen::Unaligned;
+
+#if (defined __NVCC__ && defined __GNUC__)
+// nvcc with g++ doesn't work well with Eigen::Aligned32 on Eigen 3.4
+template <>
+constexpr Eigen::AlignmentType eigen_align<complex64> = Eigen::Aligned16;
+#else
+template <>
+constexpr Eigen::AlignmentType eigen_align<complex64> = Eigen::Aligned32;
+#endif
+
+#if defined(__ICC)
+template <>
+constexpr Eigen::AlignmentType eigen_align<complex128> = Eigen::Aligned64;
+#else
+template <>
+constexpr Eigen::AlignmentType eigen_align<complex128> = Eigen::Aligned32;
+#endif
+
+{% for dynamic, n_level, n_level_template, eigen_n_level in eigen_dynamic_param %}
+template<{{n_level_template}}typename dtype_dev>
+struct nullify_impl<{{n_level}},dtype_dev,eigen>
+{
+  static INLINE void func(eigen* engine_obj,
+                          dtype_dev* x,
+                          int n_level)
+  {
+    CALL_TRACE();
+    Eigen::Map<Eigen::Matrix<dtype_dev,1,{{eigen_n_level}},Eigen::RowMajor>,eigen_align<dtype_dev>> x_eigen(x{{", 1, n_level" if dynamic}});
+    x_eigen.setZero();
+  }
+};
+
+template<{{n_level_template}}typename dtype_dev>
+struct copy_impl<{{n_level}},dtype_dev,eigen>
+{
+  static INLINE void func(eigen* engine_obj,
+                          dtype_dev* x,
+                          dtype_dev* y,
+                          int n_level)
+  {
+    CALL_TRACE();
+    Eigen::Map<Eigen::Matrix<dtype_dev,1,{{eigen_n_level}},Eigen::RowMajor>,eigen_align<dtype_dev>> x_eigen(x{{", 1, n_level" if dynamic}});
+    Eigen::Map<Eigen::Matrix<dtype_dev,1,{{eigen_n_level}},Eigen::RowMajor>,eigen_align<dtype_dev>> y_eigen(y{{", 1, n_level" if dynamic}});
+    y_eigen.noalias() = x_eigen;
+  }
+};
+
+template<{{n_level_template}}typename dtype>
+struct scal_impl<{{n_level}},dtype,eigen>
+{
+  static INLINE void func(eigen* engine_obj,
+                          dtype a,
+                          device_t<dtype,env_cpu>* y,
+                          int n_level)
+  {
+    CALL_TRACE();
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,1,{{eigen_n_level}},Eigen::RowMajor>,eigen_align<dtype>> y_eigen(y{{", 1, n_level" if dynamic}});
+    y_eigen.noalias() = a*y_eigen;
+  }
+};
+
+template<{{n_level_template}}typename dtype>
+struct axpy_impl<{{n_level}},dtype,eigen>
+{
+  static INLINE void func(eigen* engine_obj,
+                          dtype a,
+                          device_t<dtype,env_cpu>* x,
+                          device_t<dtype,env_cpu>* y,
+                          int n_level)
+  {
+    CALL_TRACE();
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,1,{{eigen_n_level}},Eigen::RowMajor>,eigen_align<dtype>> x_eigen(x{{", 1, n_level" if dynamic}});
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,1,{{eigen_n_level}},Eigen::RowMajor>,eigen_align<dtype>> y_eigen(y{{", 1, n_level" if dynamic}});
+    y_eigen.noalias() += a*x_eigen;
+  }
+};
+
+template<{{n_level_template}}typename dtype>
+struct dotc_impl<{{n_level}},dtype,eigen>
+{
+  static INLINE dtype func(eigen* engine_obj,
+                           device_t<dtype,env_cpu>* x,
+                           device_t<dtype,env_cpu>* y,
+                           int n_level)
+  {
+    CALL_TRACE();
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,1,{{eigen_n_level}},Eigen::RowMajor>,eigen_align<dtype>> x_eigen(x{{", 1, n_level" if dynamic}});
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},1,Eigen::ColMajor>,eigen_align<dtype>> y_eigen(y{{", n_level, 1" if dynamic}});
+    return x_eigen.conjugate()*y_eigen;
+  }
+};
+
+template<{{n_level_template}}typename dtype_real>
+struct errnrm1_impl<{{n_level}},dtype_real,eigen>
+{
+  static INLINE dtype_real func(eigen* engine_obj,
+                                device_t<complex_t<dtype_real>,env_cpu>* e,
+                                device_t<complex_t<dtype_real>,env_cpu>* x_1,
+                                device_t<complex_t<dtype_real>,env_cpu>* x_2,
+                                dtype_real atol,
+                                dtype_real rtol,
+                                int n_level)
+  {
+    CALL_TRACE();
+    Eigen::Map<Eigen::Matrix<device_t<complex_t<dtype_real>,env_cpu>,1,{{eigen_n_level}},Eigen::RowMajor>,eigen_align<complex_t<dtype_real>>> e_eigen  (e{{", n_level, 1" if dynamic}});
+    Eigen::Map<Eigen::Matrix<device_t<complex_t<dtype_real>,env_cpu>,1,{{eigen_n_level}},Eigen::RowMajor>,eigen_align<complex_t<dtype_real>>> x_1_eigen(x_1{{", n_level, 1" if dynamic}});
+    Eigen::Map<Eigen::Matrix<device_t<complex_t<dtype_real>,env_cpu>,1,{{eigen_n_level}},Eigen::RowMajor>,eigen_align<complex_t<dtype_real>>> x_2_eigen(x_2{{", n_level, 1" if dynamic}});
+    auto x_1_abs = x_1_eigen.cwiseAbs().array();
+    auto x_2_abs = x_2_eigen.cwiseAbs().array();
+    return ((e_eigen).cwiseQuotient((atol + rtol*x_1_abs.cwiseMax(x_2_abs)).matrix())).norm()/std::sqrt(n_level);
+  }
+};
+
+template<{{n_level_template}}
+         template <int n_level_c_,
+                   typename dtype_,
+                   order_t order_,
+                   typename linalg_engine_> class matrix_base,
+         typename dtype, order_t order>
+struct gemm_impl<{{n_level}},dtype,matrix_base,order,eigen>
+{
+  static INLINE void func(eigen* engine_obj,
+                          dtype alpha,
+                          matrix_base<{{n_level}},dtype,order,eigen>& A,
+                          device_t<dtype,env_cpu>* B,
+                          dtype beta,
+                          device_t<dtype,env_cpu>* C,
+                          int n_level)
+  {
+    CALL_TRACE();
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},{{eigen_n_level}},eigen_order<order>>,eigen_align<dtype>> B_eigen(B{{", n_level, n_level" if dynamic}});
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},{{eigen_n_level}},eigen_order<order>>,eigen_align<dtype>> C_eigen(C{{", n_level, n_level" if dynamic}});
+    C_eigen.noalias() = alpha*A.data*B_eigen + beta*C_eigen;
+  }
+
+  static INLINE void func(eigen* engine_obj,
+                          dtype alpha,
+                          device_t<dtype,env_cpu>* A,
+                          matrix_base<{{n_level}},dtype,order,eigen>& B,
+                          dtype beta,
+                          device_t<dtype,env_cpu>* C,
+                          int n_level)
+  {
+    CALL_TRACE();
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},{{eigen_n_level}},eigen_order<order>>,eigen_align<dtype>> A_eigen(A{{", n_level, n_level" if dynamic}});
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},{{eigen_n_level}},eigen_order<order>>,eigen_align<dtype>> C_eigen(C{{", n_level, n_level" if dynamic}});
+    C_eigen.noalias() = alpha*A_eigen*B.data + beta*C_eigen;
+  }
+};
+
+template<{{n_level_template}}
+         template <int n_level_c_,
+                   typename dtype_,
+                   order_t order_,
+                   typename linalg_engine_> class matrix_base,
+         typename dtype, order_t order>
+struct gemv_impl<{{n_level}},dtype,matrix_base,order,eigen>
+{
+  static INLINE void func(eigen* engine_obj,
+                          dtype alpha,
+                          matrix_base<{{n_level}},dtype,order,eigen>& A,
+                          device_t<dtype,env_cpu>* x,
+                          dtype beta,
+                          device_t<dtype,env_cpu>* y,
+                          int n_level)
+  {
+    CALL_TRACE();
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},1,Eigen::ColMajor>,eigen_align<dtype>> x_eigen(x{{", n_level, 1" if dynamic}});
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},1,Eigen::ColMajor>,eigen_align<dtype>> y_eigen(y{{", n_level, 1" if dynamic}});
+    y_eigen.noalias() = alpha*A.data*x_eigen + beta*y_eigen;
+  }
+};
+
+template<{{n_level_template}}
+         typename dtype, order_t order>
+struct eig_impl<{{n_level}},dtype,dense_matrix,order,eigen>
+{
+  static INLINE void func(eigen* engine_obj,
+                          dense_matrix<{{n_level}},dtype,order,eigen>& A,
+                          device_t<real_t<dtype>,env_cpu>* w,
+                          device_t<dtype,env_cpu>* v,
+                          int n_level)
+  {
+    CALL_TRACE();
+    Eigen::Map<Eigen::Matrix<device_t<real_t<dtype>,env_cpu>,1,{{eigen_n_level}},Eigen::RowMajor>,eigen_align<dtype>> w_eigen(w{{", 1, n_level" if dynamic}});
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},{{eigen_n_level}},eigen_order<order>>,eigen_align<dtype>> v_eigen(v{{", n_level, n_level" if dynamic}});
+
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},{{eigen_n_level}},eigen_order<order>>> solver(A.data);
+    w_eigen = solver.eigenvalues();
+    v_eigen = solver.eigenvectors();
+  }
+};
+
+template<{{n_level_template}}
+         typename dtype, order_t order>
+    struct utf_impl<{{n_level}},dtype,dense_matrix,order,eigen>
+{
+  static INLINE void func(eigen* engine_obj,
+                          dense_matrix<{{n_level}},dtype,order,eigen>& A,
+                          device_t<dtype,env_cpu>* v,
+                          device_t<dtype,env_cpu>* A_v,
+                          int n_level)
+  {
+    CALL_TRACE();
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},{{eigen_n_level}},eigen_order<order>>,eigen_align<dtype>> v_eigen(v{{", n_level, n_level" if dynamic}});
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},{{eigen_n_level}},eigen_order<order>>,eigen_align<dtype>> A_v_eigen(A_v{{", n_level, n_level" if dynamic}});
+    A_v_eigen.noalias() = v_eigen.adjoint()*A.data*v_eigen;
+  }
+};
+
+
+template<{{n_level_template}}
+         typename dtype, order_t order>
+    struct utb_impl<{{n_level}},dtype,dense_matrix,order,eigen>
+{
+  static INLINE void func(eigen* engine_obj,
+                          device_t<dtype,env_cpu>* A_v,
+                          device_t<dtype,env_cpu>* v,
+                          dense_matrix<{{n_level}},dtype,order,eigen>& A,
+                          int n_level)
+  {
+    CALL_TRACE();
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},{{eigen_n_level}},eigen_order<order>>,eigen_align<dtype>> v_eigen(v{{", n_level, n_level" if dynamic}});
+    Eigen::Map<Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},{{eigen_n_level}},eigen_order<order>>,eigen_align<dtype>> A_v_eigen(A_v{{", n_level, n_level" if dynamic}});
+    A.data.noalias() = v_eigen*A_v_eigen*v_eigen.adjoint();
+  }
+};
+
+
+{% endfor %}
+
+
+}
+
+#endif
+
+#endif

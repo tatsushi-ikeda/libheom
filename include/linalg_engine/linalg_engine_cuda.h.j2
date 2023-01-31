@@ -1,0 +1,556 @@
+/* -*- mode:cuda -*-
+ * LibHEOM
+ * Copyright (c) Tatsushi Ikeda
+ * This library is distributed under BSD 3-Clause License.
+ * See LINCENSE.txt for licence.
+ *------------------------------------------------------------------------*/
+
+#ifndef LIBHEOM_LINALG_ENGINE_CUDA_H
+#define LIBHEOM_LINALG_ENGINE_CUDA_H
+
+#include "env.h"
+#include "env_gpu.h"
+
+#include "linalg_engine/linalg_engine.h"
+
+#include "linalg_engine/dense_matrix_cuda.h"
+#include "linalg_engine/sparse_matrix_cuda.h"
+
+#ifdef ENABLE_CUDA
+
+#include "linalg_engine/include_cuda.h"
+#include "linalg_engine/utility_cuda.h"
+
+namespace libheom
+{
+
+template<order_t order>
+constexpr cublasOperation_t cublas_op = CUBLAS_OP_T;
+
+template<>
+constexpr cublasOperation_t cublas_op<row_major> = CUBLAS_OP_T;
+template<>
+constexpr cublasOperation_t cublas_op<col_major> = CUBLAS_OP_N;
+
+class cuda : public linalg_engine_base
+{
+ public:
+  cublasHandle_t     blas;
+  cusparseHandle_t   sparse;
+  cusolverDnHandle_t solver;
+  cudaStream_t       stream;
+
+  cuda(int device) : linalg_engine_base() {
+    CALL_TRACE();
+    cudaSetDevice(device);
+    cudaDeviceProp devprop;
+    CUDA_CALL(cudaGetDeviceProperties(&devprop, device));
+    std::cerr << devprop.name << std::endl;
+    
+    CUDA_CALL(cudaStreamCreate(&this->stream));
+
+    CUBLAS_CALL(cublasCreate(&this->blas));
+    CUBLAS_CALL(cublasSetStream(this->blas, this->stream));
+    
+    CUSPARSE_CALL(cusparseCreate(&this->sparse));
+    CUSPARSE_CALL(cusparseSetStream(this->sparse, this->stream));
+    
+    CUSOLVER_CALL(cusolverDnCreate(&this->solver));
+  }
+
+  cuda(cuda* parent) : linalg_engine_base() {
+    CALL_TRACE();
+    CUDA_CALL(cudaStreamCreate(&this->stream));
+
+    CUBLAS_CALL(cublasCreate(&this->blas));
+    CUBLAS_CALL(cublasSetStream(this->blas, this->stream));
+    
+    CUSPARSE_CALL(cusparseCreate(&this->sparse));
+    CUSPARSE_CALL(cusparseSetStream(this->sparse, this->stream));
+    
+    CUSOLVER_CALL(cusolverDnCreate(&this->solver));
+  }
+
+  ~cuda() {
+    CALL_TRACE();
+    CUDA_CALL(cudaStreamDestroy(this->stream));
+    CUBLAS_CALL(cublasDestroy(this->blas));
+    CUSPARSE_CALL(cusparseDestroy(this->sparse));
+    CUSOLVER_CALL(cusolverDnDestroy(this->solver));
+  }
+
+  cuda* create_child() override
+  {
+    return new cuda (this);
+  }
+};
+
+{% for dtype, T_lower in types %}
+{% set T = T_lower.upper() %}
+template<>
+struct nullify_impl<dynamic,device_t<{{dtype}},env_gpu>,cuda>
+{
+  static inline void func(cuda* obj,
+                          device_t<{{dtype}},env_gpu>* x,
+                          int n_level)
+  {
+    CALL_TRACE();
+    {{dtype}} a = zero<{{dtype}}>();
+    CUBLAS_CALL(cublas{{T}}scal(obj->blas, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&a),
+                                x, 1));
+  }
+};
+
+template<>
+struct copy_impl<dynamic,device_t<{{dtype}},env_gpu>,cuda>
+{
+  static inline void func(cuda* obj,
+                          device_t<{{dtype}},env_gpu>* x,
+                          device_t<{{dtype}},env_gpu>* y,
+                          int n_level)
+  {
+    CALL_TRACE();
+    CUBLAS_CALL(cublas{{T}}copy(obj->blas, n_level, x, 1, y, 1));
+  }
+};
+
+template<>
+struct scal_impl<dynamic,{{dtype}},cuda>
+{
+  static inline void func(cuda* obj,
+                          {{dtype}} a,
+                          device_t<{{dtype}},env_gpu>* y,
+                          int n_level)
+  {
+    CALL_TRACE();
+    CUBLAS_CALL(cublas{{T}}scal(obj->blas, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&a),
+                                y, 1));
+  }
+};
+
+template<>
+struct axpy_impl<dynamic,{{dtype}},cuda>
+{
+  static inline void func(cuda* obj,
+                          {{dtype}} a,
+                          device_t<{{dtype}},env_gpu>* x,
+                          device_t<{{dtype}},env_gpu>* y,
+                          int n_level)
+  {
+    CALL_TRACE();
+    CUBLAS_CALL(cublas{{T}}axpy(obj->blas, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&a),
+                                x, 1, y, 1));
+  }
+};
+
+template<>
+struct dotc_impl<dynamic,device_t<{{dtype}},env_gpu>,cuda>
+{
+  static inline {{dtype}} func(cuda* obj,
+                               device_t<{{dtype}},env_gpu>* x,
+                               device_t<{{dtype}},env_gpu>* y,
+                               int n_level)
+  {
+    CALL_TRACE();
+    {{dtype}} result;
+    CUBLAS_CALL(cublas{{T}}dotc(obj->blas, n_level,
+                                x, 1, y, 1,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&result)));
+    return result;
+  }
+};
+
+real_t<{{dtype}}> errnorm1_{{T}}(device_t<{{dtype}},env_gpu>* e,
+                                 device_t<{{dtype}},env_gpu>* x_1,
+                                 device_t<{{dtype}},env_gpu>* x_2,
+                                 real_t<{{dtype}}> atol,
+                                 real_t<{{dtype}}> rtol,
+                                 int n);
+
+template<>
+struct errnrm1_impl<dynamic,real_t<{{dtype}}>,cuda>
+{
+  static inline real_t<{{dtype}}> func(cuda* obj,
+                                       device_t<{{dtype}},env_gpu>* e,
+                                       device_t<{{dtype}},env_gpu>* x_1,
+                                       device_t<{{dtype}},env_gpu>* x_2,
+                                       real_t<{{dtype}}> atol,
+                                       real_t<{{dtype}}> rtol,
+                                       int n_level)
+  {
+    CALL_TRACE();
+    return errnorm1_{{T}}(e, x_1, x_2, atol, rtol, n_level);
+  }
+};
+
+{%   for order, _ in orders %}
+template<>
+struct gemm_impl<dynamic,{{dtype}},dense_matrix,{{order}},cuda>
+{
+  static inline void func(cuda* obj,
+                          {{dtype}} alpha,
+                          dense_matrix<dynamic,{{dtype}},{{order}},cuda>& A,
+                          device_t<{{dtype}},env_gpu>* B,
+                          {{dtype}} beta,
+                          device_t<{{dtype}},env_gpu>* C,
+                          int n_level)
+  {
+    CALL_TRACE();
+#ifdef ASSUME_HERMITIAN
+    CUBLAS_CALL(cublas{{T}}hemm(obj->blas,
+                                {{"CUBLAS_SIDE_RIGHT" if order == "row_major" else "CUBLAS_SIDE_LEFT"}},
+                                CUBLAS_FILL_MODE_UPPER,
+                                n_level, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&alpha),
+                                A.data_dev, n_level,
+                                B, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&beta),
+                                C, n_level));
+#else    
+    CUBLAS_CALL(cublas{{T}}gemm(obj->blas,
+                                CUBLAS_OP_N, CUBLAS_OP_N,
+                                n_level, n_level, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&alpha),
+                                {{"B" if order == "row_major" else "A.data_dev"}}, n_level,
+                                {{"A.data_dev" if order == "row_major" else "B"}}, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&beta),
+                                C, n_level));
+#endif    
+  }
+
+  static inline void func(cuda* obj,
+                          {{dtype}} alpha,
+                          device_t<{{dtype}},env_gpu>* A,
+                          dense_matrix<dynamic,{{dtype}},{{order}},cuda>& B,
+                          {{dtype}} beta,
+                          device_t<{{dtype}},env_gpu>* C,
+                          int n_level)
+  {
+    CALL_TRACE();
+#ifdef ASSUME_HERMITIAN
+    CUBLAS_CALL(cublas{{T}}hemm(obj->blas,
+                                {{"CUBLAS_SIDE_LEFT" if order == "row_major" else "CUBLAS_SIDE_RIGHT"}},
+                                CUBLAS_FILL_MODE_UPPER,
+                                n_level, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&alpha),
+                                B.data_dev, n_level,
+                                A, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&beta),
+                                C, n_level));
+#else    
+    CUBLAS_CALL(cublas{{T}}gemm(obj->blas,
+                                CUBLAS_OP_N, CUBLAS_OP_N,
+                                n_level, n_level, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&alpha),
+                                {{"B.data_dev" if order == "row_major" else "A"}}, n_level,
+                                {{"A" if order == "row_major" else "B.data_dev"}}, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&beta),
+                                C, n_level));
+#endif
+  }
+};
+{%   endfor %}
+
+template<order_t order>
+struct gemv_impl<dynamic,{{dtype}},dense_matrix,order,cuda>
+{
+  static inline void func(cuda* obj,
+                          {{dtype}} alpha,
+                          dense_matrix<dynamic,{{dtype}},order,cuda>& A,
+                          device_t<{{dtype}},env_gpu>* x,
+                          {{dtype}} beta,
+                          device_t<{{dtype}},env_gpu>* y,
+                          int n_level)
+  {
+    CALL_TRACE();
+    CUBLAS_CALL(cublas{{T}}gemv(obj->blas,
+                                cublas_op<order>,
+                                n_level, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&alpha),
+                                A.data_dev, n_level,
+                                x, 1,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&beta),
+                                y, 1));
+  }
+};
+
+template<order_t order>
+struct eig_impl<dynamic,{{dtype}},dense_matrix,order,cuda>
+{
+  static inline void func(cuda* obj,
+                          dense_matrix<dynamic,{{dtype}},order,cuda>& A,
+                          device_t<real_t<{{dtype}}>,env_gpu>* w,
+                          device_t<{{dtype}},env_gpu>* v,
+                          int n_level)
+  {
+    CALL_TRACE();
+    CUBLAS_CALL(cublas{{T}}copy(obj->blas, n_level*n_level,
+                                A.data_dev, 1, v, 1));
+    int size_work;
+    CUSOLVER_CALL(cusolverDn{{T}}heevd_bufferSize(obj->solver,
+                                                  CUSOLVER_EIG_MODE_VECTOR,
+                                                  CUBLAS_FILL_MODE_UPPER,
+                                                  n_level, v, n_level, w,
+                                                  &size_work));
+    device_t<{{dtype}},env_gpu>* work;
+    CUDA_CALL(cudaMalloc(&work, size_work*sizeof(device_t<{{dtype}},env_gpu>)));
+    int status;
+    int* status_dev;
+    CUDA_CALL(cudaMalloc(&status_dev, sizeof(int)));
+    CUSOLVER_CALL(cusolverDn{{T}}heevd(obj->solver,
+                                       CUSOLVER_EIG_MODE_VECTOR,
+                                       CUBLAS_FILL_MODE_UPPER,
+                                       n_level, v, n_level, w,
+                                       work, size_work,
+                                       status_dev));
+    CUDA_CALL(cudaMemcpy(&status, status_dev, sizeof(int), cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaFree(work));
+    CUDA_CALL(cudaFree(status_dev));
+    if (status != 0) {
+      std::cerr << "[Error:cuda] "
+                << "(error status: " << status << ") "
+                << "at " << __FILE__ << " line " << __LINE__ << std::endl;
+      std::cerr << "HEEV calculaton failed." << std::endl;
+      std::exit(1);
+    }
+    if constexpr (order == row_major) {
+      {{dtype}} alpha = zero<{{dtype}}>();
+      {{dtype}} beta  = one<{{dtype}}>();
+      device_t<{{dtype}},env_gpu>* tmp;
+      CUDA_CALL(cudaMalloc(&tmp, n_level*n_level*sizeof(device_t<{{dtype}},env_gpu>)));
+      CUBLAS_CALL(cublas{{T}}geam(obj->blas,
+                                  CUBLAS_OP_N, CUBLAS_OP_T,
+                                  n_level, n_level,
+                                  reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&alpha),
+                                  tmp, n_level,
+                                  reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&beta),
+                                  v, n_level,
+                                  tmp, n_level));
+      CUBLAS_CALL(cublas{{T}}copy(obj->blas, n_level*n_level,
+                                  tmp, 1, v, 1));
+      CUDA_CALL(cudaFree(tmp));
+    }
+  }
+};
+
+template<order_t order>
+    struct utf_impl<dynamic,{{dtype}},dense_matrix,order,cuda>
+{
+  static inline void func(cuda* obj,
+                          dense_matrix<dynamic,{{dtype}},order,cuda>& A,
+                          device_t<{{dtype}},env_gpu>* v,
+                          device_t<{{dtype}},env_gpu>* A_v,
+                          int n_level)
+  {
+    CALL_TRACE();
+    device_t<{{dtype}},env_gpu>* tmp;
+    CUDA_CALL(cudaMalloc(&tmp, n_level*n_level*sizeof(device_t<{{dtype}},env_gpu>)));
+    {{dtype}} alpha = one<{{dtype}}>();
+    {{dtype}} beta  = zero<{{dtype}}>();
+    CUBLAS_CALL(cublas{{T}}gemm(obj->blas,
+                                CUBLAS_OP_N, CUBLAS_OP_N,
+                                n_level, n_level, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&alpha),
+                                {{"v" if order == "row_major" else "A.data_dev"}}, n_level,
+                                {{"A.data_dev" if order == "row_major" else "v"}}, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&beta),
+                                tmp, n_level));
+    CUBLAS_CALL(cublas{{T}}gemm(obj->blas,
+                                {{"CUBLAS_OP_N" if order == "row_major" else "CUBLAS_OP_C"}},
+                                {{"CUBLAS_OP_C" if order == "row_major" else "CUBLAS_OP_N"}},
+                                n_level, n_level, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&alpha),
+                                {{"tmp" if order == "row_major" else "v"}}, n_level,
+                                {{"v" if order == "row_major" else "tmp"}}, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&beta),
+                                A_v, n_level));
+    CUDA_CALL(cudaFree(tmp));
+  }
+};
+
+template<order_t order>
+    struct utb_impl<dynamic,{{dtype}},dense_matrix,order,cuda>
+{
+  static inline void func(cuda* obj,
+                          device_t<{{dtype}},env_gpu>* A_v,
+                          device_t<{{dtype}},env_gpu>* v,
+                          dense_matrix<dynamic,{{dtype}},order,cuda>& A,
+                          int n_level)
+  {
+    CALL_TRACE();
+    device_t<{{dtype}},env_gpu>* tmp;
+    CUDA_CALL(cudaMalloc(&tmp, n_level*n_level*sizeof(device_t<{{dtype}},env_gpu>)));
+    {{dtype}} alpha = one<{{dtype}}>();
+    {{dtype}} beta  = zero<{{dtype}}>();
+    CUBLAS_CALL(cublas{{T}}gemm(obj->blas,
+                                {{"CUBLAS_OP_C" if order == "row_major" else "CUBLAS_OP_N"}},
+                                {{"CUBLAS_OP_N" if order == "row_major" else "CUBLAS_OP_C"}},
+                                n_level, n_level, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&alpha),
+                                {{"v" if order == "row_major" else "A_v"}}, n_level,
+                                {{"A_v" if order == "row_major" else "v"}}, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&beta),
+                                tmp, n_level));
+    CUBLAS_CALL(cublas{{T}}gemm(obj->blas,
+                                CUBLAS_OP_N, CUBLAS_OP_N,
+                                n_level, n_level, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&alpha),
+                                {{"tmp" if order == "row_major" else "v"}}, n_level,
+                                {{"v" if order == "row_major" else "tmp"}}, n_level,
+                                reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&beta),
+                                A.data_dev, n_level));
+    CUDA_CALL(cudaFree(tmp));
+  }
+};
+
+{% endfor %}
+
+template<typename dtype, order_t order>
+struct gemm_impl<dynamic,dtype,sparse_matrix,order,cuda>
+{
+  static inline void func(cuda* obj,
+                          dtype alpha,
+                          sparse_matrix<dynamic,dtype,order,cuda>& A,
+                          device_t<dtype,env_gpu>* B,
+                          dtype beta,
+                          device_t<dtype,env_gpu>* C,
+                          int n_level)
+  {
+    CALL_TRACE();
+    cusparseDnMatDescr_t B_dsc, C_dsc;
+    CUSPARSE_CALL(cusparseCreateDnMat(&B_dsc, n_level, n_level, n_level,
+                                      B, cuda_type_const<dtype>, cusparse_order<order>));
+    CUSPARSE_CALL(cusparseCreateDnMat(&C_dsc, n_level, n_level, n_level,
+                                      C, cuda_type_const<dtype>, cusparse_order<order>));
+    size_t buffer_size;
+    CUSPARSE_CALL(cusparseSpMM_bufferSize(obj->sparse,
+                                          CUSPARSE_OPERATION_NON_TRANSPOSE,
+                                          CUSPARSE_OPERATION_NON_TRANSPOSE,
+                                          reinterpret_cast<device_t<dtype,env_gpu>*>(&alpha),
+                                          A.dsc,
+                                          B_dsc,
+                                          reinterpret_cast<device_t<dtype,env_gpu>*>(&beta),
+                                          C_dsc,
+                                          cuda_type_const<dtype>,
+                                          cusparse_alg<order>,
+                                          &buffer_size));
+    device_t<dtype,env_gpu>* buffer;
+    CUDA_CALL(cudaMalloc(&buffer, buffer_size));  // may be non thread-safe
+    CUSPARSE_CALL(cusparseSpMM(obj->sparse,
+                               CUSPARSE_OPERATION_NON_TRANSPOSE,
+                               CUSPARSE_OPERATION_NON_TRANSPOSE,
+                               reinterpret_cast<device_t<dtype,env_gpu>*>(&alpha),
+                               A.dsc,
+                               B_dsc,
+                               reinterpret_cast<device_t<dtype,env_gpu>*>(&beta),
+                               C_dsc,
+                               cuda_type_const<dtype>,
+                               cusparse_alg<order>,
+                               buffer));
+    CUDA_CALL(cudaFree(buffer));
+  }
+
+  static inline void func(cuda* obj,
+                          dtype alpha,
+                          device_t<dtype,env_gpu>* A,
+                          sparse_matrix<dynamic,dtype,order,cuda>& B,
+                          dtype beta,
+                          device_t<dtype,env_gpu>* C,
+                          int n_level)
+  {
+    CALL_TRACE();
+    cusparseDnMatDescr_t A_dsc, C_dsc;
+    CUSPARSE_CALL(cusparseCreateDnMat(&A_dsc, n_level, n_level, n_level,
+                                      A, cuda_type_const<dtype>, cusparse_order_t<order>));
+    CUSPARSE_CALL(cusparseCreateDnMat(&C_dsc, n_level, n_level, n_level,
+                                      C, cuda_type_const<dtype>, cusparse_order_t<order>));
+    size_t buffer_size;
+    CUSPARSE_CALL(cusparseSpMM_bufferSize(obj->sparse,
+                                          CUSPARSE_OPERATION_TRANSPOSE,
+                                          CUSPARSE_OPERATION_NON_TRANSPOSE,
+                                          reinterpret_cast<device_t<dtype,env_gpu>*>(&alpha),
+                                          B.dsc,
+                                          A_dsc,
+                                          reinterpret_cast<device_t<dtype,env_gpu>*>(&beta),
+                                          C_dsc,
+                                          cuda_type_const<dtype>,
+                                          cusparse_alg_t<order>,
+                                          &buffer_size));
+    device_t<dtype,env_gpu>* buffer;
+    CUDA_CALL(cudaMalloc(&buffer, buffer_size));
+    CUSPARSE_CALL(cusparseSpMM(obj->sparse,
+                               CUSPARSE_OPERATION_TRANSPOSE,
+                               CUSPARSE_OPERATION_NON_TRANSPOSE,
+                               reinterpret_cast<device_t<dtype,env_gpu>*>(&alpha),
+                               B.dsc,
+                               A_dsc,
+                               reinterpret_cast<device_t<dtype,env_gpu>*>(&beta),
+                               C_dsc,
+                               cuda_type_const<dtype>,
+                               cusparse_alg_t<order>,
+                               buffer));
+    CUDA_CALL(cudaFree(buffer));
+  }
+};
+
+template<typename dtype, order_t order>
+struct gemv_impl<dynamic,dtype,sparse_matrix,order,cuda>
+{
+  static inline void func(cuda* obj,
+                          dtype alpha,
+                          sparse_matrix<dynamic,dtype,order,cuda>& A,
+                          device_t<dtype,env_gpu>* x,
+                          dtype beta,
+                          device_t<dtype,env_gpu>* y,
+                          int n_level)
+  {
+    CALL_TRACE();
+    cusparseDnVecDescr_t x_dsc, y_dsc;
+    CUSPARSE_CALL(cusparseCreateDnVec(&x_dsc, n_level,
+                                      x, cuda_type_const<dtype>));
+    CUSPARSE_CALL(cusparseCreateDnVec(&y_dsc, n_level,
+                                      y, cuda_type_const<dtype>));
+    size_t buffer_size;
+    CUSPARSE_CALL(cusparseSpMV_bufferSize(obj->sparse,
+                                          CUSPARSE_OPERATION_NON_TRANSPOSE,
+                                          reinterpret_cast<device_t<dtype,env_gpu>*>(&alpha),
+                                          A.dsc,
+                                          x_dsc,
+                                          reinterpret_cast<device_t<dtype,env_gpu>*>(&beta),
+                                          y_dsc,
+                                          cuda_type_const<dtype>,
+#if CUSPARSE_VERSION >=  11400
+                                          CUSPARSE_SPMV_CSR_ALG1,
+#else
+                                          CUSPARSE_CSRMV_ALG1,
+#endif
+                                          &buffer_size));
+    device_t<dtype,env_gpu>* buffer;
+    CUDA_CALL(cudaMalloc(&buffer, buffer_size));
+    CUSPARSE_CALL(cusparseSpMV(obj->sparse,
+                               CUSPARSE_OPERATION_NON_TRANSPOSE,
+                               reinterpret_cast<device_t<dtype,env_gpu>*>(&alpha),
+                               A.dsc,
+                               x_dsc,
+                               reinterpret_cast<device_t<dtype,env_gpu>*>(&beta),
+                               y_dsc,
+                               cuda_type_const<dtype>,
+#if CUSPARSE_VERSION >=  11400
+                               CUSPARSE_SPMV_CSR_ALG1,
+#else
+                               CUSPARSE_CSRMV_ALG1,
+#endif
+                               buffer));
+    CUDA_CALL(cudaFree(buffer));
+  }
+};
+
+
+}
+
+#endif
+
+#endif

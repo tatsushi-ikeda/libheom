@@ -1,153 +1,144 @@
-/*
- * LibHEOM: Copyright (c) Tatsushi Ikeda
+/* -*- mode:c++ -*-
+ * LibHEOM
+ * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
  * See LINCENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef HEOM_H
-#define HEOM_H
+#ifndef LIBHEOM_HEOM_H
+#define LIBHEOM_HEOM_H
 
-#include "qme.h"
+#include "qme_base.h"
+
+#include "linalg_engine/linalg_engine_nil.h"
+
 #include "hrchy_space.h"
 
-namespace libheom {
+namespace libheom
+{
 
-// heom{h,l}{d,s}{l,h}
 
-template<typename T>
-class heom
-    : public qme<T>
+template<typename dtype, order_t order, typename linalg_engine>
+class heom : public qme_base<dtype,order,linalg_engine>
 {
  public:
-  hrchy_space hs;
-  std::vector<T>  ngamma_diag;
-  std::unique_ptr<Eigen::SparseMatrix<T, Eigen::RowMajor>[]> gamma_offdiag;
+  using env = engine_env<linalg_engine>;
   
-  std::unique_ptr<Eigen::Matrix<T,Eigen::Dynamic,1>[]> S;
-  std::unique_ptr<Eigen::Matrix<T,Eigen::Dynamic,1>[]> A;
+  hrchy_space hs;
+  vector<vector<int>> lk;
+
+  vector<dtype> ngamma_diag;
+  std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> gamma_offdiag;
+  std::unique_ptr<vector<dtype>[]> s;
+  std::unique_ptr<vector<dtype>[]> a;
+
+  int max_depth;
+  int n_inner_threads;
+  int n_outer_threads;
   
   int n_dim;
   int n_hrchy;
+
+  heom() = delete;
   
-  void linearize
-  /**/();
+  heom(int max_depth, int n_inner_threads, int n_outer_threads)
+      : qme_base<dtype,order,linalg_engine>::qme_base()
+  {
+    this->max_depth = max_depth;
+    this->n_inner_threads = n_inner_threads;
+    this->n_outer_threads = n_outer_threads;
+  }
+
+  int get_n_hrchy()
+  {
+    return n_hrchy;
+  }
   
-  void init
-  /**/();
-  
-  void init_aux_vars
-  /**/();
-  
- public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  virtual void set_param(linalg_engine* obj)
+  {
+    CALL_TRACE();
+    qme_base<dtype,order,linalg_engine>::set_param(obj);
+
+    this->hs.n_dim
+        = std::accumulate(&this->len_gamma[0], &this->len_gamma[0]+this->n_noise, 0);
+
+    // linearlize
+    this->lk.resize(this->n_noise);
+    int ctr_lk = 0;
+    for (int u = 0; u < this->n_noise; ++u) {
+      this->lk[u].resize(this->len_gamma[u]);
+      for (int k = 0; k < this->len_gamma[u]; ++k) {
+        this->lk[u][k] = ctr_lk;
+        ++ctr_lk;
+      }
+    }
+
+    // alloc hrchy_space
+    auto callback_wrapper = [&](int lidx, int estimated_max_lidx)
+    {
+    };
+    auto filter_wrapper   = [&](std::vector<int> index, int depth) -> bool
+    {
+      return false;
+    };
+    int interval_callback = 1;
+    this->n_hrchy = alloc_hrchy_space(this->hs,
+                                      max_depth,
+                                      callback_wrapper,
+                                      interval_callback,
+                                      filter_wrapper,
+                                      false // filter_flag
+                                      );
+
+    // calculate ngamma_diag
+    this->ngamma_diag.resize(this->n_hrchy);
+    for (int lidx = 0; lidx < this->n_hrchy; ++lidx) {
+      this->ngamma_diag[lidx] = zero<dtype>();
+      for (int u = 0; u < this->n_noise; ++u) {
+        for (int k = 0; k < this->len_gamma[u]; ++k) {
+          this->ngamma_diag[lidx]
+              += static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][k]])
+              *this->gamma[u].data[k][k];
+        }
+      }
+    }
+
+    // calculate gamma_offdiag
+    this->gamma_offdiag.reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
+    
+    for (int u = 0; u < this->n_noise; ++u) {
+      this->gamma[u].set_shape(this->len_gamma[u], this->len_gamma[u]);
+      for (auto& gamma_ijv : this->gamma[u].data) {
+        int i = gamma_ijv.first;
+        for (auto& gamma_jv: gamma_ijv.second) {
+          int j = gamma_jv.first;
+          const dtype& v = gamma_jv.second;
+          if (i != j) {
+            this->gamma_offdiag[u].data[i][j] = v;  // TODO: should be optimized
+          }
+        }
+      }
+    }
+
+    // calculate s and a
+    this->s.reset(new vector<dtype>[this->n_noise]);
+    this->a.reset(new vector<dtype>[this->n_noise]);
+
+    for (int u = 0; u < this->n_noise; ++u) {
+      this->s[u].resize(this->len_gamma[u]);
+      this->a[u].resize(this->len_gamma[u]);
+      gemv(nilobj,
+           one<dtype>(),  this->S[u], &this->phi_0[u][0],
+           zero<dtype>(), &this->s[u][0],
+           this->len_gamma[u]);
+      gemv(nilobj,
+           one<dtype>(),  this->A[u], &this->phi_0[u][0],
+           zero<dtype>(), &this->a[u][0],
+           this->len_gamma[u]);
+    }
+  }
 };
-
-
-template<typename T>
-class heom_l
-    : public heom<T>
-{
- public:
-  int n_state_liou;
-
-  // Liouville space operators
-  lil_matrix<T> L;
-  std::unique_ptr<lil_matrix<T>[]> Phi;
-  std::unique_ptr<lil_matrix<T>[]> Psi;
-  std::unique_ptr<std::unique_ptr<lil_matrix<T>[]>[]> Theta;
-  std::unique_ptr<lil_matrix<T>[]> Xi;
-  lil_matrix<T> R_heom_0;
-  
-  lil_matrix<T> X;
-
-  void init_aux_vars
-  /**/();
-
- public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-};
-
-
-template<typename T,
-         template <typename, int> class matrix_type,
-         int num_state>
-class heom_ll
-    : public heom_l<T>
-{
- public:
-  constexpr static int num_state_liou = n_state_prod(num_state,num_state);
-  using matrix_liou = matrix_type<T,num_state_liou>;
-  
-  // Auxiliary variables
-  matrix_liou L_impl;
-  std::unique_ptr<matrix_liou[]> Phi_impl;
-  std::unique_ptr<matrix_liou[]> Psi_impl;
-  std::unique_ptr<matrix_liou[]> Xi_impl;
-  matrix_liou R_heom_0_impl;
-
-  // std::vector<T> sub_vector;
-  void calc_diff
-  /**/(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
-       const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-       real_t<T> alpha,
-       real_t<T> beta) override;
-
-  // void ConstructCommutator(LilMatrix<T>& x,
-  //                          T coef_l,
-  //                          T coef_r,
-  //                          std::function<void(int)> callback
-  //                          = [](int) { return; },
-  //                          int interval_callback = 1024) override;
-  
-  // void ApplyCommutator(ref<dense_vector<T>>& rho) override;
-  
-  void init_aux_vars
-  /**/();
-
- public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-};
-
-
-template<typename T,
-         template <typename, int> class matrix_type,
-         int num_state>
-class heom_lh
-    : public heom_l<T>
-{
- public:
-  // Hierarchical Liouville space operators
-  lil_matrix<T> R_heom;
-  lil_matrix<T> X_hrchy;
-
-  // Auxiliary variables
-  matrix_type<T,Eigen::Dynamic> R_heom_impl;
-  matrix_type<T,Eigen::Dynamic> X_hrchy_impl;
-
-  std::vector<T> sub_vector;
-
-  void calc_diff
-  /**/(ref<dense_vector<T,Eigen::Dynamic>> drho_dt,
-       const ref<const dense_vector<T,Eigen::Dynamic>>& rho,
-       real_t<T> alpha,
-       real_t<T> beta) override;
-
-  // void ConstructCommutator(lil_matrix<T>& x,
-  //                          T coef_l,
-  //                          T coef_r,
-  //                          std::function<void(int)> callback
-  //                          = [](int) { return; },
-  //                          int interval_callback = 1024) override;
-  
-  // void ApplyCommutator(ref<dense_vector<T>>& rho) override;
-  
-  void init_aux_vars
-  /**/();
-
- public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-};
-
 
 }
-#endif /* HEOM_H */
+
+#endif
