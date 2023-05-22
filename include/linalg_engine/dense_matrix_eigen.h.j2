@@ -14,38 +14,39 @@
 #include "const.h"
 #include "env.h"
 
-#include "linalg_engine/lil_matrix.h"
-#include "linalg_engine/matrix_base.h"
 #include "linalg_engine/dense_matrix.h"
+#include "linalg_engine/lil_matrix.h"
 #include "linalg_engine/linalg_engine.h"
+#include "linalg_engine/matrix_base.h"
 
 #ifdef ENABLE_EIGEN
-
 #include "linalg_engine/include_eigen.h"
 
-namespace libheom
-{
+namespace libheom {
 
 {% for dynamic, n_level, n_level_template, eigen_n_level in eigen_dynamic_param %}
 template<{{n_level_template}}typename dtype, order_t order>
-class dense_matrix<{{n_level}},dtype,order,eigen>
-    : public matrix_base<{{n_level}},dtype,order,eigen>
-{
+class dense_matrix<{{n_level}}, dtype, order, eigen>:
+  public matrix_base<{{n_level}}, dtype, order, eigen> {
  public:
   std::tuple<int, int> shape;
-  int major_stride;
-  Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},{{eigen_n_level}},eigen_order<order>> data;
+  int                  major_stride;
+  Eigen::Matrix<device_t<dtype, env_cpu>,
+                {{eigen_n_level}}, {{eigen_n_level}},
+                eigen_order<order>> data;
 
   dense_matrix()
   {
     CALL_TRACE();
     this->major_stride = {{n_level}};
   }
+  /* ---------------------------------------------------------------------- */
 
   ~dense_matrix()
   {
     CALL_TRACE();
   }
+  /* ---------------------------------------------------------------------- */
 
   void set_shape(int rows, int cols)
   {
@@ -58,11 +59,12 @@ class dense_matrix<{{n_level}},dtype,order,eigen>
     {% endif %}
     this->data.setZero();
   }
+  /* ---------------------------------------------------------------------- */
 
-  void import(lil_matrix<dynamic,dtype,order,nil>& src)
+  void import(lil_matrix<dynamic, dtype, order, nil> &src)
   {
     CALL_TRACE();
-    this->shape = src.shape;
+    this->shape        = src.shape;
     this->major_stride = std::get<shape_index<order>>(this->shape);
 
     {% if dynamic %}
@@ -70,16 +72,17 @@ class dense_matrix<{{n_level}},dtype,order,eigen>
     {% endif %}
     this->data.setZero();
 
-    for (auto& data_ijv : src.data) {
+    for (auto &data_ijv : src.data) {
       int i = data_ijv.first;
-      for (auto& data_jv: data_ijv.second) {
+      for (auto &data_jv : data_ijv.second) {
         int j = data_jv.first;
-        this->data.coeffRef(i*this->major_stride + j) = data_jv.second;
+        this->data.coeffRef(i * this->major_stride + j) = data_jv.second;
       }
     }
   }
+  /* ---------------------------------------------------------------------- */
 
-  void dump(lil_matrix<dynamic,dtype,order,nil>& dest)
+  void dump(lil_matrix<dynamic, dtype, order, nil> &dest)
   {
     CALL_TRACE();
     int outer, inner;
@@ -95,19 +98,16 @@ class dense_matrix<{{n_level}},dtype,order,eigen>
 
     for (int i = 0; i < outer; ++i) {
       for (int j = 0; j < inner; ++j) {
-        dest.data[i][j] = this->data.coeffRef(i*this->major_stride + j);
-      } 
+        dest.data[i][j] = this->data.coeffRef(i * this->major_stride + j);
+      }
     }
     dest.optimize();
   }
-
-public:
+ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 {% endfor %}
 
-}
-
-#endif
-
-#endif
+} // namespace libheom
+#endif // ifdef ENABLE_EIGEN
+#endif // ifndef LIBHEOM_DENSE_MATRIX_EIGEN_H

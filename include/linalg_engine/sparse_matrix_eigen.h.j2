@@ -14,52 +14,51 @@
 #include "const.h"
 #include "env.h"
 
-#include "linalg_engine/matrix_base.h"
 #include "linalg_engine/lil_matrix.h"
+#include "linalg_engine/matrix_base.h"
 #include "linalg_engine/sparse_matrix.h"
 
 #include "linalg_engine/linalg_engine.h"
 
 #ifdef ENABLE_EIGEN
-
 #include "linalg_engine/include_eigen.h"
 
-namespace libheom
-{
+namespace libheom {
 
 {% for dynamic, n_level, n_level_template, eigen_n_level in eigen_dynamic_param %}
 template<{{n_level_template}}typename dtype, order_t order>
-class sparse_matrix<{{n_level}},dtype,order,eigen>
-    : public matrix_base<{{n_level}},dtype,order,eigen>
-{
+class sparse_matrix<{{n_level}}, dtype, order, eigen>:
+  public matrix_base<{{n_level}}, dtype, order, eigen> {
  public:
-  std::tuple<int, int> shape;
-  int major_stride;
-  Eigen::SparseMatrix<device_t<dtype,env_cpu>,eigen_order<order>> data;
+  std::tuple<int, int>                                              shape;
+  int                                                               major_stride;
+  Eigen::SparseMatrix<device_t<dtype, env_cpu>, eigen_order<order>> data;
 
   sparse_matrix()
   {
     CALL_TRACE();
     this->major_stride = {{n_level}};
   }
+  /* ---------------------------------------------------------------------- */
 
   ~sparse_matrix()
   {
     CALL_TRACE();
   }
+  /* ---------------------------------------------------------------------- */
 
-  void import(lil_matrix<dynamic,dtype,order,nil>& src)
+  void import(lil_matrix<dynamic, dtype, order, nil> &src)
   {
     CALL_TRACE();
-    this->shape = src.shape;
+    this->shape        = src.shape;
     this->major_stride = std::get<shape_index<order>>(this->shape);
 
     this->data.resize(std::get<0>(src.shape), std::get<1>(src.shape));
     this->data.setZero();
 
-    for (auto& data_ijv : src.data) {
+    for (auto &data_ijv : src.data) {
       int i = data_ijv.first;
-      for (auto& data_jv: data_ijv.second) {
+      for (auto &data_jv : data_ijv.second) {
         int j = data_jv.first;
         if constexpr (order == row_major) {
           this->data.coeffRef(i, j) = data_jv.second;
@@ -70,15 +69,12 @@ class sparse_matrix<{{n_level}},dtype,order,eigen>
     }
     this->data.makeCompressed();
   }
-
-public:
+ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 {% endfor %}
 
-}
-
-#endif
-
-#endif
+} // namespace libheom
+#endif // ifdef ENABLE_EIGEN
+#endif // ifndef LIBHEOM_SPARSE_MATRIX_EIGEN_H

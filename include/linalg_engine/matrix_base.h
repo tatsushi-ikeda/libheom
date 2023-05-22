@@ -13,8 +13,7 @@
 #endif
 #include "const.h"
 
-namespace libheom
-{
+namespace libheom {
 
 using order_t = bool;
 constexpr order_t row_major = true;
@@ -32,6 +31,5 @@ template<int num_level, typename dtype, order_t order, typename linalg_engine>
 class matrix_base
 {};
 
-}
-
-#endif
+} // namespace libheom
+#endif // ifndef LIBHEOM_MATRIX_H

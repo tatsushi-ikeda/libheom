@@ -32,7 +32,7 @@ void terminate_handler()
 #ifdef STACKTRACE
   int i = 0;
   std::cerr << "============ call stack trace ============" << std::endl;
-  for (const auto& elem : stack_funcname ) {
+  for (const auto &elem : stack_funcname) {
     std::cerr << "  " << ++i << " : " << elem << std::endl;
   }
   std::cerr << "==========================================" << std::endl;
@@ -41,11 +41,11 @@ void terminate_handler()
 #endif
 }
 
-void sigsegv_handler(int nSignum, siginfo_t* si, void* vcontext)
+void sigsegv_handler(int nSignum, siginfo_t *si, void *vcontext)
 {
   terminate_handler();
   std::cerr << "segmentation fault" << std::endl;
   std::exit(127);
 }
 
-};
+} // namespace libheom

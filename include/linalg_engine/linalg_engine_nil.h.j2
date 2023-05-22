@@ -14,21 +14,19 @@
 
 #include "linalg_engine/lil_matrix.h"
 
-namespace libheom
-{
+namespace libheom {
 
 template<typename dtype>
-struct dotu_impl<dynamic,dtype,nil>
-{
-  inline static dtype func(nil* engine_obj,
-                           dtype* x,
-                           dtype* y,
-                           int n_level)
+struct dotu_impl<dynamic, dtype, nil> {
+  inline static dtype func(nil   *engine_obj,
+                           dtype *x,
+                           dtype *y,
+                           int    n_level)
   {
     CALL_TRACE();
     dtype result = zero<dtype>();
     for (int i = 0; i < n_level; ++i) {
-      result += x[i]*y[i];
+      result += x[i] * y[i];
     }
     return result;
   }
@@ -36,20 +34,19 @@ struct dotu_impl<dynamic,dtype,nil>
 
 
 template<typename dtype, order_t order>
-struct axpym_impl<dynamic,dtype,lil_matrix,order,nil>
-{
-  inline static void func(nil* obj,
-                          dtype alpha,
-                          const lil_matrix<dynamic,dtype,order,nil>& x,
-                          lil_matrix<dynamic,dtype,order,nil>& y,
-                          int n_level)
+struct axpym_impl<dynamic, dtype, lil_matrix, order, nil> {
+  inline static void func(nil                                          *obj,
+                          dtype                                         alpha,
+                          const lil_matrix<dynamic, dtype, order, nil> &x,
+                          lil_matrix<dynamic, dtype, order, nil>       &y,
+                          int                                           n_level)
   {
     CALL_TRACE();
-    for (auto& x_ijv : x.data) {
+    for (auto &x_ijv : x.data) {
       int i = x_ijv.first;
-      for (auto& x_jv: x_ijv.second) {
+      for (auto &x_jv : x_ijv.second) {
         int j = x_jv.first;
-        y.data[i][j] += alpha*x_jv.second;
+        y.data[i][j] += alpha * x_jv.second;
       }
     }
   }
@@ -57,35 +54,34 @@ struct axpym_impl<dynamic,dtype,lil_matrix,order,nil>
 
 
 template<typename dtype>
-struct gemm_impl<dynamic,dtype,lil_matrix,row_major,nil>
-{
-  inline static void func(nil* obj,
-                          dtype alpha,
-                          lil_matrix<dynamic,dtype,row_major,nil>& A,
-                          lil_matrix<dynamic,dtype,row_major,nil>& B,
-                          dtype beta,
-                          lil_matrix<dynamic,dtype,row_major,nil>& C,
-                          int n_level)
+struct gemm_impl<dynamic, dtype, lil_matrix, row_major, nil> {
+  inline static void func(nil                                        *obj,
+                          dtype                                       alpha,
+                          lil_matrix<dynamic, dtype, row_major, nil> &A,
+                          lil_matrix<dynamic, dtype, row_major, nil> &B,
+                          dtype                                       beta,
+                          lil_matrix<dynamic, dtype, row_major, nil> &C,
+                          int                                         n_level)
   {
-    for (auto& C_ijv : C.data) {
+    for (auto &C_ijv : C.data) {
       int i = C_ijv.first;
-      for (auto& C_jv: C_ijv.second) {
+      for (auto &C_jv : C_ijv.second) {
         int j = C_jv.first;
         C.data[i][j] *= beta;
       }
     }
-    
-    for (auto& A_ikv : A.data) {
+
+    for (auto &A_ikv : A.data) {
       int i = A_ikv.first;
-      for (auto& A_kv: A_ikv.second) {
-        int k = A_kv.first;
-        dtype A_v = A_kv.second;
-        typename lil_matrix<dynamic,dtype,row_major,nil>::lil_itr itr;
+      for (auto &A_kv : A_ikv.second) {
+        int                                                          k   = A_kv.first;
+        dtype                                                        A_v = A_kv.second;
+        typename lil_matrix<dynamic, dtype, row_major, nil>::lil_itr itr;
         if ((itr = B.data.find(k)) != B.data.end()) {
-          for (auto& B_jv: itr->second) {
-            int j = B_jv.first;
+          for (auto &B_jv : itr->second) {
+            int   j   = B_jv.first;
             dtype B_v = B_jv.second;
-            C.data[i][j] += alpha*A_v*B_v;
+            C.data[i][j] += alpha * A_v * B_v;
           }
         }
       }
@@ -96,35 +92,34 @@ struct gemm_impl<dynamic,dtype,lil_matrix,row_major,nil>
 };
 
 template<typename dtype>
-struct gemm_impl<dynamic,dtype,lil_matrix,col_major,nil>
-{
-  inline static void func(nil* obj,
-                          dtype alpha,
-                          lil_matrix<dynamic,dtype,col_major,nil>& A,
-                          lil_matrix<dynamic,dtype,col_major,nil>& B,
-                          dtype beta,
-                          lil_matrix<dynamic,dtype,col_major,nil>& C,
-                          int n_level)
+struct gemm_impl<dynamic, dtype, lil_matrix, col_major, nil> {
+  inline static void func(nil                                        *obj,
+                          dtype                                       alpha,
+                          lil_matrix<dynamic, dtype, col_major, nil> &A,
+                          lil_matrix<dynamic, dtype, col_major, nil> &B,
+                          dtype                                       beta,
+                          lil_matrix<dynamic, dtype, col_major, nil> &C,
+                          int                                         n_level)
   {
-    for (auto& C_jiv : C.data) {
+    for (auto &C_jiv : C.data) {
       int j = C_jiv.first;
-      for (auto& C_iv: C_jiv.second) {
+      for (auto &C_iv : C_jiv.second) {
         int i = C_iv.first;
         C.data[j][i] *= beta;
       }
     }
-    
-    for (auto& B_jkv : B.data) {
+
+    for (auto &B_jkv : B.data) {
       int j = B_jkv.first;
-      for (auto& B_kv: B_jkv.second) {
-        int k = B_kv.first;
-        dtype B_v = B_kv.second;
-        typename lil_matrix<dynamic,dtype,col_major,nil>::lil_itr itr;
+      for (auto &B_kv : B_jkv.second) {
+        int                                                          k   = B_kv.first;
+        dtype                                                        B_v = B_kv.second;
+        typename lil_matrix<dynamic, dtype, col_major, nil>::lil_itr itr;
         if ((itr = A.data.find(k)) != A.data.end()) {
-          for (auto& A_iv: itr->second) {
-            int i = A_iv.first;
+          for (auto &A_iv : itr->second) {
+            int   i   = A_iv.first;
             dtype A_v = A_iv.second;
-            C.data[j][i] += alpha*A_v*B_v;
+            C.data[j][i] += alpha * A_v * B_v;
           }
         }
       }
@@ -136,27 +131,26 @@ struct gemm_impl<dynamic,dtype,lil_matrix,col_major,nil>
 
 {% for order, _ in orders %}
 template<typename dtype>
-struct gemv_impl<dynamic,dtype,lil_matrix,{{order}},nil>
-{
-  static inline void func(nil* engine_obj,
-                          dtype alpha,
-                          lil_matrix<dynamic,dtype,{{order}},nil>& A,
-                          device_t<dtype,env_cpu>* x,
-                          dtype beta,
-                          device_t<dtype,env_cpu>* y,
-                          int n_level)
+struct gemv_impl<dynamic, dtype, lil_matrix, {{order}}, nil> {
+  static inline void func(nil                                        *engine_obj,
+                          dtype                                       alpha,
+                          lil_matrix<dynamic, dtype, {{order}}, nil> &A,
+                          device_t<dtype, env_cpu>                   *x,
+                          dtype                                       beta,
+                          device_t<dtype, env_cpu>                   *y,
+                          int                                         n_level)
   {
     CALL_TRACE();
     for (int i = 0; i < n_level; ++i) {
       y[i] *= beta;
     }
-    for (auto& A_ijv : A.data) {
+    for (auto &A_ijv : A.data) {
       int i = A_ijv.first;
-      for (auto& A_jv: A_ijv.second) {
-        int j = A_jv.first;
+      for (auto &A_jv : A_ijv.second) {
+        int   j   = A_jv.first;
         dtype A_v = A_jv.second;
         {% set i, j = swap('i', 'j', order!='row_major') %}
-        y[{{i}}] += alpha*A_v*x[{{j}}];
+        y[{{i}}] += alpha * A_v * x[{{j}}];
       }
     }
   }
@@ -166,27 +160,26 @@ struct gemv_impl<dynamic,dtype,lil_matrix,{{order}},nil>
 
 {% for order, _ in orders %}
 template<typename dtype>
-struct gevm_impl<dynamic,dtype,lil_matrix,{{order}},nil>
-{
-  static inline void func(nil* engine_obj,
-                          dtype alpha,
-                          device_t<dtype,env_cpu>* x,
-                          lil_matrix<dynamic,dtype,{{order}},nil>& A,
-                          dtype beta,
-                          device_t<dtype,env_cpu>* y,
-                          int n_level)
+struct gevm_impl<dynamic, dtype, lil_matrix, {{order}}, nil> {
+  static inline void func(nil                                        *engine_obj,
+                          dtype                                       alpha,
+                          device_t<dtype, env_cpu>                   *x,
+                          lil_matrix<dynamic, dtype, {{order}}, nil> &A,
+                          dtype                                       beta,
+                          device_t<dtype, env_cpu>                   *y,
+                          int                                         n_level)
   {
     CALL_TRACE();
     for (int i = 0; i < n_level; ++i) {
       y[i] *= beta;
     }
-    for (auto& A_ijv : A.data) {
+    for (auto &A_ijv : A.data) {
       int i = A_ijv.first;
-      for (auto& A_jv: A_ijv.second) {
-        int j = A_jv.first;
+      for (auto &A_jv : A_ijv.second) {
+        int   j   = A_jv.first;
         dtype A_v = A_jv.second;
         {% set i, j = swap('i', 'j', order!='row_major') %}
-        y[{{j}}] += alpha*A_v*x[{{i}}];
+        y[{{j}}] += alpha * A_v * x[{{i}}];
       }
     }
   }
@@ -197,39 +190,38 @@ struct gevm_impl<dynamic,dtype,lil_matrix,{{order}},nil>
 {% for order_kron, _ in orders %}
 {%   for order, _ in orders %}
 template<typename dtype>
-struct kron_x_1_impl<dynamic,dtype,lil_matrix,{{order}},{{order_kron}},nil>
-{
-  inline static void func(nil* obj,
-                          const dtype& alpha,
-                          const lil_matrix<dynamic,dtype,{{order}},nil>& x,
-                          const dtype& beta,
-                          lil_matrix<dynamic,dtype,{{order_kron}},nil>& y,
-                          bool conj=false)
+struct kron_x_1_impl<dynamic, dtype, lil_matrix, {{order}}, {{order_kron}}, nil> {
+  inline static void func(nil                                              *obj,
+                          const dtype                                      &alpha,
+                          const lil_matrix<dynamic, dtype, {{order}}, nil> &x,
+                          const dtype                                      &beta,
+                          lil_matrix<dynamic, dtype, {{order_kron}}, nil>  &y,
+                          bool                                              conj = false)
   {
     CALL_TRACE();
     if (beta == zero<dtype>()) {
       y.data.clear();
     } else {
-      for (auto& y_ijv : y.data) {
-        for (auto& y_jv: y_ijv.second) {
+      for (auto &y_ijv : y.data) {
+        for (auto &y_jv : y_ijv.second) {
           y_jv.second *= beta;
         }
       }
     }
 
     int n = std::get<0>(x.shape);
-    for (auto& x_ijv : x.data) {
+    for (auto &x_ijv : x.data) {
       int i = x_ijv.first;
-      for (auto& x_jv: x_ijv.second) {
-        int j = x_jv.first;
-        const dtype& val = x_jv.second;
+      for (auto &x_jv : x_ijv.second) {
+        int          j   = x_jv.first;
+        const dtype &val = x_jv.second;
         for (int k = 0; k < n; ++k) {
           if (conj == false) {
             {% set outer,inner = swap(swap('i', 'j', order!='row_major'), ('k', 'k'), order!='row_major') %}
             {% set a,b = swap(outer[0]+"*n+"+inner[0], outer[1]+"*n+"+inner[1], order_kron!='row_major') %}
             if (val != zero<dtype>()) {
               dtype prod = val;
-              prod *= alpha;
+              prod                 *= alpha;
               y.data[{{a}}][{{b}}] += prod;
             }
           } else {
@@ -237,7 +229,7 @@ struct kron_x_1_impl<dynamic,dtype,lil_matrix,{{order}},{{order_kron}},nil>
             {% set a,b = swap(outer[0]+"*n+"+inner[0], outer[1]+"*n+"+inner[1], order_kron!='row_major') %}
             if (val != zero<dtype>()) {
               dtype prod = std::conj(val);
-              prod *= static_cast<dtype>(alpha);
+              prod                 *= static_cast<dtype>(alpha);
               y.data[{{a}}][{{b}}] += prod;
             }
           }
@@ -248,39 +240,38 @@ struct kron_x_1_impl<dynamic,dtype,lil_matrix,{{order}},{{order_kron}},nil>
 };
 
 template<typename dtype>
-struct kron_1_x_T_impl<dynamic,dtype,lil_matrix,{{order}},{{order_kron}},nil>
-{
-  inline static void func(nil* obj,
-                          const dtype& alpha,
-                          const lil_matrix<dynamic,dtype,{{order}},nil>& x,
-                          const dtype& beta,
-                          lil_matrix<dynamic,dtype,{{order_kron}},nil>& y,
-                          bool conj=false)
+struct kron_1_x_T_impl<dynamic, dtype, lil_matrix, {{order}}, {{order_kron}}, nil> {
+  inline static void func(nil                                              *obj,
+                          const dtype                                      &alpha,
+                          const lil_matrix<dynamic, dtype, {{order}}, nil> &x,
+                          const dtype                                      &beta,
+                          lil_matrix<dynamic, dtype, {{order_kron}}, nil>  &y,
+                          bool                                              conj = false)
   {
     CALL_TRACE();
     if (beta == zero<dtype>()) {
       y.data.clear();
     } else {
-      for (auto& y_ijv : y.data) {
-        for (auto& y_jv: y_ijv.second) {
+      for (auto &y_ijv : y.data) {
+        for (auto &y_jv : y_ijv.second) {
           y_jv.second *= beta;
         }
       }
     }
 
     int n = std::get<0>(x.shape);
-    for (auto& A_jkv : x.data) {
+    for (auto &A_jkv : x.data) {
       int j = A_jkv.first;
-      for (auto& x_kv: A_jkv.second) {
-        int k = x_kv.first;
-        const dtype& val = x_kv.second;
+      for (auto &x_kv : A_jkv.second) {
+        int          k   = x_kv.first;
+        const dtype &val = x_kv.second;
         for (int i = 0; i < n; ++i) {
           if (conj == false) {
             {% set outer,inner = swap(('i', 'i'), swap('k', 'j', order!='row_major'), order!='row_major') %}
             {% set a,b = swap(outer[0]+"*n+"+inner[0], outer[1]+"*n+"+inner[1], order_kron!='row_major') %}
             if (val != zero<dtype>()) {
               dtype prod = val;
-              prod *= alpha;
+              prod                 *= alpha;
               y.data[{{a}}][{{b}}] += prod;
             }
           } else {
@@ -288,7 +279,7 @@ struct kron_1_x_T_impl<dynamic,dtype,lil_matrix,{{order}},{{order_kron}},nil>
             {% set a,b = swap(outer[0]+"*n+"+inner[0], outer[1]+"*n+"+inner[1], order_kron!='row_major') %}
             if (val != zero<dtype>()) {
               dtype prod = std::conj(val);
-              prod *= static_cast<dtype>(alpha);
+              prod                 *= static_cast<dtype>(alpha);
               y.data[{{a}}][{{b}}] += prod;
             }
           }
@@ -302,53 +293,51 @@ struct kron_1_x_T_impl<dynamic,dtype,lil_matrix,{{order}},{{order_kron}},nil>
 
 
 template<typename dtype, order_t order>
-struct lu_impl
-{
-  inline static void func(const lil_matrix<dynamic,dtype,order,nil>& A,
-                          vector<int>& pivot,
-                          lil_matrix<dynamic,dtype,order,nil>& L,
-                          lil_matrix<dynamic,dtype,order,nil>& U);
+struct lu_impl {
+  inline static void func(const lil_matrix<dynamic, dtype, order, nil> &A,
+                          vector<int>                                  &pivot,
+                          lil_matrix<dynamic, dtype, order, nil>       &L,
+                          lil_matrix<dynamic, dtype, order, nil>       &U);
 };
 
 template<typename dtype, order_t order>
-void lu(const lil_matrix<dynamic,dtype,order,nil>& A,
-        vector<int>& pivot,
-        lil_matrix<dynamic,dtype,order,nil>& L,
-        lil_matrix<dynamic,dtype,order,nil>& U)
+void lu(const lil_matrix<dynamic, dtype, order, nil> &A,
+        vector<int>                                  &pivot,
+        lil_matrix<dynamic, dtype, order, nil>       &L,
+        lil_matrix<dynamic, dtype, order, nil>       &U)
 {
   CALL_TRACE();
-  lu_impl<dtype,order>::func(A, pivot, L, U);
+  lu_impl<dtype, order>::func(A, pivot, L, U);
 }
 
 template<typename dtype>
-struct lu_impl<dtype,row_major>
-{
+struct lu_impl<dtype, row_major> {
   // Doolittle decomposition
-  inline static void func(const lil_matrix<dynamic,dtype,row_major,nil>& A,
-                          vector<int>& pivot,
-                          lil_matrix<dynamic,dtype,row_major,nil>& L,
-                          lil_matrix<dynamic,dtype,row_major,nil>& U)
+  inline static void func(const lil_matrix<dynamic, dtype, row_major, nil> &A,
+                          vector<int>                                      &pivot,
+                          lil_matrix<dynamic, dtype, row_major, nil>       &L,
+                          lil_matrix<dynamic, dtype, row_major, nil>       &U)
   {
     CALL_TRACE();
     int n_level = std::get<0>(A.shape);
 
     pivot.resize(n_level);
     std::iota(pivot.begin(), pivot.end(), 0);
-  
+
     U.set_shape(n_level, n_level);
-    for (auto& A_ijv : A.data) {
+    for (auto &A_ijv : A.data) {
       int i = A_ijv.first;
-      for (auto& A_jv: A_ijv.second) {
+      for (auto &A_jv : A_ijv.second) {
         int j = A_jv.first;
         U.data[i][j] = A_jv.second;
       }
     }
-  
+
     for (int i = 0; i < n_level - 1; ++i) {
-      real_t<dtype> max = std::abs(U.data[i][i]);
-      int swap = -1;
+      real_t<dtype> max  = std::abs(U.data[i][i]);
+      int           swap = -1;
       for (int j = i + 1; j < n_level; ++j) {
-        if (U.exists(j,i) && std::abs(U.data[j][i]) > max) {
+        if (U.exists(j, i) && (std::abs(U.data[j][i]) > max)) {
           swap = j;
           real_t<dtype> max = std::abs(U.data[j][i]);
         }
@@ -362,27 +351,27 @@ struct lu_impl<dtype,row_major>
       if (max == zero<real_t<dtype>>()) {
         continue;
       }
-    
+
       for (int j = i + 1; j < n_level; ++j) {
-        if (U.exists(j,i)) {
+        if (U.exists(j, i)) {
           U.data[j][i] /= U.data[i][i];
           for (int k = i + 1; k < n_level; ++k) {
-            if (U.exists(i,k)) {
-              U.data[j][k] -= U.data[j][i]*U.data[i][k];
+            if (U.exists(i, k)) {
+              U.data[j][k] -= U.data[j][i] * U.data[i][k];
             }
           }
         }
       }
     }
 
-    L.set_shape(n_level, n_level);  
-    for (auto& U_ijv : U.data) {
+    L.set_shape(n_level, n_level);
+    for (auto &U_ijv : U.data) {
       int i = U_ijv.first;
-      for (auto& U_jv: U_ijv.second) {
+      for (auto &U_jv : U_ijv.second) {
         int j = U_jv.first;
         if (i > j) {
           L.data[i][j] = U_jv.second;
-          U_jv.second = zero<dtype>();
+          U_jv.second  = zero<dtype>();
         }
       }
     }
@@ -392,35 +381,34 @@ struct lu_impl<dtype,row_major>
 
 
 template<typename dtype>
-struct lu_impl<dtype,col_major>
-{
+struct lu_impl<dtype, col_major> {
   // Crout decomposition
-  inline static void func(const lil_matrix<dynamic,dtype,col_major,nil>& A,
-                          vector<int>& pivot,
-                          lil_matrix<dynamic,dtype,col_major,nil>& L,
-                          lil_matrix<dynamic,dtype,col_major,nil>& U)
+  inline static void func(const lil_matrix<dynamic, dtype, col_major, nil> &A,
+                          vector<int>                                      &pivot,
+                          lil_matrix<dynamic, dtype, col_major, nil>       &L,
+                          lil_matrix<dynamic, dtype, col_major, nil>       &U)
   {
     CALL_TRACE();
     int n_level = std::get<0>(A.shape);
 
     pivot.resize(n_level);
     std::iota(pivot.begin(), pivot.end(), 0);
-  
+
     L.set_shape(n_level, n_level);
-    for (auto& A_ijv : A.data) {
+    for (auto &A_ijv : A.data) {
       int i = A_ijv.first;
-      for (auto& A_jv: A_ijv.second) {
-        int j = A_jv.first;
+      for (auto &A_jv : A_ijv.second) {
+        int   j = A_jv.first;
         dtype v = A_jv.second;
         L.data[i][j] = v;
       }
     }
-  
+
     for (int i = 0; i < n_level - 1; ++i) {
-      real_t<dtype> max = std::abs(L.data[i][i]);
-      int swap = -1;
+      real_t<dtype> max  = std::abs(L.data[i][i]);
+      int           swap = -1;
       for (int j = i + 1; j < n_level; ++j) {
-        if (L.exists(i,j) && std::abs(L.data[j][i]) > max) {
+        if (L.exists(i, j) && (std::abs(L.data[j][i]) > max)) {
           swap = j;
           real_t<dtype> max = std::abs(L.data[j][i]);
         }
@@ -434,27 +422,27 @@ struct lu_impl<dtype,col_major>
       if (max == zero<real_t<dtype>>()) {
         continue;
       }
-    
+
       for (int j = i + 1; j < n_level; ++j) {
-        if (L.exists(i,j)) {
+        if (L.exists(i, j)) {
           L.data[j][i] /= L.data[i][i];
           for (int k = i + 1; k < n_level; ++k) {
-            if (L.exists(k,i)) {
-              L.data[j][k] -= L.data[j][i]*L.data[i][k];
+            if (L.exists(k, i)) {
+              L.data[j][k] -= L.data[j][i] * L.data[i][k];
             }
           }
         }
       }
     }
 
-    U.set_shape(n_level, n_level);  
-    for (auto& L_ijv : L.data) {
+    U.set_shape(n_level, n_level);
+    for (auto &L_ijv : L.data) {
       int i = L_ijv.first;
-      for (auto& L_jv: L_ijv.second) {
+      for (auto &L_jv : L_ijv.second) {
         int j = L_jv.first;
         if (i > j) {
           U.data[i][j] = L_jv.second;
-          L_jv.second = zero<dtype>();
+          L_jv.second  = zero<dtype>();
         }
       }
     }
@@ -464,45 +452,43 @@ struct lu_impl<dtype,col_major>
 
 
 template<typename dtype, order_t order>
-struct lu_solve_impl
-{
-  inline static void func(const lil_matrix<dynamic,dtype,order,nil>& A,
-                          const vector<dtype>& b,
-                          vector<dtype>& x);
+struct lu_solve_impl {
+  inline static void func(const lil_matrix<dynamic, dtype, order, nil> &A,
+                          const vector<dtype>                          &b,
+                          vector<dtype>                                &x);
 };
 
 template<typename dtype, order_t order>
-void lu_solve(const lil_matrix<dynamic,dtype,order,nil>& A,
-              const vector<dtype>& b,
-              vector<dtype>& x)
+void lu_solve(const lil_matrix<dynamic, dtype, order, nil> &A,
+              const vector<dtype>                          &b,
+              vector<dtype>                                &x)
 {
   CALL_TRACE();
-  lu_solve_impl<dtype,order>::func(A, b, x);
+  lu_solve_impl<dtype, order>::func(A, b, x);
 }
 
 template<typename dtype>
-struct lu_solve_impl<dtype,row_major>
-{
-  inline static void func(const lil_matrix<dynamic,dtype,row_major,nil>& A,
-                          const vector<dtype>& b,
-                          vector<dtype>& x)
+struct lu_solve_impl<dtype, row_major> {
+  inline static void func(const lil_matrix<dynamic, dtype, row_major, nil> &A,
+                          const vector<dtype>                              &b,
+                          vector<dtype>                                    &x)
   {
     CALL_TRACE();
-    int n = std::get<0>(A.shape);
-    lil_matrix<dynamic,dtype,row_major,nil> L(n, n), U(n, n);
-    vector<int> pivot(n);
-    vector<dtype> y(n);
+    int                                        n = std::get<0>(A.shape);
+    lil_matrix<dynamic, dtype, row_major, nil> L(n, n), U(n, n);
+    vector<int>                                pivot(n);
+    vector<dtype>                              y(n);
     lu(A, pivot, L, U);
 
     for (int i = 0; i < n; ++i) {
       y[i] = b[pivot[i]];
       typename decltype(L)::lil_itr itr;
       if ((itr = L.data.find(i)) != L.data.end()) {
-        for (auto& L_jv : itr->second) {
-          int j = L_jv.first;
+        for (auto &L_jv : itr->second) {
+          int   j   = L_jv.first;
           dtype L_v = L_jv.second;
-          // if (j < i) 
-          y[i] -= L_v*y[j];
+          // if (j < i)
+          y[i] -= L_v * y[j];
         }
       }
       // for (int j = 0; j < i; ++j) {
@@ -515,11 +501,11 @@ struct lu_solve_impl<dtype,row_major>
       x[i] = y[i];
       typename decltype(U)::lil_itr itr;
       if ((itr = U.data.find(i)) != U.data.end()) {
-        for (auto& U_jv : itr->second) {
-          int j = U_jv.first;
+        for (auto &U_jv : itr->second) {
+          int   j   = U_jv.first;
           dtype U_v = U_jv.second;
           if (j > i) {
-            x[i] -= U_v*x[j];
+            x[i] -= U_v * x[j];
           }
         }
       }
@@ -532,20 +518,19 @@ struct lu_solve_impl<dtype,row_major>
 };
 
 template<typename dtype>
-struct lu_solve_impl<dtype,col_major>
-{
-  inline static void func(const lil_matrix<dynamic,dtype,col_major,nil>& A,
-                          const vector<dtype>& b,
-                          vector<dtype>& x)
+struct lu_solve_impl<dtype, col_major> {
+  inline static void func(const lil_matrix<dynamic, dtype, col_major, nil> &A,
+                          const vector<dtype>                              &b,
+                          vector<dtype>                                    &x)
   {
     CALL_TRACE();
-    int n = std::get<0>(A.shape);
-    lil_matrix<dynamic,dtype,col_major,nil> L(n, n), U(n, n);
-    vector<int> pivot(n);
-    vector<dtype> y(n);
-    
+    int                                        n = std::get<0>(A.shape);
+    lil_matrix<dynamic, dtype, col_major, nil> L(n, n), U(n, n);
+    vector<int>                                pivot(n);
+    vector<dtype>                              y(n);
+
     lu(A, pivot, L, U);
-    
+
     for (int i = 0; i < n; ++i) {
       y[i] = b[i];
     }
@@ -553,29 +538,29 @@ struct lu_solve_impl<dtype,col_major>
       y[j] /= L.data[j][j];
       typename decltype(L)::lil_itr itr;
       if ((itr = L.data.find(j)) != L.data.end()) {
-        for (auto& L_iv : itr->second) {
-          int i = L_iv.first;
+        for (auto &L_iv : itr->second) {
+          int   i   = L_iv.first;
           dtype L_v = L_iv.second;
           if (i > j) {
-            y[i] -= L_v*y[j];
+            y[i] -= L_v * y[j];
           }
         }
       }
     }
-    y[n-1] /= L.data[n-1][n-1];
+    y[n - 1] /= L.data[n - 1][n - 1];
 
     x.resize(n);
     for (int i = n - 1; i >= 0; --i) {
       x[pivot[i]] = y[i];
     }
-    
+
     for (int j = n - 1; j >= 0; --j) {
       typename decltype(U)::lil_itr itr;
       if ((itr = U.data.find(j)) != U.data.end()) {
-        for (auto& U_iv : itr->second) {
-          int i = U_iv.first;
+        for (auto &U_iv : itr->second) {
+          int   i   = U_iv.first;
           dtype U_v = U_iv.second;
-          x[pivot[i]] -= U_v*x[pivot[j]];
+          x[pivot[i]] -= U_v * x[pivot[j]];
         }
       }
     }
@@ -663,6 +648,5 @@ struct lu_solve_impl<dtype,col_major>
 //   }
 // };
 
-}
-
-#endif
+} // namespace libheom
+#endif // ifndef LIBHEOM_LINALG_ENGINE_LIL_H

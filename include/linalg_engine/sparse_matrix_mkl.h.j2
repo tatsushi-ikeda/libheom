@@ -9,7 +9,6 @@
 #define LIBHEOM_SPARSE_MATRIX_MKL_H
 
 #ifdef ENABLE_MKL
-
 #include <algorithm>
 #ifdef __INTEL_COMPILER
 #  include <aligned_new>
@@ -17,16 +16,15 @@
 #include "const.h"
 #include "env.h"
 
-#include "linalg_engine/matrix_base.h"
 #include "linalg_engine/lil_matrix.h"
-#include "linalg_engine/sparse_matrix.h"
 #include "linalg_engine/linalg_engine.h"
+#include "linalg_engine/matrix_base.h"
+#include "linalg_engine/sparse_matrix.h"
 
 #include "linalg_engine/include_mkl.h"
 #include "linalg_engine/utility_mkl.h"
 
-namespace libheom
-{
+namespace libheom {
 
 template<order_t order>
 constexpr int mkl_sparse_base_int = 0;
@@ -38,49 +36,53 @@ constexpr int mkl_sparse_base_int<col_major> = 1;
 
 
 template<typename dtype, order_t order>
-inline sparse_status_t mkl_sparse_create(sparse_matrix_t* hdl,
+inline sparse_status_t mkl_sparse_create(sparse_matrix_t *hdl,
                                          sparse_index_base_t base,
                                          int rows, int cols,
-                                         int* outer_b, int* outer_e, int* inner,
-                                         dtype* data);
+                                         int *outer_b, int *outer_e, int *inner,
+                                         dtype *data);
 
 {% for dtype, T in types %}
 {% set T_real = real_type_char[T] %}
 {%   for order, M in orders %}
 template<>
-inline sparse_status_t mkl_sparse_create<{{dtype}},{{order}}>(sparse_matrix_t* hdl,
-                                                              sparse_index_base_t base,
-                                                              int rows, int cols, int* outer_b, int* outer_e, int* inner,
-                                                              {{dtype}}* data)
+inline sparse_status_t mkl_sparse_create<{{dtype}}, {{order}}>(sparse_matrix_t    *hdl,
+                                                               sparse_index_base_t base,
+                                                               int                 rows,
+                                                               int                 cols,
+                                                               int                *outer_b,
+                                                               int                *outer_e,
+                                                               int                *inner,
+                                                               {{dtype}}          *data)
 {
   return mkl_sparse_{{T}}_create_cs{{M}}(hdl, base, rows, cols, outer_b, outer_e, inner,
-                                         (reinterpret_cast<mkl_t<{{dtype}}>*>(data)));
+                                         (reinterpret_cast<mkl_t<{{dtype}}> *>(data)));
 }
 
 {%   endfor %}
 {% endfor %}
 
 template<typename dtype, order_t order>
-class sparse_matrix<dynamic,dtype,order,mkl>
-    : public matrix_base<dynamic,dtype,order,mkl>
-{
+class sparse_matrix<dynamic, dtype, order, mkl>:
+  public matrix_base<dynamic, dtype, order, mkl> {
  public:
   std::tuple<int, int> shape;
-  int major_stride;
-  const int base = 0;
-  std::vector<dtype> data;
-  std::vector<int> inner_0, inner_1;
-  std::vector<int> outer_0_b, outer_1_b;
-  std::vector<int> outer_0_e, outer_1_e;
-  sparse_matrix_t hdl_0;
-  sparse_matrix_t hdl_1;
-  struct matrix_descr dsc;
-  bool initialized;
+  int                  major_stride;
+  const int            base = 0;
+  std::vector<dtype>   data;
+  std::vector<int>     inner_0, inner_1;
+  std::vector<int>     outer_0_b, outer_1_b;
+  std::vector<int>     outer_0_e, outer_1_e;
+  sparse_matrix_t      hdl_0;
+  sparse_matrix_t      hdl_1;
+  struct matrix_descr  dsc;
+  bool                 initialized;
 
   sparse_matrix() : initialized(false)
   {
     CALL_TRACE();
   }
+  /* ---------------------------------------------------------------------- */
 
   ~sparse_matrix()
   {
@@ -90,18 +92,19 @@ class sparse_matrix<dynamic,dtype,order,mkl>
       mkl_sparse_destroy(hdl_1);
     }
   }
+  /* ---------------------------------------------------------------------- */
 
-  void import(lil_matrix<dynamic,dtype,order,nil>& src)
+  void import(lil_matrix<dynamic, dtype, order, nil> &src)
   {
     CALL_TRACE();
-    this->shape = src.shape;
+    this->shape        = src.shape;
     this->major_stride = std::get<shape_index<order>>(this->shape);
-    int n_outer        = std::get<shape_index<order>^1>(this->shape);
+    int n_outer        = std::get<shape_index<order> ^ 1>(this->shape);
 
-    outer_0_b.resize(n_outer+1);
+    outer_0_b.resize(n_outer + 1);
     outer_0_e.resize(n_outer);
 
-    int ptr = base;
+    int ptr       = base;
     int outer_old = -1;
 
     // pointer_b -> outer_0_b;
@@ -110,9 +113,9 @@ class sparse_matrix<dynamic,dtype,order,mkl>
     // inner_0 -> columns;
     // row_old -> outer_old
 
-    for (auto& data_ijv : src.data) {
+    for (auto &data_ijv : src.data) {
       int i = data_ijv.first;
-      for (auto& data_jv: data_ijv.second) {
+      for (auto &data_jv : data_ijv.second) {
         int j = data_jv.first;
 
         if (i != outer_old) {
@@ -146,28 +149,26 @@ class sparse_matrix<dynamic,dtype,order,mkl>
       }
     }
     outer_0_b[this->major_stride] = data.size() + base;
-    MKL_SPARSE_CALL((mkl_sparse_create<dtype,order>(&this->hdl_0, SPARSE_INDEX_BASE_ZERO,
-                                                    std::get<0>(this->shape), std::get<1>(this->shape),
-                                                    &this->outer_0_b[0], &this->outer_0_e[0], &this->inner_0[0],
-                                                    &this->data[0])));
+    MKL_SPARSE_CALL((mkl_sparse_create<dtype, order>(&this->hdl_0, SPARSE_INDEX_BASE_ZERO,
+                                                     std::get<0>(this->shape), std::get<1>(this->shape),
+                                                     &this->outer_0_b[0], &this->outer_0_e[0], &this->inner_0[0],
+                                                     &this->data[0])));
     outer_1_b.resize(outer_0_b.size());
-    std::transform(outer_0_b.begin(), outer_0_b.end(), outer_1_b.begin(), [](int x) { return x + 1; });
+    std::transform(outer_0_b.begin(), outer_0_b.end(), outer_1_b.begin(), [] (int x) { return x + 1; });
     outer_1_e.resize(outer_0_e.size());
-    std::transform(outer_0_e.begin(), outer_0_e.end(), outer_1_e.begin(), [](int x) { return x + 1; });
+    std::transform(outer_0_e.begin(), outer_0_e.end(), outer_1_e.begin(), [] (int x) { return x + 1; });
 
     inner_1.resize(inner_0.size());
-    std::transform(inner_0.begin(), inner_0.end(), inner_1.begin(), [](int x) { return x + 1; });
-    MKL_SPARSE_CALL((mkl_sparse_create<dtype,order>(&this->hdl_1, SPARSE_INDEX_BASE_ONE,
-                                                    std::get<0>(this->shape), std::get<1>(this->shape),
-                                                    &this->outer_1_b[0], &this->outer_1_e[0], &this->inner_1[0],
-                                                    &this->data[0])));
-    this->dsc.type = SPARSE_MATRIX_TYPE_GENERAL;
+    std::transform(inner_0.begin(), inner_0.end(), inner_1.begin(), [] (int x) { return x + 1; });
+    MKL_SPARSE_CALL((mkl_sparse_create<dtype, order>(&this->hdl_1, SPARSE_INDEX_BASE_ONE,
+                                                     std::get<0>(this->shape), std::get<1>(this->shape),
+                                                     &this->outer_1_b[0], &this->outer_1_e[0], &this->inner_1[0],
+                                                     &this->data[0])));
+    this->dsc.type    = SPARSE_MATRIX_TYPE_GENERAL;
     this->initialized = true;
   }
 };
 
-}
-
-#endif
-
-#endif
+} // namespace libheom
+#endif // ifdef ENABLE_MKL
+#endif // ifndef LIBHEOM_SPARSE_MATRIX_MKL_H

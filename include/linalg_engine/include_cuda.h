@@ -11,14 +11,8 @@
 #include "type.h"
 
 #include <cublas_v2.h>
-#include <cusparse.h>
 #include <cusolverDn.h>
+#include <cusparse.h>
 
-namespace libheom {
-
-
-}
-
-
+namespace libheom {}
 #endif
-

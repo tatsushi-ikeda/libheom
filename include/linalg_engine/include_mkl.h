@@ -23,16 +23,14 @@
 
 namespace libheom {
 
-template <typename dtype>
+template<typename dtype>
 struct mkl_type;
 
 template<typename dtype>
 using mkl_t = typename mkl_type<dtype>::value;
 
-template <> struct mkl_type<complex64>  { typedef MKL_Complex8 value; };
-template <> struct mkl_type<complex128> { typedef MKL_Complex16 value; };
+template<> struct mkl_type<complex64>  { typedef MKL_Complex8 value; };
+template<> struct mkl_type<complex128> { typedef MKL_Complex16 value; };
 
 }
-
-
-#endif
+#endif // ifndef LIBHEOM_INCLUDE_MKL_H

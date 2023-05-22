@@ -18,8 +18,8 @@
 #endif
 
 #include <Eigen/Core>
-#include <Eigen/Sparse>
 #include <Eigen/Eigenvalues>
+#include <Eigen/Sparse>
 
 // note: below codes are necessary when this file is compiled with old eigen
 
@@ -34,8 +34,7 @@
 // #  define _CMP_NLE_US    _MM_CMPINT_NLE    // 0x06
 // #endif
 
-namespace libheom
-{
+namespace libheom {
 
 template<order_t order>
 constexpr enum Eigen::StorageOptions eigen_order = Eigen::RowMajor;
@@ -45,6 +44,5 @@ constexpr enum Eigen::StorageOptions eigen_order<row_major> = Eigen::RowMajor;
 template<>
 constexpr enum Eigen::StorageOptions eigen_order<col_major> = Eigen::ColMajor;
 
-};
-
-#endif
+}
+#endif // ifndef LIBHEOM_INCLUDE_EIGEN_H

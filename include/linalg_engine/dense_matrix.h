@@ -10,8 +10,7 @@
 
 #include "linalg_engine/matrix_base.h"
 
-namespace libheom
-{
+namespace libheom {
 
 template<int num_level, typename dtype, order_t order, typename linalg_engine>
 class dense_matrix;

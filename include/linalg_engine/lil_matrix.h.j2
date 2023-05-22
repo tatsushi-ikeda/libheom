@@ -8,37 +8,38 @@
 #ifndef LIBHEOM_LIL_MATRIX_H
 #define LIBHEOM_LIL_MATRIX_H
 
-#include <vector>
-#include <map>
-#include <limits>
-#include <numeric>
 #include "linalg_engine/matrix_base.h"
+#include <limits>
+#include <map>
+#include <numeric>
+#include <vector>
 
 namespace libheom {
 
 // Sparse matrix class by using list in list (LIL) format.
 // While the name includes `list`, this is implemented by using std::map.
 
-template <int num_level, typename dtype, order_t order, typename linalg_engine>
-class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
-{
+template<int num_level, typename dtype, order_t order, typename linalg_engine>
+class lil_matrix : public matrix_base<num_level, dtype, order, linalg_engine> {
  public:
-  typedef std::map<int,std::map<int,dtype>> lil_type;
+  typedef std::map<int, std::map<int, dtype>> lil_type;
   typedef typename lil_type::const_iterator lil_itr;
   std::tuple<int, int> shape;
-  int major_stride;
-  lil_type data;
+  int                  major_stride;
+  lil_type             data;
 
   lil_matrix()
   {
     CALL_TRACE();
   }
+  /* ---------------------------------------------------------------------- */
 
-  lil_matrix(int rows, int cols)
-      : shape(rows, cols)
+  lil_matrix(int rows, int cols) :
+      shape(rows, cols)
   {
     CALL_TRACE();
   }
+  /* ---------------------------------------------------------------------- */
 
   void set_shape(int rows, int cols)
   {
@@ -47,11 +48,14 @@ class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
     std::get<1>(shape) = cols;
     data.clear();
   }
+  /* ---------------------------------------------------------------------- */
 
-  void clear() {
+  void clear()
+  {
     CALL_TRACE();
     data.clear();
   }
+  /* ---------------------------------------------------------------------- */
 
   void set_identity(int n)
   {
@@ -61,29 +65,31 @@ class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
       this->data[i][i] = one<dtype>();
     }
   }
+  /* ---------------------------------------------------------------------- */
 
-  void set_adjoint(lil_matrix<num_level,dtype,order,linalg_engine> src)
+  void set_adjoint(lil_matrix<num_level, dtype, order, linalg_engine> src)
   {
     CALL_TRACE();
     set_shape(std::get<1>(src.shape), std::get<0>(src.shape));
-    for (auto& m_ijv : src.data) {
+    for (auto &m_ijv : src.data) {
       int i = m_ijv.first;
-      for (auto& m_jv: m_ijv.second) {
-        int j = m_jv.first;
+      for (auto &m_jv : m_ijv.second) {
+        int   j   = m_jv.first;
         dtype val = m_jv.second;
         this->data[j][i] = std::conj(val);
       }
     }
   }
+  /* ---------------------------------------------------------------------- */
 
   void optimize(real_t<dtype> tol = std::numeric_limits<real_t<dtype>>::epsilon())
   {
     CALL_TRACE();
     real_t<dtype> max = zero<real_t<dtype>>();
 
-    for (auto& ijv : data) {
+    for (auto &ijv : data) {
       // int i = ijv.first;
-      for (auto& jv: ijv.second) {
+      for (auto &jv : ijv.second) {
         // int j = jv.first;
         max = std::max(std::abs(jv.second), max);
       }
@@ -93,36 +99,35 @@ class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
       max = 1;
     }
 
-    std::vector<std::tuple<int,int>> dead_idx;
-    for (auto& ijv : data) {
+    std::vector<std::tuple<int, int>> dead_idx;
+    for (auto &ijv : data) {
       int i = ijv.first;
-      for (auto& jv: ijv.second) {
+      for (auto &jv : ijv.second) {
         int j = jv.first;
-        if (std::abs(jv.second) <= tol*max) {
-          dead_idx.push_back(std::make_tuple(i,j));
+        if (std::abs(jv.second) <= tol * max) {
+          dead_idx.push_back(std::make_tuple(i, j));
         }
       }
     }
 
-    for (auto& ij: dead_idx) {
+    for (auto &ij : dead_idx) {
       int i = std::get<0>(ij);
       int j = std::get<1>(ij);
       data.at(i).erase(j);
     }
 
     std::vector<int> dead;
-    for (auto& ijv : data) {
+    for (auto &ijv : data) {
       int i = ijv.first;
       if (ijv.second.empty()) {
         dead.push_back(i);
       }
     }
 
-    for (auto& i: dead) {
+    for (auto &i : dead) {
       data.erase(i);
     }
   }
-
   // template <order_t order_out>
   // lil_matrix<dtype, order_out> T
   // /**/() const
@@ -152,8 +157,9 @@ class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
   //   }
   //   return std::move(out);
   // }
+  /* ---------------------------------------------------------------------- */
 
-  void push(const int row, const int col, const dtype& value)
+  void push(const int row, const int col, const dtype &value)
   {
     CALL_TRACE();
     if constexpr (order == row_major) {
@@ -162,6 +168,7 @@ class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
       this->data[col][row] += value;
     }
   }
+  /* ---------------------------------------------------------------------- */
 
   bool exists(const int row, const int col) const
   {
@@ -183,18 +190,18 @@ class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
 };
 
 
-template <int n_level, typename dtype, order_t order, typename linalg_engine>
-std::ostream& operator <<(std::ostream& out, const lil_matrix<n_level,dtype,order,linalg_engine>& m)
+template<int n_level, typename dtype, order_t order, typename linalg_engine>
+std::ostream& operator << (std::ostream &out, const lil_matrix<n_level, dtype, order, linalg_engine> &m)
 {
   out << "lil matrix" << std::endl;
   out << "  internal data:" << std::endl;
   out << "  - shape: "   << std::get<0>(m.shape) << ", " << std::get<1>(m.shape) << std::endl;
   out << "  - data: " << std::endl;
-  for (auto& m_ijv : m.data) {
+  for (auto &m_ijv : m.data) {
     int i = m_ijv.first;
-    for (auto& m_jv: m_ijv.second) {
-      int j = m_jv.first;
-      const dtype& val = m_jv.second;
+    for (auto &m_jv : m_ijv.second) {
+      int          j   = m_jv.first;
+      const dtype &val = m_jv.second;
       if constexpr (order == row_major) {
         out << "    (" << i << ", " << j << ") = " << val << std::endl;
       } else {
@@ -203,8 +210,7 @@ std::ostream& operator <<(std::ostream& out, const lil_matrix<n_level,dtype,orde
     }
   }
   return out;
-};
+}
 
-};
-
-#endif
+} // namespace libheom
+#endif // ifndef LIBHEOM_LIL_MATRIX_H

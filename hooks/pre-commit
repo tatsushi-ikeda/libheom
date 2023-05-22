@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+
+if git rev-parse --verify HEAD >/dev/null 2>&1
+then
+    against=HEAD
+else
+    # Initial commit: diff against an empty tree object
+    against=$(git hash-object -t tree /dev/null)
+fi
+
+exec 1>&2
+
+targets=$(git diff --cached --name-only --diff-filter=AM $against --)
+
+# ----------------------------------------------------------------------
+#   Prevent the use of non-ascii characters.
+# ----------------------------------------------------------------------
+
+# Check whether grep accepts --color
+if (grep --color=auto --help > /dev/null 2>&1); then
+    grep_options='--color=auto'
+else
+    grep_options=''
+fi
+
+sum=0
+array=()
+for file in $targets; do
+    grep $grep_options -P -n '[^\x00-\x7F]' $file 1>/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        echo -e "\e[1m${file}\e[m"
+        grep $grep_options -P -n '[^\x00-\x7F]' $file
+        echo -e ""
+        sum=$(expr $sum + 1)
+        array=("${array[@]}" "$file")
+    fi
+done
+
+if [ ${sum} -ne 0 ]; then
+    echo -e "\e[1mThe following files contain non-ascii characters. Please modify them."
+    for((i = 0; i < ${#array[@]}; i++)) {
+       echo "* ${array[i]}"
+    }
+    echo -ne "\e[m"
+    exit 1
+fi
+
+# ----------------------------------------------------------------------
+#   Check C++ code format by using Uncrustify.
+# ----------------------------------------------------------------------
+
+# from <https://qiita.com/n_hachi/items/6c2f0ba89235db87cfb0>
+
+uncrustify_command='uncrustify'
+uncrustify_wrapper='tools/jinja2_uncrustify.py --command tools/cuda_uncrustify.py'
+uncrustify_required_version='0.76.0' # The version used in <https://github.com/tatsushi-ikeda/actions-uncrustify/blob/master/Dockerfile>.
+uncrustify_config_filename='uncrustify.cfg'
+uncrustify_options="-L None -c $uncrustify_config_filename"
+
+# Check whether uncrustify is exist or not.
+if !(type $uncrustify_command > /dev/null 2>&1); then
+    cat << EOS
+We cannot detect uncrustify. Please install it or load it.
+EOS
+    exit 1
+fi
+
+# Check the version of uncrustify.
+if !($uncrustify_command --version | grep $uncrustify_required_version > /dev/null 2>&1); then
+    cat << EOS
+The uncrustify version we detected is different from the required version "$uncrustify_required_version".
+EOS
+    exit 1
+fi
+
+# Check the config file of uncrustify.
+if [ ! -e $uncrustify_config_filename ]; then
+    cat << EOS
+The uncrustify configuration file "$uncrustify_config_filename" does not exist.
+EOS
+    exit 1
+fi
+
+# Check whether diff accepts --color
+if (diff --color=always --help > /dev/null 2>&1); then
+    diff_options='--color=always'
+else
+    diff_options=''
+fi
+
+sum=0
+array=()
+
+declare -A lang_list=(
+        ["CPP"]="\.(c|cc|cpp|cxx|wh|h|hpp)$"
+        ["CUDA"]="\.(cu)$"
+        ["J2/CPP"]="\.(c|cc|cpp|cxx|wh|h|hpp)\.j2$"
+        ["J2/CUDA"]="\.(cu)\.j2$"
+)
+
+for lang in "${!lang_list[@]}"; do
+    for file in $(printf '%s\n' $targets | grep -E ${lang_list[$lang]}); do
+        diff -q $file <($uncrustify_wrapper $uncrustify_options -l $lang -f $file) 1>/dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            echo -e "\e[1m${file}\e[m"
+            diff $diff_options -u $file <($uncrustify_wrapper $uncrustify_options -l $lang -f $file) | sed -e '1,2d'
+            echo -e ""
+            sum=$(expr $sum + 1)
+            array=("${array[@]}" "$file")
+        fi
+    done
+done
+
+if [ ${sum} -eq 0 ]; then
+    exit 0
+else
+    echo -e "\e[1mThe following files do not match the style in uncrustify.cfg. Please modify them."
+    for((i = 0; i < ${#array[@]}; i++)) {
+       echo "* ${array[i]}"
+    }
+    echo -ne "\e[m"
+    exit 1
+fi

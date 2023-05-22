@@ -14,53 +14,53 @@
 
 #include "hrchy_space.h"
 
-namespace libheom
-{
+namespace libheom {
 
 
 template<typename dtype, order_t order, typename linalg_engine>
-class heom : public qme_base<dtype,order,linalg_engine>
-{
+class heom : public qme_base<dtype, order, linalg_engine> {
  public:
   using env = engine_env<linalg_engine>;
-  
-  hrchy_space hs;
+
+  hrchy_space         hs;
   vector<vector<int>> lk;
 
-  vector<dtype> ngamma_diag;
-  std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> gamma_offdiag;
-  std::unique_ptr<vector<dtype>[]> s;
-  std::unique_ptr<vector<dtype>[]> a;
+  vector<dtype>                                             ngamma_diag;
+  std::unique_ptr<lil_matrix<dynamic, dtype, order, nil>[]> gamma_offdiag;
+  std::unique_ptr<vector<dtype>[]>                          s;
+  std::unique_ptr<vector<dtype>[]>                          a;
 
   int max_depth;
   int n_inner_threads;
   int n_outer_threads;
-  
+
   int n_dim;
   int n_hrchy;
 
   heom() = delete;
-  
-  heom(int max_depth, int n_inner_threads, int n_outer_threads)
-      : qme_base<dtype,order,linalg_engine>::qme_base()
+
+  heom(int max_depth, int n_inner_threads, int n_outer_threads) :
+      qme_base<dtype, order, linalg_engine>::qme_base()
   {
-    this->max_depth = max_depth;
+    this->max_depth       = max_depth;
     this->n_inner_threads = n_inner_threads;
     this->n_outer_threads = n_outer_threads;
   }
+  /* ---------------------------------------------------------------------- */
 
   int get_n_hrchy()
   {
     return n_hrchy;
   }
-  
-  virtual void set_param(linalg_engine* obj)
+  /* ---------------------------------------------------------------------- */
+
+  virtual void set_param(linalg_engine *obj)
   {
     CALL_TRACE();
-    qme_base<dtype,order,linalg_engine>::set_param(obj);
+    qme_base<dtype, order, linalg_engine>::set_param(obj);
 
-    this->hs.n_dim
-        = std::accumulate(&this->len_gamma[0], &this->len_gamma[0]+this->n_noise, 0);
+    this->hs.n_dim =
+      std::accumulate(&this->len_gamma[0], &this->len_gamma[0] + this->n_noise, 0);
 
     // linearlize
     this->lk.resize(this->n_noise);
@@ -74,13 +74,10 @@ class heom : public qme_base<dtype,order,linalg_engine>
     }
 
     // alloc hrchy_space
-    auto callback_wrapper = [&](int lidx, int estimated_max_lidx)
-    {
-    };
-    auto filter_wrapper   = [&](std::vector<int> index, int depth) -> bool
-    {
-      return false;
-    };
+    auto callback_wrapper = [&] (int lidx, int estimated_max_lidx){};
+    auto filter_wrapper   = [&] (std::vector<int> index, int depth) -> bool {
+                              return false;
+                            };
     int interval_callback = 1;
     this->n_hrchy = alloc_hrchy_space(this->hs,
                                       max_depth,
@@ -96,23 +93,23 @@ class heom : public qme_base<dtype,order,linalg_engine>
       this->ngamma_diag[lidx] = zero<dtype>();
       for (int u = 0; u < this->n_noise; ++u) {
         for (int k = 0; k < this->len_gamma[u]; ++k) {
-          this->ngamma_diag[lidx]
-              += static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][k]])
-              *this->gamma[u].data[k][k];
+          this->ngamma_diag[lidx] +=
+            static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][k]]) *
+            this->gamma[u].data[k][k];
         }
       }
     }
 
     // calculate gamma_offdiag
-    this->gamma_offdiag.reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
-    
+    this->gamma_offdiag.reset(new lil_matrix<dynamic, dtype, order, nil>[this->n_noise]);
+
     for (int u = 0; u < this->n_noise; ++u) {
       this->gamma[u].set_shape(this->len_gamma[u], this->len_gamma[u]);
-      for (auto& gamma_ijv : this->gamma[u].data) {
+      for (auto &gamma_ijv : this->gamma[u].data) {
         int i = gamma_ijv.first;
-        for (auto& gamma_jv: gamma_ijv.second) {
-          int j = gamma_jv.first;
-          const dtype& v = gamma_jv.second;
+        for (auto &gamma_jv : gamma_ijv.second) {
+          int          j = gamma_jv.first;
+          const dtype &v = gamma_jv.second;
           if (i != j) {
             this->gamma_offdiag[u].data[i][j] = v;  // TODO: should be optimized
           }
@@ -139,6 +136,5 @@ class heom : public qme_base<dtype,order,linalg_engine>
   }
 };
 
-}
-
-#endif
+} // namespace libheom
+#endif // ifndef LIBHEOM_HEOM_H
