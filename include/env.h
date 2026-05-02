@@ -146,7 +146,6 @@ struct dev2host_impl<dtype,env_cpu>
   inline static void func(device_t<dtype,env_cpu>*& ptr_dev, dtype* const & ptr_host, int size)
   {
     CALL_TRACE();
-    // ptr_host = ptr_dev;
   }
 };
 

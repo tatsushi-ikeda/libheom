@@ -14,44 +14,6 @@ namespace libheom
 
 constexpr unsigned int CUDA_BLOCK_SIZE = 1024;
 
-// template<typename dtype_real>
-// __global__ void errnorm1_kernel(device_t<complex_t<dtype_real>,env_gpu>* e,
-//                                 device_t<complex_t<dtype_real>,env_gpu>* x,
-//                                 dtype_real atol,
-//                                 dtype_real rtol,
-//                                 int n,
-//                                 device_t<dtype_real,env_gpu>* work)
-// {
-//   // return e[i]/(atol + rtol*x[i]);
-//   extern __shared__ dtype_real smem[];
-
-//   unsigned int tid = threadIdx.x;
-//   unsigned int i = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
-//   dtype_real result = (i < n) ? cuCabsf(e[i])/(atol + rtol*cuCabsf(x[i])) : 0;
-//   if (i + blockDim.x < n) {
-//     result += cuCabsf(e[i + blockDim.x])/(atol + rtol*cuCabsf(x[i + blockDim.x]));
-//   }
-//   smem[tid] = result;
-//   __syncthreads();
-
-//   for (unsigned int s=blockDim.x/2; s>32; s>>=1) {
-//     if (tid < s) {
-//       smem[tid] = result = result + smem[tid + s];
-//     }
-//     __syncthreads();
-//   }
-//   if (tid < 32) {
-//     if(blockDim.x >= 64) result += smem[tid + 32];
-//     for (int offset = 32/2; offset>0; offset>>=1) {
-//       result += __shfl_down(result, offset);
-//     }
-//   }
-//   if (tid == 0) {
-//     work[blockIdx.x] = result;
-//   }
-// }
-
-
 __global__ void errnorm1_c_kernel(device_t<complex_t<float32>,env_gpu>* e,
                                   device_t<complex_t<float32>,env_gpu>* x_1,
                                   device_t<complex_t<float32>,env_gpu>* x_2,
@@ -90,7 +52,6 @@ __global__ void errnorm1_c_kernel(device_t<complex_t<float32>,env_gpu>* e,
     if(blockDim.x >= 64) result += smem32[tid + 32];
     for (int offset = 32/2; offset>0; offset>>=1) {
       result += __shfl_down_sync(0xffffffff, result, offset);
-      // result += __shfl_down(result, offset);
     }
   }
   if (tid == 0) {
@@ -137,7 +98,6 @@ __global__ void errnorm1_z_kernel(device_t<complex_t<float64>,env_gpu>* e,
     if(blockDim.x >= 64) result += smem64[tid + 32];
     for (int offset = 32/2; offset>0; offset>>=1) {
       result += __shfl_down_sync(0xffffffff, result, offset);
-      // result += __shfl_down(result, offset);
     }
   }
   if (tid == 0) {

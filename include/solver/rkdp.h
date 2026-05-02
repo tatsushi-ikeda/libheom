@@ -104,66 +104,29 @@ class rkdp : public adaptive_step_size_solver<dtype,order,linalg_engine>
       if (t + dt_1 > t_bound) {
         dt_1 = t_bound - t;
       }
-      // std::chrono::system_clock::time_point  start = std::chrono::system_clock::now();
-      // std::chrono::system_clock::time_point end   = std::chrono::system_clock::now();
-      // std::chrono::duration dur_misc = end - start;
-      // std::chrono::duration dur_diff = end - start;
       for (int i = 0; i < 6; ++i) {
-        // start = std::chrono::system_clock::now();
-
         copy<dynamic>(this->engine, rho, this->rho_n, this->main_size);
 
         for (int j = 0; j < i; ++j) {
 
           axpy<dynamic>(this->engine, this->A[i][j], this->kh[j], this->rho_n, this->main_size);
         }
-        // end = std::chrono::system_clock::now();
-        // dur_misc += end - start;
 
-        // start = std::chrono::system_clock::now();
         qme->calc_diff_impl(this->engine, this->kh[i], this->rho_n, dt_1,  0, this->temp_dev);
-        // end = std::chrono::system_clock::now();
-        // dur_diff += end - start;
       }
 
-      // start = std::chrono::system_clock::now();
       for (int i = 0; i < 6; ++i) {
         axpy<dynamic>(this->engine, this->B[i], this->kh[i], rho, this->main_size);
       }
-      // end = std::chrono::system_clock::now();
-      // dur_misc += end - start;
-      // start = std::chrono::system_clock::now();
       qme->calc_diff_impl(this->engine, this->kh[6], rho, dt_1,  0, this->temp_dev);
-      // end = std::chrono::system_clock::now();
-      // dur_diff += end - start;
 
       // kh[0] = error
-      // start = std::chrono::system_clock::now();
       scal<dynamic>(this->engine, this->E[0], this->kh[0], this->main_size);
       for (int i = 1; i < 7; ++i) {
         axpy<dynamic>(this->engine, this->E[i], this->kh[i], this->kh[0], this->main_size);
       }
-      // end = std::chrono::system_clock::now();
-      // dur_misc += end - start;
 
-      // maximum<dynamic>(this->engine, rtol, rho, this->rho_old, this->kh[1], this->main_size);
-      // real_t<dtype> scale = atol + std::max(abs_old, abs) * rtol;
-      // div<dynamic>(this->engine, this->kh[1], this->kh[0], this->main_size);
-      // start = std::chrono::system_clock::now();
-      real_t<dtype> error_norm = errnrm1<dynamic>(this->engine, this->kh[0], rho, this->rho_old, this->atol, this->rtol, this->main_size); // *dt_1
-      // end = std::chrono::system_clock::now();
-      // std::chrono::duration dur_norm = end - start;
-      // auto msec_misc = std::chrono::duration_cast<std::chrono::milliseconds>(dur_misc).count();
-      // auto msec_diff = std::chrono::duration_cast<std::chrono::milliseconds>(dur_diff).count();
-      // auto msec_norm = std::chrono::duration_cast<std::chrono::milliseconds>(dur_norm).count();
-      // std::cerr << "msec_misc:" << msec_misc << ",msec_diff:" << msec_diff << ",msec_norm:" << msec_norm << std::endl;
-      // std::cerr << "dt" << dt_1 << ", error:" << error_norm << std::endl;
-      // std::cerr << rho[0].real() << ","
-      //           << rho[1].real() << ","
-      //           << rho[2].real() << ","
-      //           << rho[3].real()
-      //           << std::endl;
-      // real_t<dtype> error = std::sqrt(std::abs(dotc<dynamic>(this->engine, this->kh[0], this->kh[0], this->main_size)))*dt_1/scale;
+      real_t<dtype> error_norm = errnrm1<dynamic>(this->engine, this->kh[0], rho, this->rho_old, this->atol, this->rtol, this->main_size);
       if (error_norm < one<real_t<dtype>>()) {
         t += dt_1;
         dt_1 *= safety*std::min(frac<real_t<dtype>>(10,1), std::pow(error_norm, error_exponent));

@@ -44,16 +44,7 @@ class redfield : public qme_base<dtype,order,linalg_engine>
   {
     CALL_TRACE();
     qme_base<dtype,order,linalg_engine>::set_param(obj);
-    
-    // this->gamma.reset(new dense_matrix<dynamic,dtype,order,eigen>[this->n_noise]);
-    // this->S.reset(new dense_matrix<dynamic,dtype,order,eigen>[this->n_noise]);
-    // this->A.reset(new dense_matrix<dynamic,dtype,order,eigen>[this->n_noise]);
-    // for (int s = 0; s < this->n_noise; ++s) {
-    //   this->gamma[s].import(this->gamma[s]);
-    //   this->S[s].import(this->S[s]);
-    //   this->A[s].import(this->A[s]);
-    // }
-    
+
     this->I.reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
     for (int s = 0; s < this->n_noise; ++s) {
       this->I[s].set_identity(this->len_gamma[s]);
@@ -97,50 +88,6 @@ class redfield : public qme_base<dtype,order,linalg_engine>
     vector<dtype> V_v(this->n_level*this->n_level);
     device_t<dtype,env>* V_v_dev = new_dev<dtype,env,true>(this->n_level*this->n_level);
 
-    // lil_matrix<dynamic,dtype,col_major,nil> A(3,3);
-    // vector<dtype> b(3);
-
-    // // A.data[0][0] = 1;
-    // // A.data[0][1] = 1;
-    // // A.data[0][2] = 3;
-
-    // // A.data[1][0] = 1;
-    // // A.data[1][1] = 8;
-    // // A.data[1][2] = 1;
-
-    // // A.data[2][0] = 1;
-    // // A.data[2][1] = 1;
-    // // A.data[2][2] = -1;
-
-    // A.data[0][0] = 1;
-    // A.data[1][0] = 1;
-    // A.data[2][0] = 3;
-
-    // A.data[0][1] = 1;
-    // A.data[1][1] = 8;
-    // A.data[2][1] = 1;
-
-    // A.data[0][2] = 1;
-    // A.data[1][2] = 1;
-    // A.data[2][2] = -1;
-    
-    // b[0] = 0;
-    // b[1] = 4;
-    // b[2] = -4;
-    
-
-    // std::cout << A << std::endl;
-    
-    // vector<dtype> x(3);
-    // lu_solve(A, b, x);
-    
-    // std::cout << x[0] << "," << std::endl;
-    // std::cout << x[1] << "," << std::endl;
-    // std::cout << x[2] << "," << std::endl;
-
-    // std::cout << "checked!" << std::endl;
-    // std::exit(1);
-    
     for (int s = 0; s < this->n_noise; ++s) {
       V_tmp.import(this->V[s]);
       host2dev<dtype,env>(&V_v[0], V_v_dev, this->n_level*this->n_level);

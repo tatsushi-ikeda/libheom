@@ -113,7 +113,6 @@ template <typename linalg_engine>
 INLINE bool is_supported() { return false; }
 
 using nil = void;
-// class nil : public linalg_engine_base   {};
 template <> struct engine_env_impl<nil> { typedef env_cpu value; };
 template <> INLINE bool is_supported<nil>() { return true; }
 

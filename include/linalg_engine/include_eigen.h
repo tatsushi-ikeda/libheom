@@ -21,19 +21,6 @@
 #include <Eigen/Sparse>
 #include <Eigen/Eigenvalues>
 
-// note: below codes are necessary when this file is compiled with old eigen
-
-// #if (defined __NVCC__ && defined __ICC)
-// #  include <icc/immintrin.h>
-// #  define _CMP_EQ_OQ     _MM_CMPINT_EQ     // 0x00
-// #  define _CMP_LT_OS     _MM_CMPINT_LT     // 0x01
-// #  define _CMP_LE_OS     _MM_CMPINT_LE     // 0x02
-// #  define _CMP_UNORD_Q   _MM_CMPINT_UNUSED // 0x03
-// #  define _CMP_NEQ_UQ    _MM_CMPINT_NE     // 0x04
-// #  define _CMP_NLT_US    _MM_CMPINT_NLT    // 0x05
-// #  define _CMP_NLE_US    _MM_CMPINT_NLE    // 0x06
-// #endif
-
 namespace libheom
 {
 

@@ -151,12 +151,6 @@ class sparse_matrix<dynamic,dtype,order,cuda>
     int ptr = base;
     int outer_old = -1;
 
-    // pointer_b -> outer_b;
-    // pointer_e -> outer_e;
-    // values -> data;
-    // inner -> columns;
-    // row_old -> outer_old
-
     for (auto& data_ijv : src.data) {
       int i = data_ijv.first;
       for (auto& data_jv: data_ijv.second) {

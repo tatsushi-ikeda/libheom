@@ -10,12 +10,6 @@
 
 #include "type.h"
 
-// typedef struct{ float real; float imag; }   mkl_complex64;
-// typedef struct{ double real; double imag; } mkl_complex128;
-
-// #define MKL_Complex8  mkl_complex64
-// #define MKL_Complex16 mkl_complex128
-
 #define MKL_Complex8  libheom::complex64
 #define MKL_Complex16 libheom::complex128
 

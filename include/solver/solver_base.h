@@ -84,7 +84,6 @@ class solver_base
   {
     CALL_TRACE();
     this->engine = engine;
-    // this->env_obj   = env_obj;
     this->main_size  = main_size;
     this->rho_dev    = new_dev<dtype,env,true>(main_size);
     this->temp_dev   = new_dev<dtype,env>(temp_size);
