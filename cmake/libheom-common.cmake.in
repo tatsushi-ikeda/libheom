@@ -2,7 +2,7 @@
 #  LibHEOM
 #  Copyright (c) Tatsushi Ikeda
 #  This library is distributed under BSD 3-Clause License.
-#  See LINCENSE.txt for licence.
+#  See LICENSE.txt for licence.
 # ------------------------------------------------------------------------*/
 
 enable_language(CXX)
@@ -82,6 +82,14 @@ macro(_libheom_check_mkl_support)
       set(LIBHEOM_SHARED_LINKER_FLAGS "${LIBHEOM_SHARED_LINKER_FLAGS} ${BLAS_LINKER_FLAGS}")
       set(LIBHEOM_LIBRARIES           "${LIBHEOM_LIBRARIES}" mkl_rt)
       set(LIBHEOM_LIBRARIES           "${LIBHEOM_LIBRARIES}" "${BLAS_LIBRARIES}")
+      # Add MKL lib dir to linker search path so -lmkl_rt resolves for both
+      # SHARED and MODULE (pybind11) targets
+      foreach(_blas_lib IN LISTS BLAS_LIBRARIES)
+        get_filename_component(_blas_dir "${_blas_lib}" DIRECTORY)
+        if(_blas_dir)
+          link_directories("${_blas_dir}")
+        endif()
+      endforeach()
     endif()
   endif()
 endmacro()
