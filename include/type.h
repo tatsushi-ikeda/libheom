@@ -2,7 +2,7 @@
  * LibHEOM
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
- * See LINCENSE.txt for licence.
+ * See LICENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
 #ifndef LIBHEOM_TYPE_H
@@ -42,9 +42,9 @@ template<typename dtype>
 constexpr int align_val = 0;
 
 template <>
-constexpr int align_val<complex64>  = 32;
+inline constexpr int align_val<complex64>  = 32;
 template <>
-constexpr int align_val<complex128> = 64;
+inline constexpr int align_val<complex128> = 64;
 
 using kwargs_t = std::map<std::string,std::any>;
 
