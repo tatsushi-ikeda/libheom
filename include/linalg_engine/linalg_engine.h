@@ -2,7 +2,7 @@
  * LibHEOM
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
- * See LINCENSE.txt for licence.
+ * See LICENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
 #ifndef LIBHEOM_LINALG_ENGINE_H
@@ -93,6 +93,12 @@ class linalg_engine_base
   {
     CALL_TRACE();
   }
+
+  // Make the children wait for this parent engine's queued work to finish.
+  virtual void sync_to_children() {}
+
+  // Make this parent engine wait for all the children's queued work to finish.
+  virtual void sync_from_children() {}
 };
 
 using not_implemented = linalg_engine_base;

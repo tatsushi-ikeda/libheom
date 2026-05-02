@@ -2,7 +2,7 @@
  * LibHEOM
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
- * See LINCENSE.txt for licence.
+ * See LICENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
 #ifndef LIBHEOM_HEOM_LIOU_H
@@ -148,6 +148,7 @@ class heom_liou : public heom<dtype,order,linalg_engine>
     omp_set_max_active_levels(2);
 
     obj_base->create_children(this->n_outer_threads);
+    obj_base->sync_to_children();
 #pragma omp parallel for num_threads(this->n_outer_threads)
     for (int lidx = 0; lidx < n_hrchy; ++lidx) {
       int thread_id = omp_get_thread_num();
@@ -253,6 +254,7 @@ class heom_liou : public heom<dtype,order,linalg_engine>
       scal<n_level_c_2>(obj, beta, &drho_dt[lidx*n_level_2], n_level_2);
       axpy<n_level_c_2>(obj, -alpha, drho_dt_n, &drho_dt[lidx*n_level_2], n_level_2);
     }
+    obj_base->sync_from_children();
     obj_base->set_n_inner_threads(-1);
     obj_base->set_n_outer_threads(-1);
   }
