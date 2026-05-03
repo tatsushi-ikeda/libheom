@@ -2,61 +2,55 @@
     <img src="https://raw.githubusercontent.com/tatsushi-ikeda/libheom/master/etc/libheom_logo_simple.svg" alt="LibHEOM" height=96>
 </p>
 
-# LibHEOM: Library to Simulate Open Quantum Dynamics based on HEOM Theory
+# LibHEOM: C++ Library for Open Quantum Dynamics based on HEOM Theory
 
-The current stable version is [v0.5](https://github.com/tatsushi-ikeda/libheom/tree/v0.5).
+`libheom` is a cross-platform, open-source C++17/CUDA library for open quantum
+dynamics simulations based on the hierarchical equations of motion (HEOM) theory.
+It provides CPU (Eigen/MKL) and GPU (CUDA) backends.
 
-Version [1.0 (alpha)](https://github.com/tatsushi-ikeda/libheom/tree/develop) is under development.
-The Master branch could be unstable.
+Python 3 bindings and high-level APIs (spectral density models, noise decomposition,
+automatic parameter tuning) are provided in [pyheom](https://github.com/tatsushi-ikeda/pyheom).
 
-## Introduction
+The current release is v1.0.0a4.
 
-`libheom` is a cross-platform, open-source library that supports open quantum dynamics simulations based on the hierarchical equations of motion (HEOM) theory.
-This library provides low-level APIs to solve HEOM written C++17/CUDA.
-Python 3 binding (`pylibheom`) and high-level APIs, including calculations of parameters of HEOM from specific spectral density models, are provided in [pyheom](https://github.com/tatsushi-ikeda/pyheom) package.
+## Documentation
 
-This library is still under development, and some optional functions are not implemented.
-There are no guarantees about backward compatibility as of now (Version 1.0.0a1).
+Full documentation is available in [`docs/`](docs/index.md).
 
-## TODO
+## Requirements
 
--   Write API documentation
--   Rewrite codes for non-linear spectra calculations which are temporarily removed
+- CMake 3.20+
+- Python 3.9+ with Jinja2 (for C++ code generation from templates)
+- C++17 compiler (Intel icpx 2024+ or GCC 8+)
 
-## Required Packages
+At least one linear algebra backend:
 
--   [CMake](https://cmake.org/):
-
-    Cross-platform building system. Version 3.9 or later.
-
--   Python 3.6 or later and [Jinja2](https://github.com/pallets/jinja/):
-
-    These are used to generate C++/CUDA codes from templates.
-
-Additionally, at least one of the following is required as a part of linear algebra libraries.
-
--   Eigen3:
-    [http://eigen.tuxfamily.org](http://eigen.tuxfamily.org/index.php?title=Main_Page)
-
--   Intel MKL:
-    [https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html)
-
--   CUDA &middot; cuBLAS &middot; cuSPARSE &middot; cuSOLVER:
-    [https://developer.nvidia.com/cuda-zone](https://developer.nvidia.com/cuda-zone), [https://developer.nvidia.com/gpu-accelerated-libraries](https://developer.nvidia.com/gpu-accelerated-libraries)
+- Eigen3 (included as a submodule; default)
+- Intel MKL
+- CUDA 11.7+ with cuBLAS, cuSPARSE, cuSOLVER
 
 ## Installation
 
-**CMake** is employed for cross-platform building. For details, see [INSTALL.md](INSTALL.md).
+Initialize submodules and build:
+
+```bash
+git submodule update --init --recursive
+mkdir build && cd build
+cmake ..
+cmake --build .
+```
+
+For MKL, CUDA, and all CMake options see [`docs/installation.md`](docs/installation.md).
 
 ## Authors
 
--   **Tatsushi Ikeda** (ikeda.tatsushi.37u@kyoto-u.jp)
+- **Tatsushi Ikeda** (ikeda.tatsushi.37u@kyoto-u.jp)
 
 ## Licence
 
 [![license](https://img.shields.io/badge/license-New%20BSD-blue.svg)](http://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22Revised_BSD_License.22.2C_.22New_BSD_License.22.2C_or_.22Modified_BSD_License.22.29)
 
-`libheom` is distributed under the BSD 3-clause License. See the LICENSE.txt file for details.
+`libheom` is distributed under the BSD 3-clause License. See the `LICENSE.txt` file for details.
 
 ## Citation Information
 
@@ -83,7 +77,6 @@ Additionally, at least one of the following is required as a part of linear alge
     <a href="https://www.moore.org/"><img src="https://www.moore.org/docs/default-source/Grantee-Resources/foundation-logos/moore-logo-color.jpg?sfvrsn=2" alt="MOORE" height=48 hspace=8></a>
 </p>
 
--   A prototype of this library was developed for projects supported by [Japan Society for the Promotion of Science](https://www.jsps.go.jp/). 
-    The current version is being developed for projects funded by JSPS again.
--   The version for the above research paper (v0.5) was developed in [the Scholes group](http://chemlabs.princeton.edu/scholes/) for projects supported by [the Gordon and Betty Moore Foundation](https://www.moore.org/).
-
+- A prototype of this library was developed for projects supported by [Japan Society for the Promotion of Science](https://www.jsps.go.jp/).
+  The current version is being developed for projects funded by JSPS again.
+- The version for the above research paper (v0.5) was developed in [the Scholes group](http://chemlabs.princeton.edu/scholes/) for projects supported by [the Gordon and Betty Moore Foundation](https://www.moore.org/).
