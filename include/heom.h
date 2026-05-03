@@ -74,21 +74,7 @@ class heom : public qme_base<dtype,order,linalg_engine>
     }
 
     // alloc hrchy_space
-    auto callback_wrapper = [&](int lidx, int estimated_max_lidx)
-    {
-    };
-    auto filter_wrapper   = [&](std::vector<int> index, int depth) -> bool
-    {
-      return false;
-    };
-    int interval_callback = 1;
-    this->n_hrchy = alloc_hrchy_space(this->hs,
-                                      max_depth,
-                                      callback_wrapper,
-                                      interval_callback,
-                                      filter_wrapper,
-                                      false // filter_flag
-                                      );
+    this->n_hrchy = alloc_hrchy_space(this->hs, max_depth);
 
     // calculate ngamma_diag
     this->ngamma_diag.resize(this->n_hrchy);

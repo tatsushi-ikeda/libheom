@@ -40,24 +40,24 @@ class rk4 : public fixed_step_size_solver<dtype,order,linalg_engine>
   void solve_fixed_step(qme_base<dtype,order,linalg_engine>* qme,
                         device_t<dtype,env>* rho,
                         real_t<dtype> t,
-                        real_t<dtype> dt_1,
+                        real_t<dtype> dt,
                         const kwargs_t& kwargs)
   {
     CALL_TRACE();
     copy<dynamic>(this->engine, rho, this->rho_n, this->main_size);
-    qme->calc_diff_impl(this->engine, this->kh_1, this->rho_n, dt_1,  0, this->temp_dev);
+    qme->calc_diff_impl(this->engine, this->kh_1, this->rho_n, dt,  0, this->temp_dev);
 
     axpy<dynamic>(this->engine, frac<dtype>(1,2), this->kh_1, this->rho_n, this->main_size);
-    qme->calc_diff_impl(this->engine, this->kh_2, this->rho_n, dt_1,  0, this->temp_dev);
+    qme->calc_diff_impl(this->engine, this->kh_2, this->rho_n, dt,  0, this->temp_dev);
 
     copy<dynamic>(this->engine, rho, this->rho_n, this->main_size);
     axpy<dynamic>(this->engine, frac<dtype>(1,2), this->kh_2, this->rho_n, this->main_size);
-    qme->calc_diff_impl(this->engine, this->kh_3, this->rho_n, dt_1,  0, this->temp_dev);
+    qme->calc_diff_impl(this->engine, this->kh_3, this->rho_n, dt,  0, this->temp_dev);
 
     copy<dynamic>(this->engine, rho, this->rho_n, this->main_size);
     axpy<dynamic>(this->engine, one<dtype>(), this->kh_3, this->rho_n, this->main_size);
     axpy<dynamic>(this->engine, one<dtype>(), this->kh_3, this->kh_2,  this->main_size);
-    qme->calc_diff_impl(this->engine, this->kh_3, this->rho_n, dt_1,  0, this->temp_dev);
+    qme->calc_diff_impl(this->engine, this->kh_3, this->rho_n, dt,  0, this->temp_dev);
 
     axpy<dynamic>(this->engine, frac<dtype>(1,6), this->kh_1, rho, this->main_size);
     axpy<dynamic>(this->engine, frac<dtype>(2,6), this->kh_2, rho, this->main_size);

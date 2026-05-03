@@ -31,35 +31,35 @@ class adaptive_step_size_solver : public solver_base<dtype,order,linalg_engine>
 
   void solve_1(qme_base<dtype,order,linalg_engine>* qme,
                device_t<dtype,env>* rho,
-               real_t<dtype> t_0,
-               real_t<dtype> t_1,
+               real_t<dtype> t_start,
+               real_t<dtype> t_end,
                const kwargs_t& kwargs)
   {
     CALL_TRACE();
     if (this->dt_save == -1) {
-      this->dt_save = std::any_cast<real_t<dtype>>(kwargs.at("dt"));
+      this->dt_save = get_kwarg<real_t<dtype>>(kwargs, "dt");
     }
-    this->atol    = std::any_cast<real_t<dtype>>(kwargs.at("atol"));
-    this->rtol    = std::any_cast<real_t<dtype>>(kwargs.at("rtol"));
+    this->atol = get_kwarg<real_t<dtype>>(kwargs, "atol");
+    this->rtol = get_kwarg<real_t<dtype>>(kwargs, "rtol");
 
-    real_t<dtype> t = t_0;
-    real_t<dtype> dt_1 = this->dt_save;
+    real_t<dtype> t  = t_start;
+    real_t<dtype> dt = this->dt_save;
 
     while (true) {
-      solve_adaptive_step(qme, rho, t, t_1, dt_1, kwargs);
-      if (t >= t_1) {
+      solve_adaptive_step(qme, rho, t, t_end, dt, kwargs);
+      if (t >= t_end) {
         break;
       }
     }
 
-    this->dt_save = dt_1;
+    this->dt_save = dt;
   }
 
   virtual void solve_adaptive_step(qme_base<dtype,order,linalg_engine>* qme,
                                    device_t<dtype,env>* rho,
                                    real_t<dtype>& t,
                                    real_t<dtype> t_bound,
-                                   real_t<dtype>& dt_1,
+                                   real_t<dtype>& dt,
                                    const kwargs_t& kwargs)
   {
     CALL_TRACE();

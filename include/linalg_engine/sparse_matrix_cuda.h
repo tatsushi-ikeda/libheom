@@ -141,7 +141,7 @@ class sparse_matrix<dynamic,dtype,order,cuda>
     CALL_TRACE();
     this->shape = src.shape;
     this->major_stride = std::get<shape_index<order>>(this->shape);
-    int n_outer        = std::get<shape_index<order>^1>(this->shape);
+    int n_outer        = std::get<shape_minor_index<order>>(this->shape);
 
     std::vector<dtype>  data;
     std::vector<int>    inner;

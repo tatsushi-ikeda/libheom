@@ -28,23 +28,23 @@ class fixed_step_size_solver : public solver_base<dtype,order,linalg_engine>
 
   void solve_1(qme_base<dtype,order,linalg_engine>* qme,
                device_t<dtype,env>* rho_dev,
-               real_t<dtype> t_0,
-               real_t<dtype> t_1,
+               real_t<dtype> t_start,
+               real_t<dtype> t_end,
                const kwargs_t& kwargs)
   {
     CALL_TRACE();
-    real_t<dtype> t = t_0;
-    real_t<dtype> dt_1 = std::any_cast<real_t<dtype>>(kwargs.at("dt"));
+    real_t<dtype> t  = t_start;
+    real_t<dtype> dt = get_kwarg<real_t<dtype>>(kwargs, "dt");
     bool break_flag = false;
     while (true) {
-      if (t + dt_1 - t_1 > -std::numeric_limits<real_t<dtype>>::epsilon()) {
-        dt_1 = t_1 - t;
+      if (t + dt - t_end > -std::numeric_limits<real_t<dtype>>::epsilon()) {
+        dt = t_end - t;
         break_flag = true;
       }
 
-      solve_fixed_step(qme, rho_dev, t, dt_1, kwargs);
+      solve_fixed_step(qme, rho_dev, t, dt, kwargs);
 
-      t += dt_1;
+      t += dt;
       if (break_flag) {
         break;
       }
@@ -54,7 +54,7 @@ class fixed_step_size_solver : public solver_base<dtype,order,linalg_engine>
   virtual void solve_fixed_step(qme_base<dtype,order,linalg_engine>* qme,
                                 device_t<dtype,env>* rho,
                                 real_t<dtype> t,
-                                real_t<dtype> dt_1,
+                                real_t<dtype> dt,
                                 const kwargs_t& kwargs)
   {
     CALL_TRACE();

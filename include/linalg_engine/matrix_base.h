@@ -28,6 +28,10 @@ constexpr int shape_index<row_major> = 0;
 template<>
 constexpr int shape_index<col_major> = 1;
 
+// Index of the minor (non-leading) dimension in a shape tuple.
+template<order_t order>
+constexpr int shape_minor_index = shape_index<order> ^ 1;
+
 template<int num_level, typename dtype, order_t order, typename linalg_engine>
 class matrix_base
 {};

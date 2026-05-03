@@ -7,25 +7,7 @@
 
 #include "hrchy_space.h"
 
-#define ORIGINAL_ORDER      0
-#define BREADTH_FIRST_ORDER 1
-#define DEPTH_FIRST_ORDER   2
-#define ORDER_TYPE BREADTH_FIRST_ORDER
-
-#if   ORDER_TYPE == BREADTH_FIRST_ORDER
-#  include <queue>
-#  define AUX_STRUCT std::queue
-#  define AUX_STRUCT_TOP  front
-#  define AUX_STRUCT_POP  pop
-#  define AUX_STRUCT_PUSH push
-#elif ORDER_TYPE == DEPTH_FIRST_ORDER
-#  include <stack>
-#  define AUX_STRUCT std::stack
-#  define AUX_STRUCT_TOP  top
-#  define AUX_STRUCT_POP  pop
-#  define AUX_STRUCT_PUSH push
-#endif
-
+#include <queue>
 #include <numeric>
 #include <stdexcept>
 #include <iostream>
@@ -84,56 +66,6 @@ void print_index(vector<int>& index, std::ostream& out)
 }
 
 
-#if ORDER_TYPE == ORIGINAL_ORDER
-void set_hrchy_space_sub(hrchy_space& hs,
-                         vector<int>& index,
-                         int& lidx,
-                         int  k,
-                         int  depth,
-                         int  max_depth,
-                         std::function<void(int, int)> callback,
-                         int  interval_callback,
-                         int  estimated_max_lidx,
-                         std::function<bool(vector<int>, int)> hrchy_filter,
-                         bool filter_flag)
-{
-  for (int n_k = 0; n_k <= max_depth - depth; ++n_k) {
-    index[k] = n_k;
-    int depth_current = n_k + depth;
-    bool pass = (depth <= max_depth) && (!filter_flag || hrchy_filter(index, depth));
-    if (pass) {
-      if (k == 0) {
-        if (lidx % interval_callback == 0) {
-          callback(lidx, estimated_max_lidx);
-        }
-        if (depth == max_depth && filter_flag) {
-          std::cerr << "[Warning]: hrchy_filter has reached max_depth ";
-          print_index(index, std::cerr);
-          std::cerr << std::endl; 
-        }
-        hs.book[index] = lidx;
-        hs.n.push_back(index);
-        ++lidx;
-      } else {
-        set_hrchy_space_sub(hs,
-                            index,
-                            lidx,
-                            k - 1,
-                            depth_current,
-                            max_depth,
-                            callback,
-                            interval_callback,
-                            estimated_max_lidx,
-                            hrchy_filter,
-                            filter_flag);
-      }
-    }
-  }
-  index[k] = 0;
-}
-#endif
-
-
 int alloc_hrchy_space(hrchy_space& hs,
                       int  max_depth,
                       std::function<void(int, int)> callback,
@@ -142,91 +74,72 @@ int alloc_hrchy_space(hrchy_space& hs,
                       bool filter_flag)
 {
   int n_dim = hs.n_dim;
-  
+
   vector<int> index(n_dim);
-  int n_hrchy   = 0;
-  int lidx          = 0;
-#if (ORDER_TYPE == BREADTH_FIRST_ORDER) || (ORDER_TYPE == DEPTH_FIRST_ORDER)
-  AUX_STRUCT<vector<int>> next_element;
-  AUX_STRUCT<int>         k_last_modified;
-  int last_modified = 0;
-#endif  
+  int lidx = 0;
+  std::queue<vector<int>> next_element;
+  std::queue<int>         k_last_modified;
 
   long long estimated_max_lidx = calc_hrchy_element_count(max_depth, n_dim);
   std::fill(index.begin(), index.end(), 0);
-#if   ORDER_TYPE == ORIGINAL_ORDER
-  set_hrchy_space_sub(hs, index, lidx, n_dim - 1, 0, max_depth, callback, interval_callback, estimated_max_lidx, hrchy_filter, filter_flag);
-#elif (ORDER_TYPE == BREADTH_FIRST_ORDER) || (ORDER_TYPE == DEPTH_FIRST_ORDER)
-  next_element.AUX_STRUCT_PUSH(index);
-  k_last_modified.AUX_STRUCT_PUSH(last_modified);
-  
+  next_element.push(index);
+  k_last_modified.push(0);
+
   while (!next_element.empty()) {
     if (lidx % interval_callback == 0) {
       callback(lidx, estimated_max_lidx);
     }
-    index = next_element.AUX_STRUCT_TOP();
-    next_element.AUX_STRUCT_POP();
-    last_modified = k_last_modified.AUX_STRUCT_TOP();
-    k_last_modified.AUX_STRUCT_POP();
-    
+    index = next_element.front();
+    next_element.pop();
+    int last_modified = k_last_modified.front();
+    k_last_modified.pop();
+
     hs.book[index] = lidx;
     hs.n.push_back(index);
     ++lidx;
-#  if   ORDER_TYPE == BREADTH_FIRST_ORDER
+
     for (int k = last_modified; k < n_dim; ++k) {
-#  elif ORDER_TYPE == DEPTH_FIRST_ORDER
-    for (int k = n_dim - 1; k >= last_modified; --k) {
-#  endif
-        ++index[k];
-        int depth = std::accumulate(index.begin(), index.end(), 0);
-        bool pass = (depth <= max_depth) && (!filter_flag || hrchy_filter(index, depth));
-        if (pass) {
-          if (depth == max_depth && filter_flag) {
-            std::cerr << "[Warning]: hrchy_filter has reached max_depth ";
-            print_index(index, std::cerr);
-            std::cerr << std::endl; 
-         }
-          next_element.AUX_STRUCT_PUSH(index);
-          k_last_modified.AUX_STRUCT_PUSH(k);
+      ++index[k];
+      int depth = std::accumulate(index.begin(), index.end(), 0);
+      bool pass = (depth <= max_depth) && (!filter_flag || hrchy_filter(index, depth));
+      if (pass) {
+        if (depth == max_depth && filter_flag) {
+          std::cerr << "[Warning]: hrchy_filter has reached max_depth ";
+          print_index(index, std::cerr);
+          std::cerr << std::endl;
         }
-        --index[k];
-#  if   ORDER_TYPE == BREADTH_FIRST_ORDER
+        next_element.push(index);
+        k_last_modified.push(k);
+      }
+      --index[k];
     }
-#  elif ORDER_TYPE == DEPTH_FIRST_ORDER
-    }
-#  endif
   }
-#endif
-  n_hrchy = lidx;
+
+  int n_hrchy = lidx;
   hs.ptr_void = lidx;
-  
+
+  // Look up the linear index of a neighbor; return ptr_void if out of range.
+  auto look_up = [&](const vector<int>& idx) -> int {
+    auto it = hs.book.find(idx);
+    return (it != hs.book.end()) ? it->second : hs.ptr_void;
+  };
+
   hs.ptr_p1.resize(n_hrchy + 1);
   hs.ptr_m1.resize(n_hrchy + 1);
-  for (int lidx = 0; lidx < n_hrchy; ++lidx) {
-    index = hs.n[lidx];
-    hs.ptr_p1[lidx].resize(n_dim);
-    hs.ptr_m1[lidx].resize(n_dim);
-    
+  for (int i = 0; i < n_hrchy; ++i) {
+    index = hs.n[i];
+    hs.ptr_p1[i].resize(n_dim);
+    hs.ptr_m1[i].resize(n_dim);
     for (int k = 0; k < n_dim; ++k) {
       ++index[k];
-      try {
-        hs.ptr_p1[lidx][k] = hs.book.at(index);
-      } catch (std::out_of_range&) {
-        hs.ptr_p1[lidx][k] = hs.ptr_void;
-      }
+      hs.ptr_p1[i][k] = look_up(index);
       index[k] -= 2;
-      try {
-        hs.ptr_m1[lidx][k] = hs.book.at(index);
-      } catch (std::out_of_range&) {
-        hs.ptr_m1[lidx][k] = hs.ptr_void;
-      }
+      hs.ptr_m1[i][k] = look_up(index);
       ++index[k];
     }
   }
-  hs.ptr_p1[hs.ptr_void].resize(n_dim);
-  std::fill(hs.ptr_p1[hs.ptr_void].begin(), hs.ptr_p1[hs.ptr_void].end(), hs.ptr_void);
-  hs.ptr_m1[hs.ptr_void].resize(n_dim);
-  std::fill(hs.ptr_m1[hs.ptr_void].begin(), hs.ptr_m1[hs.ptr_void].end(), hs.ptr_void);
+  hs.ptr_p1[hs.ptr_void].assign(n_dim, hs.ptr_void);
+  hs.ptr_m1[hs.ptr_void].assign(n_dim, hs.ptr_void);
   return n_hrchy;
 }
 

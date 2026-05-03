@@ -86,7 +86,7 @@ class heom_hilb : public heom<dtype,order,linalg_engine>
     auto& n             = this->hs.n;
     auto& ptr_m1        = this->hs.ptr_m1;
     auto& ptr_p1        = this->hs.ptr_p1;
-    const auto ptr_void = this->hs.ptr_void;
+    const int ptr_void = this->hs.ptr_void;
 
     obj_base->set_n_inner_threads(this->n_inner_threads);
     obj_base->set_n_outer_threads(this->n_outer_threads);

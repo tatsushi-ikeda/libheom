@@ -18,6 +18,8 @@ class rkdp : public adaptive_step_size_solver<dtype,order,linalg_engine>
  public:
   typedef engine_env<linalg_engine> env;
 
+  // Dormand-Prince RK45 Butcher tableau (Dormand & Prince, 1980).
+  // A: stage coefficients; B: 5th-order weights; E: error weights (B5 - B4).
   const dtype A[6][6] = {
     {},
     {frac<dtype>(1,5)},
@@ -56,6 +58,7 @@ class rkdp : public adaptive_step_size_solver<dtype,order,linalg_engine>
     frac<dtype>(1,40)
   };
 
+  // Exponent for step-size rescaling: -1/(p+1) where p=4 for the embedded pair.
   const real_t<dtype> error_exponent = -frac<real_t<dtype>>(1,5);
 
   device_t<dtype,env>* rho_n;
@@ -82,17 +85,19 @@ class rkdp : public adaptive_step_size_solver<dtype,order,linalg_engine>
                            device_t<dtype,env>* rho,
                            real_t<dtype>& t,
                            real_t<dtype> t_bound,
-                           real_t<dtype>& dt_1,
+                           real_t<dtype>& dt,
                            const kwargs_t& kwargs)
   {
     CALL_TRACE();
     bool accepted = false;
     real_t<dtype> safety = 0.9;
+    // Floor to prevent dt shrinking below machine precision in stiff regions.
     const real_t<dtype> dt_min = 1e-16;
+    // Maximum consecutive rejections before forcing t to t_bound.
+    const int count_max = 1000;
 
     copy<dynamic>(this->engine, rho, this->rho_old, this->main_size);
     int count = 0;
-    int count_max = 1000;
 
     while (not accepted) {
       ++count;
@@ -101,24 +106,23 @@ class rkdp : public adaptive_step_size_solver<dtype,order,linalg_engine>
         break;
       }
 
-      if (t + dt_1 > t_bound) {
-        dt_1 = t_bound - t;
+      if (t + dt > t_bound) {
+        dt = t_bound - t;
       }
       for (int i = 0; i < 6; ++i) {
         copy<dynamic>(this->engine, rho, this->rho_n, this->main_size);
 
         for (int j = 0; j < i; ++j) {
-
           axpy<dynamic>(this->engine, this->A[i][j], this->kh[j], this->rho_n, this->main_size);
         }
 
-        qme->calc_diff_impl(this->engine, this->kh[i], this->rho_n, dt_1,  0, this->temp_dev);
+        qme->calc_diff_impl(this->engine, this->kh[i], this->rho_n, dt, 0, this->temp_dev);
       }
 
       for (int i = 0; i < 6; ++i) {
         axpy<dynamic>(this->engine, this->B[i], this->kh[i], rho, this->main_size);
       }
-      qme->calc_diff_impl(this->engine, this->kh[6], rho, dt_1,  0, this->temp_dev);
+      qme->calc_diff_impl(this->engine, this->kh[6], rho, dt, 0, this->temp_dev);
 
       // kh[0] = error
       scal<dynamic>(this->engine, this->E[0], this->kh[0], this->main_size);
@@ -128,13 +132,13 @@ class rkdp : public adaptive_step_size_solver<dtype,order,linalg_engine>
 
       real_t<dtype> error_norm = errnrm1<dynamic>(this->engine, this->kh[0], rho, this->rho_old, this->atol, this->rtol, this->main_size);
       if (error_norm < one<real_t<dtype>>()) {
-        t += dt_1;
-        dt_1 *= safety*std::min(frac<real_t<dtype>>(10,1), std::pow(error_norm, error_exponent));
+        t += dt;
+        dt *= safety*std::min(frac<real_t<dtype>>(10,1), std::pow(error_norm, error_exponent));
         accepted = true;
       } else {
-        dt_1 *= safety*std::max(frac<real_t<dtype>>(1,5),  std::pow(error_norm, error_exponent));
-        if (dt_1 < dt_min) {
-          dt_1 = dt_min;
+        dt *= safety*std::max(frac<real_t<dtype>>(1,5),  std::pow(error_norm, error_exponent));
+        if (dt < dt_min) {
+          dt = dt_min;
         }
         copy<dynamic>(this->engine, this->rho_old, rho, this->main_size);
       }

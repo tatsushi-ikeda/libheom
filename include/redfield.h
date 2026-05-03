@@ -65,7 +65,7 @@ class redfield : public qme_base<dtype,order,linalg_engine>
            this->len_gamma[s]);
     }
     
-    this->Lambda    .reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
+    this->Lambda.reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
     this->Lambda_dgr.reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
 
     dense_matrix<dynamic,dtype,order,linalg_engine> H_tmp;

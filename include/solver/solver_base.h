@@ -91,8 +91,8 @@ class solver_base
 
   virtual void solve_1(qme_base<dtype,order,linalg_engine>* qme,
                        device_t<dtype,env>* rho,
-                       real_t<dtype> t_0,
-                       real_t<dtype> t_1,
+                       real_t<dtype> t_start,
+                       real_t<dtype> t_end,
                        const kwargs_t& kwargs)
   {
     CALL_TRACE();

@@ -48,6 +48,11 @@ inline constexpr int align_val<complex128> = 64;
 
 using kwargs_t = std::map<std::string,std::any>;
 
+template<typename T>
+inline T get_kwarg(const kwargs_t& kwargs, const std::string& key) {
+  return std::any_cast<T>(kwargs.at(key));
+}
+
 }
 
 #endif
