@@ -350,7 +350,7 @@ struct lu_impl<dtype,row_major>
       for (int j = i + 1; j < n_level; ++j) {
         if (U.exists(j,i) && std::abs(U.data[j][i]) > max) {
           swap = j;
-          real_t<dtype> max = std::abs(U.data[j][i]);
+          max = std::abs(U.data[j][i]);
         }
       }
 
@@ -422,7 +422,7 @@ struct lu_impl<dtype,col_major>
       for (int j = i + 1; j < n_level; ++j) {
         if (L.exists(i,j) && std::abs(L.data[j][i]) > max) {
           swap = j;
-          real_t<dtype> max = std::abs(L.data[j][i]);
+          max = std::abs(L.data[j][i]);
         }
       }
 
