@@ -21,8 +21,8 @@ template<int n_level_c,
                    typename dtype_,
                    order_t order_,
                    typename linalg_engine_> class matrix_base,
-         order_t order,
-         order_t order_liou,
+         order_t order,       // storage order of Hilbert-space matrices (H, V, rho)
+         order_t order_liou,  // storage order of Liouville-space superoperators (L, Phi, Psi, ...)
          typename linalg_engine>
 class heom_liou : public heom<dtype,order,linalg_engine>
 {
@@ -106,16 +106,6 @@ class heom_liou : public heom<dtype,order,linalg_engine>
       this->impl.Psi[u].import(this->Psi[u]);
     }
 
-    for (int u = 0; u < this->n_noise; ++u) {
-      auto& gamma_offdiag_u = this->gamma_offdiag[u];
-      for (auto& gamma_jkv : gamma_offdiag_u.data) {
-        int j = gamma_jkv.first;
-        for (auto& gamma_kv: gamma_jkv.second) {
-          int k = gamma_kv.first;
-          const dtype& v = gamma_kv.second;
-        }
-      }
-    }
   }
 
   inline void calc_diff_impl(linalg_engine* obj_base,
@@ -129,7 +119,6 @@ class heom_liou : public heom<dtype,order,linalg_engine>
     ++this->count;
     
     auto n_hrchy        = this->n_hrchy;
-    // auto n_level        = this->n_level; unused
     auto n_level_2      = this->n_level_2;
     auto n_noise        = this->n_noise;
     
