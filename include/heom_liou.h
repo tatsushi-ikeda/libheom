@@ -28,6 +28,8 @@ class heom_liou : public heom<dtype,order,linalg_engine>
 {
  public:
   constexpr static int n_level_c_2 = n_level_c*n_level_c;
+  // drho_dt_n, temp_Phi, temp_Psi -- one workspace block per outer thread
+  constexpr static int n_temp_per_thread = 3;
   int count;
   using env = engine_env<linalg_engine>;
   using heom<dtype,order,linalg_engine>::heom;
@@ -60,7 +62,7 @@ class heom_liou : public heom<dtype,order,linalg_engine>
   int temp_size()
   {
     CALL_TRACE();
-    return this->n_level*this->n_level*3*this->n_outer_threads;
+    return this->n_level*this->n_level*n_temp_per_thread*this->n_outer_threads;
   }
   
   virtual void set_param(linalg_engine* obj)
@@ -146,9 +148,9 @@ class heom_liou : public heom<dtype,order,linalg_engine>
       
       auto rho_n     = &rho[lidx*n_level_2];
 
-      auto drho_dt_n = &temp_base[(3*thread_id+0)*n_level_2];
-      auto temp_Phi  = &temp_base[(3*thread_id+1)*n_level_2];
-      auto temp_Psi  = &temp_base[(3*thread_id+2)*n_level_2];
+      auto drho_dt_n = &temp_base[(n_temp_per_thread*thread_id+0)*n_level_2];
+      auto temp_Phi  = &temp_base[(n_temp_per_thread*thread_id+1)*n_level_2];
+      auto temp_Psi  = &temp_base[(n_temp_per_thread*thread_id+2)*n_level_2];
       
       // 0 terms
       gemv<n_level_c_2>(obj, one<dtype>(), R_0, rho_n, zero<dtype>(), drho_dt_n, n_level_2);
@@ -168,6 +170,11 @@ class heom_liou : public heom<dtype,order,linalg_engine>
           for (auto& gamma_kv: gamma_jkv.second) {
             int k = gamma_kv.first;
             const dtype& v = gamma_kv.second;
+            // LIBHEOM_SQRT_NORMALIZATION selects the hierarchy normalization
+            // convention: defined -> sqrt-normalized ADOs (factors sqrt(n) and
+            // sqrt(n+1)); undefined -> standard un-normalized ADOs (factors n
+            // and 1). Either branch may be removed in a future revision once
+            // a single convention is adopted.
             if constexpr (order == row_major) {
               int lidx_m1j    = ptr_m1[lidx][lk_u[j]];
               int lidx_m1jp1k = ptr_p1[lidx_m1j][lk_u[k]];
