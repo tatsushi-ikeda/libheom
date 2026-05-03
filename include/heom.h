@@ -100,7 +100,9 @@ class heom : public qme_base<dtype,order,linalg_engine>
           int j = gamma_jv.first;
           const dtype& v = gamma_jv.second;
           if (i != j) {
-            this->gamma_offdiag[u].data[i][j] = v;  // TODO: should be optimized
+            // Pre-filter off-diagonal entries so calc_diff_impl can iterate
+            // gamma_offdiag without an i != j branch inside the n_hrchy loop.
+            this->gamma_offdiag[u].data[i][j] = v;
           }
         }
       }

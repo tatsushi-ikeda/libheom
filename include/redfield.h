@@ -36,7 +36,6 @@ class redfield : public qme_base<dtype,order,linalg_engine>
     vector<dtype> x(this->len_gamma[s]);
     axpy(nilobj, -i_unit<dtype>()*omega, I[s], A, this->len_gamma[s]);
     lu_solve(A, this->phi_0[s], x);
-    // TODO: remove gevm from implemention.
     return dotu<dynamic>(nilobj, &this->sigma_T_C[s][0], &x[0], this->len_gamma[s]) + this->s_delta[s];
   }
 
@@ -56,6 +55,9 @@ class redfield : public qme_base<dtype,order,linalg_engine>
       axpy(nilobj, i_unit<dtype>(), this->A[s], this->C[s], this->len_gamma[s]);
     }
 
+    // Precompute sigma^T * C once; correlation() uses dotu with this vector
+    // instead of a full gemv per omega, since correlation() is called O(n_level^2)
+    // times per noise source during set_param.
     this->sigma_T_C.reset(new vector<dtype>[this->n_level]);
     for (int s = 0; s < this->n_noise; ++s) {
       sigma_T_C[s].resize(this->len_gamma[s]);
