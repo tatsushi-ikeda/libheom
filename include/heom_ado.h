@@ -21,8 +21,8 @@ template<int n_level_c,
                    typename dtype_,
                    order_t order_,
                    typename linalg_engine_> class matrix_base,
-         order_t order,
-         order_t order_liou,
+         order_t order,       // storage order of Hilbert-space matrices (H, V, rho)
+         order_t order_liou,  // storage order of Liouville-space superoperators
          typename linalg_engine>
 class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,linalg_engine>
 {
@@ -86,13 +86,14 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
           for (int k = 0; k < this->len_gamma[u]; ++k) {
             int lidx_m1 = this->hs.ptr_m1[lidx][this->lk[u][k]]; 
            if (lidx_m1 == this->hs.ptr_void) continue;
-            try {
-              for (auto& Theta_kv: this->Theta[u][k].data[a]) {
+            auto Theta_row = this->Theta[u][k].data.find(a);
+            if (Theta_row != this->Theta[u][k].data.end()) {
+              for (auto& Theta_kv: Theta_row->second) {
                 int b = Theta_kv.first;
                 dtype v = Theta_kv.second;
-#ifdef LIBHEOM_SQRT_NORMALIZATION            
+#ifdef LIBHEOM_SQRT_NORMALIZATION
                 v *= std::sqrt(static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][k]]));
-#else              
+#else
                 v *= static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][k]]);
 #endif
                 if (v != zero<dtype>()) {
@@ -107,7 +108,7 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
                   }
                 }
               }
-            } catch (std::out_of_range&) {}
+            }
           }
         }
       
@@ -143,15 +144,15 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
           }
         }
       
-        try {
-          for (auto& R_kv: this->R_0.data[a]) {
+        auto R_0_row = this->R_0.data.find(a);
+        if (R_0_row != this->R_0.data.end()) {
+          for (auto& R_kv: R_0_row->second) {
             int b = R_kv.first;
             dtype v = R_kv.second;
             this->R.push(lidx*this->n_level_2 + a,
                          lidx*this->n_level_2 + b,
                          v);
           }
-        } catch (std::out_of_range&) {
         }
 
         // +1 terms
@@ -159,13 +160,14 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
           for (int k = 0; k < this->len_gamma[u]; ++k) {
             int lidx_p1 = this->hs.ptr_p1[lidx][this->lk[u][k]];
             if (lidx_p1 == this->hs.ptr_void) continue;
-            try {
-              for (auto& Phi_kv: this->Phi[u].data[a]) {
+            auto Phi_row = this->Phi[u].data.find(a);
+            if (Phi_row != this->Phi[u].data.end()) {
+              for (auto& Phi_kv: Phi_row->second) {
                 int b = Phi_kv.first;
                 dtype v = Phi_kv.second;
-#ifdef LIBHEOM_SQRT_NORMALIZATION            
+#ifdef LIBHEOM_SQRT_NORMALIZATION
                 v *= std::sqrt(static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][k]]+1));
-#endif              
+#endif
                 v *= this->sigma[u][k];
                 if (v != zero<dtype>()) {
                   if constexpr (order_liou == row_major) {
@@ -179,7 +181,7 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
                   }
                 }
               }
-            } catch (std::out_of_range&) {}
+            }
           }
         }
       }
