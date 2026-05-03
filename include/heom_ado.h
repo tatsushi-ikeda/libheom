@@ -123,22 +123,44 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
             for (auto& gamma_kv: gamma_jkv.second) {
               int k = gamma_kv.first;
               const dtype& v = gamma_kv.second;
-              int lidx_m1j, lidx_m1jp1k;
-              if ((lidx_m1j = this->hs.ptr_m1[lidx][this->lk[u][j]])
-                  != this->hs.ptr_void
-                  && (lidx_m1jp1k = this->hs.ptr_p1[lidx_m1j][this->lk[u][k]])
-                  != this->hs.ptr_void)  {
-                auto n_j_float = static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][j]]);
-#ifdef LIBHEOM_SQRT_NORMALIZATION            
-                auto n_k_float = static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][k]]);
-                this->R.push(lidx*this->n_level_2 + a,
-                             lidx_m1jp1k*this->n_level_2 + a,
-                             v*std::sqrt(n_j_float*(n_k_float + 1)));
+              if constexpr (order == row_major) {
+                // row_major: outer key = row = j (decremented), inner key = col = k (incremented)
+                int lidx_m1j, lidx_m1jp1k;
+                if ((lidx_m1j = this->hs.ptr_m1[lidx][this->lk[u][j]])
+                    != this->hs.ptr_void
+                    && (lidx_m1jp1k = this->hs.ptr_p1[lidx_m1j][this->lk[u][k]])
+                    != this->hs.ptr_void) {
+                  auto n_j_float = static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][j]]);
+#ifdef LIBHEOM_SQRT_NORMALIZATION
+                  auto n_k_float = static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][k]]);
+                  this->R.push(lidx*this->n_level_2 + a,
+                               lidx_m1jp1k*this->n_level_2 + a,
+                               v*std::sqrt(n_j_float*(n_k_float + 1)));
 #else
-                this->R.push(lidx*this->n_level_2 + a,
-                             lidx_m1jp1k*this->n_level_2 + a,
-                             v*n_j_float);
-#endif              
+                  this->R.push(lidx*this->n_level_2 + a,
+                               lidx_m1jp1k*this->n_level_2 + a,
+                               v*n_j_float);
+#endif
+                }
+              } else {
+                // col_major: outer key = col = k (decremented), inner key = row = j (incremented)
+                int lidx_m1k, lidx_m1kp1j;
+                if ((lidx_m1k = this->hs.ptr_m1[lidx][this->lk[u][k]])
+                    != this->hs.ptr_void
+                    && (lidx_m1kp1j = this->hs.ptr_p1[lidx_m1k][this->lk[u][j]])
+                    != this->hs.ptr_void) {
+                  auto n_k_float = static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][k]]);
+#ifdef LIBHEOM_SQRT_NORMALIZATION
+                  auto n_j_float = static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][j]]);
+                  this->R.push(lidx*this->n_level_2 + a,
+                               lidx_m1kp1j*this->n_level_2 + a,
+                               v*std::sqrt(n_k_float*(n_j_float + 1)));
+#else
+                  this->R.push(lidx*this->n_level_2 + a,
+                               lidx_m1kp1j*this->n_level_2 + a,
+                               v*n_k_float);
+#endif
+                }
               }
             }
           }
