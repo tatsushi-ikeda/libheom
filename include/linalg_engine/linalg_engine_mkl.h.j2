@@ -331,7 +331,6 @@ struct gemm_impl<dynamic,{{dtype}},sparse_matrix,{{order}},mkl>
     CALL_TRACE();
     mkl_t<{{dtype}}> alpha_mkl = *(reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&alpha));
     mkl_t<{{dtype}}> beta_mkl  = *(reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta));
-    // MKL_SPARSE_CALL(mkl_sparse_set_mm_hint(B.hdl{{"_1" if order == "row_major" else "_0"}}, SPARSE_OPERATION_TRANSPffffffOSE, B.dsc, mkl_sparse_layout_transpose<{{order}}>, n_level, 1));
     MKL_SPARSE_CALL(mkl_sparse_{{T}}_mm(SPARSE_OPERATION_TRANSPOSE,
                                         alpha_mkl, B.hdl{{"_1" if order == "row_major" else "_0"}}, B.dsc, mkl_sparse_layout_transpose<{{order}}>,
                                         (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(A)), n_level, n_level, beta_mkl,

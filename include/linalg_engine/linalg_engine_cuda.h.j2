@@ -81,6 +81,7 @@ class cuda : public linalg_engine_base
 
   cuda* create_child() override
   {
+    CALL_TRACE();
     return new cuda (this);
   }
 
