@@ -73,30 +73,35 @@ if(LIBHEOM_ENABLE_EIGEN_INTERNAL)
     add_libheom_gtest(test_hrchy_space         test_hrchy_space.cc)
     add_libheom_gtest(test_linalg_engine_eigen test_linalg_engine_eigen.cc)
     add_libheom_gtest(test_heom_construction   test_heom_construction.cc)
+    add_libheom_gtest(test_parallel_eigen      test_parallel_eigen.cc)
+    add_libheom_gtest(test_heom_dynamics_eigen test_heom_dynamics_eigen.cc)
 endif()
 
 # ---------------------------------------------------------------------------
 # L_TEST7: MKL backend test
 # ---------------------------------------------------------------------------
 if(LIBHEOM_ENABLE_MKL_INTERNAL)
-    add_libheom_gtest(test_linalg_engine_mkl test_linalg_engine_mkl.cc)
+    add_libheom_gtest(test_linalg_engine_mkl  test_linalg_engine_mkl.cc)
+    add_libheom_gtest(test_heom_dynamics_mkl  test_heom_dynamics_mkl.cc)
 endif()
 
 # ---------------------------------------------------------------------------
 # L_TEST8: CUDA backend test
 # ---------------------------------------------------------------------------
 if(LIBHEOM_ENABLE_CUDA_INTERNAL)
-    add_executable(test_linalg_engine_cuda test_linalg_engine_cuda.cu)
-    target_link_libraries(test_linalg_engine_cuda PRIVATE
-        libheom
-        GTest::gtest
-        GTest::gtest_main
-    )
-    add_dependencies(test_linalg_engine_cuda generated_headers)
-    set_target_properties(test_linalg_engine_cuda
-        PROPERTIES CUDA_ARCHITECTURES "${CUDA_ARCH_LIST}")
-    if(_gtest_rpath_flags)
-        target_link_options(test_linalg_engine_cuda PRIVATE ${_gtest_rpath_flags})
-    endif()
-    add_test(NAME test_linalg_engine_cuda COMMAND test_linalg_engine_cuda)
+    foreach(_cu_test IN ITEMS test_linalg_engine_cuda test_heom_dynamics_cuda)
+        add_executable(${_cu_test} ${_cu_test}.cu)
+        target_link_libraries(${_cu_test} PRIVATE
+            libheom
+            GTest::gtest
+            GTest::gtest_main
+        )
+        add_dependencies(${_cu_test} generated_headers)
+        set_target_properties(${_cu_test}
+            PROPERTIES CUDA_ARCHITECTURES "${CUDA_ARCH_LIST}")
+        if(_gtest_rpath_flags)
+            target_link_options(${_cu_test} PRIVATE ${_gtest_rpath_flags})
+        endif()
+        add_test(NAME ${_cu_test} COMMAND ${_cu_test})
+    endforeach()
 endif()
