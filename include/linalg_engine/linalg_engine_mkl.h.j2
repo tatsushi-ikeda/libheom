@@ -51,9 +51,10 @@ class mkl : public linalg_engine_base
     if (n > 0) {
       this->n_threads_old = mkl_get_max_threads();
       mkl_set_num_threads(n);
-    } else {
+    } else if (n < 0 && this->n_threads_old > 0) {
       mkl_set_num_threads(this->n_threads_old);
     }
+    // n == 0: no-op; leave thread count at environment default
   }
 };
 

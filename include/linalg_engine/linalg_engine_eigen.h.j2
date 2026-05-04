@@ -47,9 +47,10 @@ class eigen : public linalg_engine_base
     if (n > 0) {
       this->n_threads_old = Eigen::nbThreads();
       Eigen::setNbThreads(n);
-    } else {
+    } else if (n < 0 && this->n_threads_old > 0) {
       Eigen::setNbThreads(this->n_threads_old);
     }
+    // n == 0: no-op; leave thread count at environment default
   }
 };
 
