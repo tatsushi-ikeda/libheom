@@ -220,9 +220,11 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
                              device_t<dtype,env>* temp_base)
   {
     CALL_TRACE();
+    obj->set_n_inner_threads(this->n_inner_threads);
     auto n_level_ado = this->n_level_ado;
     auto& R          = this->impl.R;
     gemv<dynamic>(obj, -alpha, R, rho, beta, drho_dt, n_level_ado);
+    obj->set_n_inner_threads(-1);
   }
 };
 
