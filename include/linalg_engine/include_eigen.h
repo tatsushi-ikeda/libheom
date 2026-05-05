@@ -25,12 +25,14 @@ namespace libheom
 {
 
 template<order_t order>
-constexpr enum Eigen::StorageOptions eigen_order = Eigen::RowMajor;
+constexpr Eigen::StorageOptions eigen_order = Eigen::RowMajor;
 
+// inline prevents multiple-definition link errors (same as type.h align_val);
+// removing "enum" keyword avoids nvcc rejecting "constexpr enum" in .cu files.
 template<>
-constexpr enum Eigen::StorageOptions eigen_order<row_major> = Eigen::RowMajor;
+inline constexpr Eigen::StorageOptions eigen_order<row_major> = Eigen::RowMajor;
 template<>
-constexpr enum Eigen::StorageOptions eigen_order<col_major> = Eigen::ColMajor;
+inline constexpr Eigen::StorageOptions eigen_order<col_major> = Eigen::ColMajor;
 
 };
 
