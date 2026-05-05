@@ -27,6 +27,8 @@ class lil_matrix : public matrix_base<num_level,dtype,order,linalg_engine>
   typedef typename lil_type::const_iterator lil_itr;
   std::tuple<int, int> shape;
   int major_stride;
+  // data[outer][inner]: for row_major, outer=row and inner=col; for col_major, outer=col
+  // and inner=row.  Code that treats the outer key as a row index is row_major-only.
   lil_type data;
 
   lil_matrix()

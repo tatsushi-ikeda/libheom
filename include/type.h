@@ -41,6 +41,9 @@ template <> struct complex_type<float64> { typedef complex128 value; };
 template<typename dtype>
 constexpr int align_val = 0;
 
+// inline prevents multiple-definition link errors: C++17 gives variable-template explicit
+// specializations external linkage.  nvcc 12.8 rejects this pattern; use CUDA 12.0 nvcc
+// for any CUDA 12.x wheel build.
 template <>
 inline constexpr int align_val<complex64>  = 32;
 template <>

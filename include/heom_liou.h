@@ -139,6 +139,8 @@ class heom_liou : public heom<dtype,order,linalg_engine>
     omp_set_max_active_levels(2);
 
     obj_base->create_children(this->n_outer_threads);
+    // CUDA: flush the parent-stream axpy/copy from the solver to all child streams before
+    // they start calc_diff_impl.  Missing sync causes lsrk4's beta=-1 staging to diverge.
     obj_base->sync_to_children();
 #pragma omp parallel for num_threads(this->n_outer_threads)
     for (int lidx = 0; lidx < n_hrchy; ++lidx) {
@@ -250,6 +252,7 @@ class heom_liou : public heom<dtype,order,linalg_engine>
       scal<n_level_c_2>(obj, beta, &drho_dt[lidx*n_level_2], n_level_2);
       axpy<n_level_c_2>(obj, -alpha, drho_dt_n, &drho_dt[lidx*n_level_2], n_level_2);
     }
+    // CUDA: wait for all child-stream writes before the parent stream resumes (e.g. next axpy).
     obj_base->sync_from_children();
     obj_base->set_n_inner_threads(-1);
     obj_base->set_n_outer_threads(-1);

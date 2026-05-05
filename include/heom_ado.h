@@ -53,6 +53,8 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
     return this->n_level*this->n_level*this->n_hrchy;
   }
 
+  // calc_diff_impl does a single gemv on the pre-built R matrix; no per-node temp buffers.
+  // Callers may pass nullptr when temp_size() returns 0.
   int temp_size()
   {
     CALL_TRACE();
