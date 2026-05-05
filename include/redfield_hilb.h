@@ -30,7 +30,7 @@ class redfield_hilb : public redfield<dtype,order,linalg_engine>
     matrix_base<n_level_c,dtype,order,linalg_engine> H;
     std::unique_ptr<matrix_base<n_level_c,dtype,order,linalg_engine>[]> V;
     std::unique_ptr<matrix_base<n_level_c,dtype,order,linalg_engine>[]> Lambda;
-    std::unique_ptr<matrix_base<n_level_c,dtype,order,linalg_engine>[]> Lambda_dgr;
+    std::unique_ptr<matrix_base<n_level_c,dtype,order,linalg_engine>[]> Lambda_dag;
   } impl;
 
   redfield_hilb(): redfield<dtype,order,linalg_engine>()
@@ -55,11 +55,11 @@ class redfield_hilb : public redfield<dtype,order,linalg_engine>
     this->impl.H.import(this->H);
     this->impl.V.reset(new matrix_base<n_level_c,dtype,order,linalg_engine>[this->n_noise]);
     this->impl.Lambda.reset    (new matrix_base<n_level_c,dtype,order,linalg_engine>[this->n_noise]);
-    this->impl.Lambda_dgr.reset(new matrix_base<n_level_c,dtype,order,linalg_engine>[this->n_noise]);
+    this->impl.Lambda_dag.reset(new matrix_base<n_level_c,dtype,order,linalg_engine>[this->n_noise]);
     for (int s = 0; s < this->n_noise; ++s) {
       this->impl.V[s].import(this->V[s]);
       this->impl.Lambda    [s].import(this->Lambda    [s]);
-      this->impl.Lambda_dgr[s].import(this->Lambda_dgr[s]);
+      this->impl.Lambda_dag[s].import(this->Lambda_dag[s]);
     }
   }
 
@@ -76,13 +76,13 @@ class redfield_hilb : public redfield<dtype,order,linalg_engine>
     auto& H = this->impl.H;
     auto& V = this->impl.V;
     auto& Lambda = this->impl.Lambda;
-    auto& Lambda_dgr = this->impl.Lambda_dgr;
+    auto& Lambda_dag = this->impl.Lambda_dag;
     
     gemm<n_level_c>(obj, -i_unit<dtype>()*alpha, H, rho, beta,         drho_dt, n_level);
     gemm<n_level_c>(obj,  i_unit<dtype>()*alpha, rho, H, one<dtype>(), drho_dt, n_level);
     for (int s = 0; s < n_noise; ++s) {
       gemm<n_level_c>(obj, +i_unit<dtype>(), Lambda[s], rho,    zero<dtype>(), temp, n_level);
-      gemm<n_level_c>(obj, -i_unit<dtype>(), rho, Lambda_dgr[s], one<dtype>(), temp, n_level);
+      gemm<n_level_c>(obj, -i_unit<dtype>(), rho, Lambda_dag[s], one<dtype>(), temp, n_level);
       gemm<n_level_c>(obj, +i_unit<dtype>()*alpha, V[s], temp, one<dtype>(), drho_dt, n_level);
       gemm<n_level_c>(obj, -i_unit<dtype>()*alpha, temp, V[s], one<dtype>(), drho_dt, n_level);
     }

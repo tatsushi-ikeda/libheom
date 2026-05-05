@@ -1,5 +1,5 @@
 /* -*- mode:c++ -*-
- * LibHEOM -- unit tests for hrchy_space
+ * LibHEOM -- unit tests for hierarchy_space
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
  * See LICENSE.txt for licence.
@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 #include <numeric>
-#include "hrchy_space.h"
+#include "hierarchy_space.h"
 
 namespace {
 using namespace libheom;
@@ -25,15 +25,15 @@ static int multicomb(int K, int N) {
     return static_cast<int>(num / den);
 }
 
-static hrchy_space build(int K, int N) {
-    hrchy_space hs;
-    hs.n_dim = K;
-    alloc_hrchy_space(hs, N);
+static hierarchy_space build(int K, int N) {
+    hierarchy_space hs;
+    hs.n_modes = K;
+    alloc_hierarchy_space(hs, N);
     return hs;
 }
 
 // ---------------------------------------------------------------------------
-// n_hrchy = C(K+N, N)
+// n_hierarchy = C(K+N, N)
 // ---------------------------------------------------------------------------
 
 TEST(HrchySpace, Count_K1) {
@@ -69,13 +69,13 @@ TEST(HrchySpace, Count_K4) {
 }
 
 // ---------------------------------------------------------------------------
-// ptr_void == n_hrchy (the extra slot beyond valid ADOs)
+// ptr_void == n_hierarchy (the extra slot beyond valid ADOs)
 // ---------------------------------------------------------------------------
 
 TEST(HrchySpace, PtrVoidEqualsNHrchy) {
     auto hs = build(2, 3);
-    int n_hrchy = static_cast<int>(hs.n.size());
-    EXPECT_EQ(hs.ptr_void, n_hrchy);
+    int n_hierarchy = static_cast<int>(hs.n.size());
+    EXPECT_EQ(hs.ptr_void, n_hierarchy);
 }
 
 // ---------------------------------------------------------------------------
@@ -86,9 +86,9 @@ TEST(HrchySpace, PtrVoidEqualsNHrchy) {
 
 TEST(HrchySpace, PtrInverseK1N3) {
     auto hs = build(1, 3);
-    int n_hrchy = static_cast<int>(hs.n.size());
-    int K = hs.n_dim;
-    for (int i = 0; i < n_hrchy; ++i) {
+    int n_hierarchy = static_cast<int>(hs.n.size());
+    int K = hs.n_modes;
+    for (int i = 0; i < n_hierarchy; ++i) {
         for (int k = 0; k < K; ++k) {
             int ip1 = hs.ptr_p1[i][k];
             if (ip1 != hs.ptr_void) {
@@ -104,9 +104,9 @@ TEST(HrchySpace, PtrInverseK1N3) {
 
 TEST(HrchySpace, PtrInverseK3N2) {
     auto hs = build(3, 2);
-    int n_hrchy = static_cast<int>(hs.n.size());
-    int K = hs.n_dim;
-    for (int i = 0; i < n_hrchy; ++i) {
+    int n_hierarchy = static_cast<int>(hs.n.size());
+    int K = hs.n_modes;
+    for (int i = 0; i < n_hierarchy; ++i) {
         for (int k = 0; k < K; ++k) {
             int ip1 = hs.ptr_p1[i][k];
             if (ip1 != hs.ptr_void) {
@@ -128,7 +128,7 @@ TEST(HrchySpace, ZeroTierIsFirst) {
     auto hs = build(2, 3);
     EXPECT_EQ(static_cast<int>(hs.n.size()) > 0, true);
     // First ADO should be the all-zeros index
-    for (int k = 0; k < hs.n_dim; ++k) {
+    for (int k = 0; k < hs.n_modes; ++k) {
         EXPECT_EQ(hs.n[0][k], 0);
     }
 }
@@ -140,7 +140,7 @@ TEST(HrchySpace, ZeroTierIsFirst) {
 TEST(HrchySpace, PtrVoidSelfLoops) {
     auto hs = build(2, 2);
     int pv = hs.ptr_void;
-    for (int k = 0; k < hs.n_dim; ++k) {
+    for (int k = 0; k < hs.n_modes; ++k) {
         EXPECT_EQ(hs.ptr_p1[pv][k], pv);
         EXPECT_EQ(hs.ptr_m1[pv][k], pv);
     }

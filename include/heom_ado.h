@@ -43,14 +43,14 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
 
   heom_ado() = delete;
   
-  heom_ado(int max_depth, int n_inner_threads, int n_outer_threads)
-      : heom_liou<n_level_c,dtype,matrix_base,order,order_liou,linalg_engine>(max_depth, n_inner_threads, n_outer_threads)
+  heom_ado(int truncation_depth, int n_inner_threads, int n_outer_threads)
+      : heom_liou<n_level_c,dtype,matrix_base,order,order_liou,linalg_engine>(truncation_depth, n_inner_threads, n_outer_threads)
   {};
   
   int main_size()
   {
     CALL_TRACE();
-    return this->n_level*this->n_level*this->n_hrchy;
+    return this->n_level*this->n_level*this->n_hierarchy;
   }
 
   // calc_diff_impl does a single gemv on the pre-built R matrix; no per-node temp buffers.
@@ -78,10 +78,10 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
       }
     }
 
-    this->n_level_ado = this->n_hrchy*this->n_level_2;
+    this->n_level_ado = this->n_hierarchy*this->n_level_2;
     this->R.set_shape(n_level_ado, n_level_ado);
     
-    for (int lidx = 0; lidx < this->n_hrchy; ++lidx) {
+    for (int lidx = 0; lidx < this->n_hierarchy; ++lidx) {
       for (int a = 0; a < this->n_level_2; ++a) {
         // -1 terms
         for (int u = 0; u < this->n_noise; ++u) {
@@ -117,7 +117,7 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
         // 0 terms
         this->R.push(lidx*this->n_level_2 + a,
                      lidx*this->n_level_2 + a,
-                     this->ngamma_diag[lidx]);
+                     this->n_gamma_diag[lidx]);
       
         for (int u = 0; u < this->n_noise; ++u) {
           for (auto& gamma_jkv : this->gamma_offdiag[u].data) {

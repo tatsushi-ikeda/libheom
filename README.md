@@ -11,7 +11,7 @@ It provides CPU (Eigen/MKL) and GPU (CUDA) backends.
 Python 3 bindings and high-level APIs (spectral density models, noise decomposition,
 automatic parameter tuning) are provided in [pyheom](https://github.com/tatsushi-ikeda/pyheom).
 
-The current release is v1.0.0a4.
+The current release is v1.0.0b1.
 
 ## Documentation
 

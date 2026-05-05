@@ -5,8 +5,8 @@
  * See LICENSE.txt for licence.
  *------------------------------------------------------------------------*/
 
-#ifndef LIBHEOM_HRCHY_SPACE_H
-#define LIBHEOM_HRCHY_SPACE_H
+#ifndef LIBHEOM_HIERARCHY_SPACE_H
+#define LIBHEOM_HIERARCHY_SPACE_H
 
 #include <map>
 #include <functional>
@@ -15,23 +15,23 @@
 namespace libheom
 {
 
-class hrchy_space
+class hierarchy_space
 {
  public:
-  int n_dim;
+  int n_modes;
   vector<vector<int>> n;
   vector<vector<int>> ptr_p1;
   vector<vector<int>> ptr_m1;
-  std::map<vector<int>,int> book;
+  std::map<vector<int>,int> multi_index_map;
   int ptr_void;
 };
 
-int alloc_hrchy_space(hrchy_space& hs,
-                      int max_depth,
+int alloc_hierarchy_space(hierarchy_space& hs,
+                      int truncation_depth,
                       std::function<void(int, int)> callback
                       = [](int, int) { return; },
                       int interval_callback = 1024,
-                      std::function<bool(vector<int>, int)> hrchy_filter
+                      std::function<bool(vector<int>, int)> hierarchy_filter
                       = [](vector<int> index, int depth) -> bool { return true; },
                       bool filter_flag = false);
 

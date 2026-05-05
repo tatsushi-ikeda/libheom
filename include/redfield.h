@@ -28,7 +28,7 @@ class redfield : public qme_base<dtype,order,linalg_engine>
   std::unique_ptr<vector<dtype>[]> sigma_T_C;
   
   std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> Lambda;
-  std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> Lambda_dgr;
+  std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> Lambda_dag;
 
   inline dtype correlation(int s, real_t<dtype> omega)
   {
@@ -68,7 +68,7 @@ class redfield : public qme_base<dtype,order,linalg_engine>
     }
     
     this->Lambda.reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
-    this->Lambda_dgr.reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
+    this->Lambda_dag.reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
 
     dense_matrix<dynamic,dtype,order,linalg_engine> H_tmp;
     dense_matrix<dynamic,dtype,order,linalg_engine> V_tmp;
@@ -113,7 +113,7 @@ class redfield : public qme_base<dtype,order,linalg_engine>
       utb<dynamic>(obj, Lambda_v_dev, v_dev, Lambda_tmp, this->n_level);
       dev2host<dtype,env>(Lambda_v_dev, &Lambda_v[0], this->n_level*this->n_level);
       Lambda_tmp.dump(this->Lambda[s]);
-      this->Lambda_dgr[s].set_adjoint(this->Lambda[s]);
+      this->Lambda_dag[s].set_adjoint(this->Lambda[s]);
     }
 
     delete_dev<real_t<dtype>,env,true>(w_dev);

@@ -72,7 +72,7 @@ class redfield_liou : public redfield<dtype,order,linalg_engine>
 
       this->Theta[s].set_shape(this->n_level_2, this->n_level_2);
       kron_x_1  <dynamic>(nilobj, +i_unit<dtype>(), this->Lambda[s],     zero<dtype>(), this->Theta[s]);
-      kron_1_x_T<dynamic>(nilobj, -i_unit<dtype>(), this->Lambda_dgr[s],  one<dtype>(), this->Theta[s]);
+      kron_1_x_T<dynamic>(nilobj, -i_unit<dtype>(), this->Lambda_dag[s],  one<dtype>(), this->Theta[s]);
     }
 
     this->R.set_shape(this->n_level_2, this->n_level_2);

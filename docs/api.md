@@ -63,14 +63,14 @@ All three inherit from `heom<dtype, order, linalg_engine>` which inherits from
 Constructor (all representations):
 
 ```cpp
-heom_hilb<...> qme(int max_depth, int n_inner_threads, int n_outer_threads);
+heom_hilb<...> qme(int truncation_depth, int n_inner_threads, int n_outer_threads);
 ```
 
 Key methods (inherited from `qme_base`):
 
 ```cpp
 void set_param(linalg_engine* engine);   // upload matrices to engine memory
-int  n_hrchy;    // number of hierarchy nodes (set after set_param)
+int  n_hierarchy;    // number of hierarchy nodes (set after set_param)
 int  n_level;    // system size
 ```
 
@@ -81,7 +81,7 @@ redfield_hilb<n_level_c, dtype, matrix_base, order, linalg_engine>
 redfield_liou<n_level_c, dtype, matrix_base, order, order_liou, linalg_engine>
 ```
 
-Same interface as the HEOM classes; no hierarchy dimension (`n_hrchy == 1`).
+Same interface as the HEOM classes; no hierarchy dimension (`n_hierarchy == 1`).
 
 ## Solver classes
 
@@ -134,7 +134,7 @@ constexpr order_t Ord = row_major;
 
 // Build the HEOM object
 heom_hilb<-1, dtype, dense_matrix, Ord, Engine> qme(
-    /*max_depth=*/5, /*n_inner=*/1, /*n_outer=*/1);
+    /*truncation_depth=*/5, /*n_inner=*/1, /*n_outer=*/1);
 
 // ... fill qme.gamma, qme.sigma, etc. ...
 

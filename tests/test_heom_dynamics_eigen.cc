@@ -15,7 +15,7 @@
  *   n_level = 2, H = diag(1, 0), V = Pauli-X [[0,1],[1,0]]
  *   1 noise, 1 Matsubara pole: gamma = -1.0, phi_0 = 1.0, sigma = 0.5
  *   S = [[0.3]], A = [[0.1]], s_delta = 0.0
- *   max_depth = 2  ->  n_hrchy = 3, main_size = 12
+ *   truncation_depth = 2  ->  n_hierarchy = 3, main_size = 12
  *
  * Initial rho (non-trivial to exercise all hierarchy coupling terms):
  *   level 0: [[1, 0], [0, 0]]              -> rho[0..3]  = {1,0,0,0}

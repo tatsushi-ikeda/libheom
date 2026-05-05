@@ -12,7 +12,7 @@
  *   Bath: 1 noise, 1 Matsubara pole (overdamped Drude approximation)
  *         gamma = -1.0, phi_0 = 1.0, sigma = 0.5
  *         S = [[0.3]], A = [[0.1]], s_delta = 0.0
- *   max_depth = 2 -> n_hrchy = 3 (hierarchy states: {0}, {1}, {2})
+ *   truncation_depth = 2 -> n_hierarchy = 3 (hierarchy states: {0}, {1}, {2})
  *------------------------------------------------------------------------*/
 
 #include <gtest/gtest.h>
@@ -86,8 +86,8 @@ TEST(ParallelEigen, NOuterThreadsGiveIdenticalCalcDiff) {
     auto* h1 = make_heom(eng, 1);
     auto* h4 = make_heom(eng, 4);
 
-    ASSERT_EQ(h1->n_hrchy, N_HRCHY);
-    ASSERT_EQ(h4->n_hrchy, N_HRCHY);
+    ASSERT_EQ(h1->n_hierarchy, N_HRCHY);
+    ASSERT_EQ(h4->n_hierarchy, N_HRCHY);
     ASSERT_EQ(h1->main_size(), MAIN_SIZE);
 
     // Non-trivial initial state: rho at hierarchy level 0 = |0><0|

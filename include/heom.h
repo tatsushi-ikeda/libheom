@@ -12,7 +12,7 @@
 
 #include "linalg_engine/linalg_engine_nil.h"
 
-#include "hrchy_space.h"
+#include "hierarchy_space.h"
 
 namespace libheom
 {
@@ -24,34 +24,34 @@ class heom : public qme_base<dtype,order,linalg_engine>
  public:
   using env = engine_env<linalg_engine>;
   
-  hrchy_space hs;
+  hierarchy_space hs;
   vector<vector<int>> lk;
 
-  vector<dtype> ngamma_diag;
+  vector<dtype> n_gamma_diag;
   std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> gamma_offdiag;
   std::unique_ptr<vector<dtype>[]> s;
   std::unique_ptr<vector<dtype>[]> a;
 
-  int max_depth;
+  int truncation_depth;
   int n_inner_threads;
   int n_outer_threads;
   
-  int n_dim;
-  int n_hrchy;
+  int n_modes;
+  int n_hierarchy;
 
   heom() = delete;
   
-  heom(int max_depth, int n_inner_threads, int n_outer_threads)
+  heom(int truncation_depth, int n_inner_threads, int n_outer_threads)
       : qme_base<dtype,order,linalg_engine>::qme_base()
   {
-    this->max_depth = max_depth;
+    this->truncation_depth = truncation_depth;
     this->n_inner_threads = n_inner_threads;
     this->n_outer_threads = n_outer_threads;
   }
 
-  int get_n_hrchy()
+  int get_n_hierarchy()
   {
-    return n_hrchy;
+    return n_hierarchy;
   }
   
   virtual void set_param(linalg_engine* obj)
@@ -59,7 +59,7 @@ class heom : public qme_base<dtype,order,linalg_engine>
     CALL_TRACE();
     qme_base<dtype,order,linalg_engine>::set_param(obj);
 
-    this->hs.n_dim
+    this->hs.n_modes
         = std::accumulate(&this->len_gamma[0], &this->len_gamma[0]+this->n_noise, 0);
 
     // linearlize
@@ -73,16 +73,16 @@ class heom : public qme_base<dtype,order,linalg_engine>
       }
     }
 
-    // alloc hrchy_space
-    this->n_hrchy = alloc_hrchy_space(this->hs, max_depth);
+    // alloc hierarchy_space
+    this->n_hierarchy = alloc_hierarchy_space(this->hs, truncation_depth);
 
-    // calculate ngamma_diag
-    this->ngamma_diag.resize(this->n_hrchy);
-    for (int lidx = 0; lidx < this->n_hrchy; ++lidx) {
-      this->ngamma_diag[lidx] = zero<dtype>();
+    // calculate n_gamma_diag
+    this->n_gamma_diag.resize(this->n_hierarchy);
+    for (int lidx = 0; lidx < this->n_hierarchy; ++lidx) {
+      this->n_gamma_diag[lidx] = zero<dtype>();
       for (int u = 0; u < this->n_noise; ++u) {
         for (int k = 0; k < this->len_gamma[u]; ++k) {
-          this->ngamma_diag[lidx]
+          this->n_gamma_diag[lidx]
               += static_cast<real_t<dtype>>(this->hs.n[lidx][this->lk[u][k]])
               *this->gamma[u].data[k][k];
         }
@@ -101,7 +101,7 @@ class heom : public qme_base<dtype,order,linalg_engine>
           const dtype& v = gamma_jv.second;
           if (i != j) {
             // Pre-filter off-diagonal entries so calc_diff_impl can iterate
-            // gamma_offdiag without an i != j branch inside the n_hrchy loop.
+            // gamma_offdiag without an i != j branch inside the n_hierarchy loop.
             this->gamma_offdiag[u].data[i][j] = v;
           }
         }

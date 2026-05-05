@@ -5,7 +5,7 @@
 #  See LICENSE.txt for licence.
 # ------------------------------------------------------------------------*/
 
-set(LIBHEOM_CXX_SOURCE  hrchy_space.cc utility_mkl.cc utility.cc)
+set(LIBHEOM_CXX_SOURCE  hierarchy_space.cc utility_mkl.cc utility.cc)
 set(LIBHEOM_CUDA_SOURCE linalg_engine_cuda.cu utility_cuda.cu)
 
 if (LIBHEOM_ENABLE_CUDA_INTERNAL)

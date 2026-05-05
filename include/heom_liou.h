@@ -48,15 +48,15 @@ class heom_liou : public heom<dtype,order,linalg_engine>
 
   heom_liou() = delete;
   
-  heom_liou(int max_depth, int n_inner_threads, int n_outer_threads)
-      : heom<dtype,order,linalg_engine>(max_depth, n_inner_threads, n_outer_threads)
+  heom_liou(int truncation_depth, int n_inner_threads, int n_outer_threads)
+      : heom<dtype,order,linalg_engine>(truncation_depth, n_inner_threads, n_outer_threads)
   {
   };
   
   int main_size()
   {
     CALL_TRACE();
-    return this->n_level*this->n_level*this->n_hrchy;
+    return this->n_level*this->n_level*this->n_hierarchy;
   }
 
   int temp_size()
@@ -120,7 +120,7 @@ class heom_liou : public heom<dtype,order,linalg_engine>
     CALL_TRACE();
     ++this->count;
     
-    auto n_hrchy        = this->n_hrchy;
+    auto n_hierarchy        = this->n_hierarchy;
     auto n_level_2      = this->n_level_2;
     auto n_noise        = this->n_noise;
     
@@ -128,7 +128,7 @@ class heom_liou : public heom<dtype,order,linalg_engine>
     auto& Phi           = this->impl.Phi;
     auto& Psi           = this->impl.Psi;
     
-    auto& ngamma_diag   = this->ngamma_diag;
+    auto& n_gamma_diag   = this->n_gamma_diag;
     auto& n             = this->hs.n;
     auto& ptr_m1        = this->hs.ptr_m1;
     auto& ptr_p1        = this->hs.ptr_p1;
@@ -143,7 +143,7 @@ class heom_liou : public heom<dtype,order,linalg_engine>
     // they start calc_diff_impl.  Missing sync causes lsrk4's beta=-1 staging to diverge.
     obj_base->sync_to_children();
 #pragma omp parallel for num_threads(this->n_outer_threads)
-    for (int lidx = 0; lidx < n_hrchy; ++lidx) {
+    for (int lidx = 0; lidx < n_hierarchy; ++lidx) {
       int thread_id = omp_get_thread_num();
       linalg_engine* obj = static_cast<linalg_engine*>(obj_base->get_child(thread_id));
       obj->switch_thread(thread_id);
@@ -156,7 +156,7 @@ class heom_liou : public heom<dtype,order,linalg_engine>
       
       // 0 terms
       gemv<n_level_c_2>(obj, one<dtype>(), R_0, rho_n, zero<dtype>(), drho_dt_n, n_level_2);
-      axpy<n_level_c_2>(obj, ngamma_diag[lidx], rho_n, drho_dt_n, n_level_2);
+      axpy<n_level_c_2>(obj, n_gamma_diag[lidx], rho_n, drho_dt_n, n_level_2);
 
       for (int u = 0; u < n_noise; ++u) {
         auto& lk_u            = this->lk[u];
