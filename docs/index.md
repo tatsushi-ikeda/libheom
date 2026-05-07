@@ -9,3 +9,4 @@ Based on: Ikeda & Scholes, *J. Chem. Phys.* **152**, 204101 (2020).
 
 - [Installation](installation.md)
 - [API Reference](api.md)
+- [Migration Guide](migration.md)
