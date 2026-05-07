@@ -9,11 +9,10 @@ cmake_minimum_required(VERSION 3.12)
 
 # ---------------------------------------------------------------------------
 # Locate GoogleTest
-# Hint: Intel Python distribution ships GTest 1.14 at ${VIRTUAL_ENV}
+# Hint: GTest may be installed in the active virtual environment
 # ---------------------------------------------------------------------------
 set(_gtest_hint_paths
     "$ENV{VIRTUAL_ENV}"
-    "${VIRTUAL_ENV}"
 )
 list(PREPEND CMAKE_PREFIX_PATH ${_gtest_hint_paths})
 find_package(GTest QUIET)
@@ -28,14 +27,13 @@ if(NOT GTest_FOUND)
 endif()
 message(STATUS "GoogleTest ${GTEST_VERSION} found")
 
-# GTest is built against the Intel Python libstdc++ (conda-forge GCC 12.3.0).
-# The system compiler (GCC 8.5.0) ships an older libstdc++ that lacks the
-# required versioned symbols (GLIBCXX_3.4.26+).  Add Intel Python's lib dir to
-# the linker search path and embed it as an RPATH so the newer libstdc++ is used.
-set(_intelpython_libdir "${VIRTUAL_ENV}/lib")
-if(EXISTS "${_intelpython_libdir}/libstdc++.so.6")
-    link_directories("${_intelpython_libdir}")
-    set(_gtest_rpath_flags "-Wl,-rpath,${_intelpython_libdir}")
+# GTest may be built against a newer libstdc++ than the system compiler provides.
+# If so, add the virtual environment's lib dir to the linker search path and
+# embed it as an RPATH so the test binary finds the right libstdc++ at runtime.
+set(_venv_libdir "$ENV{VIRTUAL_ENV}/lib")
+if(EXISTS "${_venv_libdir}/libstdc++.so.6")
+    link_directories("${_venv_libdir}")
+    set(_gtest_rpath_flags "-Wl,-rpath,${_venv_libdir}")
 else()
     set(_gtest_rpath_flags "")
 endif()
@@ -54,7 +52,7 @@ function(add_libheom_gtest test_name source_file)
     # is enabled, but these .cc files are compiled by g++ and cannot include
     # CUDA runtime headers.  Undefine it at the target level.
     target_compile_options(${test_name} PRIVATE -UENABLE_CUDA)
-    # Embed RPATH so the test binary finds Intel Python's libstdc++ at runtime
+    # Embed RPATH so the test binary finds the virtual environment's libstdc++ at runtime
     if(_gtest_rpath_flags)
         target_link_options(${test_name} PRIVATE ${_gtest_rpath_flags})
     endif()
