@@ -43,8 +43,8 @@ class qme_base
   std::unique_ptr<vector<dtype>[]> phi_0;
   std::unique_ptr<vector<dtype>[]> sigma;
   
-  std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> S;
-  std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> A;
+  std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> s_mat;
+  std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> a_mat;
   std::unique_ptr<dtype[]> s_delta;
   
   virtual int main_size() { return 0; };
@@ -61,9 +61,9 @@ class qme_base
     this->phi_0.reset(new vector<dtype>[n_noise]);
     this->sigma.reset(new vector<dtype>[n_noise]);
   
-    this->S.reset(new lil_matrix<dynamic,dtype,order,nil>[n_noise]);
+    this->s_mat.reset(new lil_matrix<dynamic,dtype,order,nil>[n_noise]);
     this->s_delta.reset(new dtype [n_noise]);
-    this->A.reset(new lil_matrix<dynamic,dtype,order,nil>[n_noise]);
+    this->a_mat.reset(new lil_matrix<dynamic,dtype,order,nil>[n_noise]);
   }
 
   virtual void set_param(linalg_engine* obj)

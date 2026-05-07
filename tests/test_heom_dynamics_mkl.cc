@@ -62,10 +62,10 @@ static void setup_heom_params(H_t* h)
     h->phi_0[0]  = { c128{1.0, 0.0} };
     h->sigma[0]  = { c128{0.5, 0.0} };
 
-    h->S[0].set_shape(1, 1);
-    h->S[0].push(0, 0, {0.3, 0.0});
-    h->A[0].set_shape(1, 1);
-    h->A[0].push(0, 0, {0.1, 0.0});
+    h->s_mat[0].set_shape(1, 1);
+    h->s_mat[0].push(0, 0, {0.3, 0.0});
+    h->a_mat[0].set_shape(1, 1);
+    h->a_mat[0].push(0, 0, {0.1, 0.0});
     h->s_delta[0] = {0.0, 0.0};
 }
 

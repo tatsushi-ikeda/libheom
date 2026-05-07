@@ -72,8 +72,8 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
       this->Theta[u].reset(new lil_matrix<dynamic,dtype,order_liou,nil>[this->len_gamma[u]]);
       for (int k = 0; k < this->len_gamma[u]; ++k) {
         this->Theta[u][k].set_shape(this->n_level_2, this->n_level_2);
-        axpy<dynamic>(nilobj, +this->s[u][k], this->Phi[u], this->Theta[u][k], this->n_level_2);
-        axpy<dynamic>(nilobj, -this->a[u][k], this->Psi[u], this->Theta[u][k], this->n_level_2);
+        axpy<dynamic>(nilobj, +this->s_vec[u][k], this->Phi[u], this->Theta[u][k], this->n_level_2);
+        axpy<dynamic>(nilobj, -this->a_vec[u][k], this->Psi[u], this->Theta[u][k], this->n_level_2);
         this->Theta[u][k].optimize();
       }
     }

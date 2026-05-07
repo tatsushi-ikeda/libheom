@@ -60,10 +60,10 @@ static heom_liou_t* make_heom(eigen& eng, int n_outer, int n_inner = 1)
     h->phi_0[0] = { c128{1.0, 0.0} };
     h->sigma[0] = { c128{0.5, 0.0} };
 
-    h->S[0].set_shape(1, 1);
-    h->S[0].push(0, 0, {0.3, 0.0});
-    h->A[0].set_shape(1, 1);
-    h->A[0].push(0, 0, {0.1, 0.0});
+    h->s_mat[0].set_shape(1, 1);
+    h->s_mat[0].push(0, 0, {0.3, 0.0});
+    h->a_mat[0].set_shape(1, 1);
+    h->a_mat[0].push(0, 0, {0.1, 0.0});
     h->s_delta[0] = {0.0, 0.0};
 
     h->set_param(&eng);

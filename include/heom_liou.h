@@ -163,8 +163,8 @@ class heom_liou : public heom<dtype,order,linalg_engine>
         auto  len_gamma_u     = this->len_gamma[u];
         auto& gamma_offdiag_u = this->gamma_offdiag[u];
         auto& sigma_u         = this->sigma[u];
-        auto& s_u             = this->s[u];
-        auto& a_u             = this->a[u];
+        auto& s_u             = this->s_vec[u];
+        auto& a_u             = this->a_vec[u];
 
         
         for (auto& gamma_jkv : gamma_offdiag_u.data) {

@@ -51,8 +51,8 @@ class redfield : public qme_base<dtype,order,linalg_engine>
 
     this->C.reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
     for (int s = 0; s < this->n_noise; ++s) {
-      this->C[s] = this->S[s];
-      axpy(nilobj, i_unit<dtype>(), this->A[s], this->C[s], this->len_gamma[s]);
+      this->C[s] = this->s_mat[s];
+      axpy(nilobj, i_unit<dtype>(), this->a_mat[s], this->C[s], this->len_gamma[s]);
     }
 
     // Precompute sigma^T * C once; correlation() uses dotu with this vector

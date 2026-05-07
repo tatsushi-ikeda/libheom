@@ -29,8 +29,8 @@ class heom : public qme_base<dtype,order,linalg_engine>
 
   vector<dtype> n_gamma_diag;
   std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> gamma_offdiag;
-  std::unique_ptr<vector<dtype>[]> s;
-  std::unique_ptr<vector<dtype>[]> a;
+  std::unique_ptr<vector<dtype>[]> s_vec;
+  std::unique_ptr<vector<dtype>[]> a_vec;
 
   int truncation_depth;
   int n_inner_threads;
@@ -108,20 +108,20 @@ class heom : public qme_base<dtype,order,linalg_engine>
       }
     }
 
-    // calculate s and a
-    this->s.reset(new vector<dtype>[this->n_noise]);
-    this->a.reset(new vector<dtype>[this->n_noise]);
+    // project s_mat/a_mat onto phi_0 to get per-mode scalar vectors s_vec/a_vec
+    this->s_vec.reset(new vector<dtype>[this->n_noise]);
+    this->a_vec.reset(new vector<dtype>[this->n_noise]);
 
     for (int u = 0; u < this->n_noise; ++u) {
-      this->s[u].resize(this->len_gamma[u]);
-      this->a[u].resize(this->len_gamma[u]);
+      this->s_vec[u].resize(this->len_gamma[u]);
+      this->a_vec[u].resize(this->len_gamma[u]);
       gemv(nilobj,
-           one<dtype>(),  this->S[u], &this->phi_0[u][0],
-           zero<dtype>(), &this->s[u][0],
+           one<dtype>(),  this->s_mat[u], &this->phi_0[u][0],
+           zero<dtype>(), &this->s_vec[u][0],
            this->len_gamma[u]);
       gemv(nilobj,
-           one<dtype>(),  this->A[u], &this->phi_0[u][0],
-           zero<dtype>(), &this->a[u][0],
+           one<dtype>(),  this->a_mat[u], &this->phi_0[u][0],
+           zero<dtype>(), &this->a_vec[u][0],
            this->len_gamma[u]);
     }
   }

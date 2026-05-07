@@ -105,8 +105,8 @@ In `Qme` / `qme_base`:
 ```cpp
 // v0.5     v1.0
 n_state   -> n_level
-s         -> S          // S_mat: system-bath coupling real part (lil_matrix)
-a         -> A          // A_mat: system-bath coupling imaginary part (lil_matrix)
+s         -> s_mat      // system-bath coupling real part (lil_matrix)
+a         -> a_mat      // system-bath coupling imaginary part (lil_matrix)
 S_delta   -> s_delta    // delta-function weight
 ```
 
@@ -116,8 +116,8 @@ In `Heom` / `heom`:
 // v0.5           v1.0
 jgamma_diag    -> n_gamma_diag   // sum_k n_k * gamma_kk per hierarchy node
 n_dim          -> (hierarchy_space::n_modes)  // moved into hierarchy_space
-S   (vectors)  -> s              // per-mode amplitude vectors
-A   (vectors)  -> a
+S   (vectors)  -> s_vec          // per-mode amplitude vectors (s_mat projected onto phi_0)
+A   (vectors)  -> a_vec
 ```
 
 In `HierarchySpace` / `hierarchy_space`:
@@ -178,7 +178,7 @@ heom_hilb<-1, complex128, dense_matrix, row_major, linalg_engine_eigen>
 qme.n_level = n;
 qme.H = ...;
 qme.alloc_noises(n_noise);
-// ... fill qme.gamma[u], qme.phi_0[u], qme.sigma[u], qme.S[u], qme.s_delta[u], qme.A[u] ...
+// ... fill qme.gamma[u], qme.phi_0[u], qme.sigma[u], qme.s_mat[u], qme.s_delta[u], qme.a_mat[u] ...
 qme.V[u] = ...;
 qme.set_param(&engine);    // allocates hierarchy + uploads to engine
 ```
