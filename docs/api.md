@@ -66,12 +66,35 @@ Constructor (all representations):
 heom_hilb<...> qme(int truncation_depth, int n_inner_threads, int n_outer_threads);
 ```
 
-Key methods (inherited from `qme_base`):
+Key fields set by the caller before `set_param` (all inherited from `qme_base`
+or `heom`):
 
 ```cpp
-void set_param(linalg_engine* engine);   // upload matrices to engine memory
-int  n_hierarchy;    // number of hierarchy nodes (set after set_param)
-int  n_level;    // system size
+int    n_level;         // system dimension (set before alloc_noises)
+lil_matrix<...> H;     // Hamiltonian
+
+// Call alloc_noises(n_noise) first, then for each noise source u:
+lil_matrix<...> V[u];        // system-bath coupling operator
+lil_matrix<...> gamma[u];    // exponential decay matrix (K x K)
+vector<dtype>   phi_0[u];    // left amplitude vector (length K)
+vector<dtype>   sigma[u];    // right amplitude vector (length K)
+lil_matrix<...> s_mat[u];    // real part of C(t): S in C(t)=phi^T exp(-gamma t)(s_mat-i*a_mat)sigma
+lil_matrix<...> a_mat[u];    // imaginary part of C(t)
+dtype           s_delta[u];  // delta-function weight
+```
+
+Key methods:
+
+```cpp
+void alloc_noises(int n_noise);          // allocate noise arrays
+void set_param(linalg_engine* engine);   // finalize setup, upload to engine memory
+int  get_n_hierarchy();                  // number of hierarchy nodes (call after set_param)
+```
+
+`qme_solver` also exposes a time derivative call:
+
+```cpp
+void calc_time_derivative(dtype* drho_dt, dtype* rho);
 ```
 
 ### Redfield
@@ -136,7 +159,22 @@ constexpr order_t Ord = row_major;
 heom_hilb<-1, dtype, dense_matrix, Ord, Engine> qme(
     /*truncation_depth=*/5, /*n_inner=*/1, /*n_outer=*/1);
 
-// ... fill qme.gamma, qme.sigma, etc. ...
+qme.n_level = 2;
+qme.H.set_shape(2, 2);
+// ... fill qme.H ...
+
+qme.alloc_noises(1);
+qme.gamma[0].set_shape(1, 1);
+qme.gamma[0].push(0, 0, {1.0, 0.0});   // single Drude pole
+qme.phi_0[0] = {1.0};
+qme.sigma[0] = {1.0};
+qme.s_mat[0].set_shape(1, 1);
+qme.s_mat[0].push(0, 0, {0.1, 0.0});   // real coupling coefficient
+qme.a_mat[0].set_shape(1, 1);
+qme.a_mat[0].push(0, 0, {0.0, 0.0});   // imaginary coupling coefficient
+qme.s_delta[0] = 0.0;
+qme.V[0].set_shape(2, 2);
+// ... fill qme.V[0] ...
 
 Engine engine;
 qme.set_param(&engine);
