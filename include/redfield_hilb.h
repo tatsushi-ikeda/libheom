@@ -63,7 +63,7 @@ class redfield_hilb : public redfield<dtype,order,linalg_engine>
     }
   }
 
-  inline void calc_diff_impl(linalg_engine* obj,
+  inline void calc_time_derivative(linalg_engine* obj,
                              device_t<dtype,env>* drho_dt,
                              device_t<dtype,env>* rho,
                              dtype alpha,

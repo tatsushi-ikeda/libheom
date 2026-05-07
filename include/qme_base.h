@@ -71,7 +71,7 @@ class qme_base
     CALL_TRACE();
   }
 
-  virtual inline void calc_diff_impl(linalg_engine* linalg_engine_obj,
+  virtual inline void calc_time_derivative(linalg_engine* linalg_engine_obj,
                                      device_t<dtype,env>* drho_dt,
                                      device_t<dtype,env>* rho,
                                      dtype alpha,

@@ -52,7 +52,7 @@ class solver_base
     }
   }
 
-  void calc_diff(qme_base<dtype,order,linalg_engine>* qme,
+  void calc_time_derivative(qme_base<dtype,order,linalg_engine>* qme,
                  dtype* drho_dt,
                  dtype* rho,
                  real_t<dtype> alpha,

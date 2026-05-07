@@ -88,7 +88,7 @@ class redfield_liou : public redfield<dtype,order,linalg_engine>
     this->impl.R.import(this->R);
   }
 
-  inline void calc_diff_impl(linalg_engine* linalg_engine_obj,
+  inline void calc_time_derivative(linalg_engine* linalg_engine_obj,
                              device_t<dtype,env>* drho_dt,
                              device_t<dtype,env>* rho,
                              dtype alpha,

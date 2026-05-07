@@ -53,7 +53,7 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
     return this->n_level*this->n_level*this->n_hierarchy;
   }
 
-  // calc_diff_impl does a single gemv on the pre-built R matrix; no per-node temp buffers.
+  // calc_time_derivative does a single gemv on the pre-built R matrix; no per-node temp buffers.
   // Callers may pass nullptr when temp_size() returns 0.
   int temp_size()
   {
@@ -214,7 +214,7 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
     this->impl.R.import(this->R);
   }
 
-  inline void calc_diff_impl(linalg_engine* obj,
+  inline void calc_time_derivative(linalg_engine* obj,
                              device_t<dtype,env>* drho_dt,
                              device_t<dtype,env>* rho,
                              dtype alpha,

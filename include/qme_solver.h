@@ -34,11 +34,11 @@ class qme_solver
     solver->init(this->engine, main_size, temp_size);
   }
 
-  void calc_diff(dtype* drho_dt,
-                 dtype* rho)
+  void calc_time_derivative(dtype* drho_dt,
+                            dtype* rho)
   {
     CALL_TRACE();
-    solver->calc_diff(qme, drho_dt, rho, 1, 0);
+    solver->calc_time_derivative(qme, drho_dt, rho, 1, 0);
   }
 
   void solve(dtype* rho,

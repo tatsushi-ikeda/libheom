@@ -45,19 +45,19 @@ class rk4 : public fixed_step_size_solver<dtype,order,linalg_engine>
   {
     CALL_TRACE();
     copy<dynamic>(this->engine, rho, this->rho_n, this->main_size);
-    qme->calc_diff_impl(this->engine, this->kh_1, this->rho_n, dt,  0, this->temp_dev);
+    qme->calc_time_derivative(this->engine, this->kh_1, this->rho_n, dt,  0, this->temp_dev);
 
     axpy<dynamic>(this->engine, frac<dtype>(1,2), this->kh_1, this->rho_n, this->main_size);
-    qme->calc_diff_impl(this->engine, this->kh_2, this->rho_n, dt,  0, this->temp_dev);
+    qme->calc_time_derivative(this->engine, this->kh_2, this->rho_n, dt,  0, this->temp_dev);
 
     copy<dynamic>(this->engine, rho, this->rho_n, this->main_size);
     axpy<dynamic>(this->engine, frac<dtype>(1,2), this->kh_2, this->rho_n, this->main_size);
-    qme->calc_diff_impl(this->engine, this->kh_3, this->rho_n, dt,  0, this->temp_dev);
+    qme->calc_time_derivative(this->engine, this->kh_3, this->rho_n, dt,  0, this->temp_dev);
 
     copy<dynamic>(this->engine, rho, this->rho_n, this->main_size);
     axpy<dynamic>(this->engine, one<dtype>(), this->kh_3, this->rho_n, this->main_size);
     axpy<dynamic>(this->engine, one<dtype>(), this->kh_3, this->kh_2,  this->main_size);
-    qme->calc_diff_impl(this->engine, this->kh_3, this->rho_n, dt,  0, this->temp_dev);
+    qme->calc_time_derivative(this->engine, this->kh_3, this->rho_n, dt,  0, this->temp_dev);
 
     axpy<dynamic>(this->engine, frac<dtype>(1,6), this->kh_1, rho, this->main_size);
     axpy<dynamic>(this->engine, frac<dtype>(2,6), this->kh_2, rho, this->main_size);

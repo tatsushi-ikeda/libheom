@@ -67,7 +67,7 @@ class heom_hilb : public heom<dtype,order,linalg_engine>
     }
   }
 
-  inline void calc_diff_impl(linalg_engine* obj_base,
+  inline void calc_time_derivative(linalg_engine* obj_base,
                              device_t<dtype,env>* drho_dt,
                              device_t<dtype,env>* rho,
                              dtype alpha,
@@ -94,7 +94,7 @@ class heom_hilb : public heom<dtype,order,linalg_engine>
 
     obj_base->create_children(this->n_outer_threads);
     // CUDA: flush the parent-stream axpy/copy from the solver to all child streams before
-    // they start calc_diff_impl.  Missing sync causes lsrk4's beta=-1 staging to diverge.
+    // they start calc_time_derivative.  Missing sync causes lsrk4's beta=-1 staging to diverge.
     obj_base->sync_to_children();
 #pragma omp parallel for num_threads(this->n_outer_threads)
     for (int lidx = 0; lidx < n_hierarchy; ++lidx) {

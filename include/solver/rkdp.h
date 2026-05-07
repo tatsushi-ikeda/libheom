@@ -116,13 +116,13 @@ class rkdp : public adaptive_step_size_solver<dtype,order,linalg_engine>
           axpy<dynamic>(this->engine, this->A[i][j], this->kh[j], this->rho_n, this->main_size);
         }
 
-        qme->calc_diff_impl(this->engine, this->kh[i], this->rho_n, dt, 0, this->temp_dev);
+        qme->calc_time_derivative(this->engine, this->kh[i], this->rho_n, dt, 0, this->temp_dev);
       }
 
       for (int i = 0; i < 6; ++i) {
         axpy<dynamic>(this->engine, this->B[i], this->kh[i], rho, this->main_size);
       }
-      qme->calc_diff_impl(this->engine, this->kh[6], rho, dt, 0, this->temp_dev);
+      qme->calc_time_derivative(this->engine, this->kh[6], rho, dt, 0, this->temp_dev);
 
       // kh[0] = error
       scal<dynamic>(this->engine, this->E[0], this->kh[0], this->main_size);

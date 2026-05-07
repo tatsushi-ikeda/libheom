@@ -11,10 +11,10 @@ All names changed from PascalCase/CamelCase to snake_case.
 
 ```cpp
 // v0.5
-HierarchySpace   AllocateHierarchySpace   CalcDiff   InitAuxVars
+HierarchySpace   AllocateHierarchySpace   CalcDiff        InitAuxVars
 
 // v1.0
-hierarchy_space  alloc_hierarchy_space    calc_diff  set_param
+hierarchy_space  alloc_hierarchy_space    calc_time_derivative  set_param
 ```
 
 ### Entry-point header

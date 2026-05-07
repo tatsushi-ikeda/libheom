@@ -36,13 +36,13 @@ class lsrk4 : public fixed_step_size_solver<dtype,order,linalg_engine>
                         const kwargs_t& kwargs)
   {
     CALL_TRACE();
-    qme->calc_diff_impl(this->engine, this->buff_dev, rho, dt,  0, this->temp_dev);
+    qme->calc_time_derivative(this->engine, this->buff_dev, rho, dt,  0, this->temp_dev);
     axpy<dynamic>(this->engine, frac<dtype>(1,3), this->buff_dev, rho, this->main_size);
-    qme->calc_diff_impl(this->engine, this->buff_dev, rho, dt, -1, this->temp_dev);
+    qme->calc_time_derivative(this->engine, this->buff_dev, rho, dt, -1, this->temp_dev);
     axpy<dynamic>(this->engine, frac<dtype>(3,4), this->buff_dev, rho, this->main_size);
-    qme->calc_diff_impl(this->engine, this->buff_dev, rho, dt, -1, this->temp_dev);
+    qme->calc_time_derivative(this->engine, this->buff_dev, rho, dt, -1, this->temp_dev);
     axpy<dynamic>(this->engine, frac<dtype>(2,3), this->buff_dev, rho, this->main_size);
-    qme->calc_diff_impl(this->engine, this->buff_dev, rho, dt, -1, this->temp_dev);
+    qme->calc_time_derivative(this->engine, this->buff_dev, rho, dt, -1, this->temp_dev);
     axpy<dynamic>(this->engine, frac<dtype>(1,4), this->buff_dev, rho, this->main_size);
   }
 };
