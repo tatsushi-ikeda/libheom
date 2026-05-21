@@ -4,7 +4,7 @@
  * This library is distributed under BSD 3-Clause License.
  * See LICENSE.txt for licence.
  *
- * Verifies that calc_diff_impl with the CUDA engine produces results
+ * Verifies that calc_time_derivative with the CUDA engine produces results
  * numerically consistent with the Eigen engine for heom_liou, heom_hilb,
  * and heom_ado.
  *
@@ -129,7 +129,7 @@ TEST(HeomDynamicsCuda, LiouvilleCUDAvsEigen)
     std::vector<c128> temp_e(temp_sz_e, {0.0, 0.0});
     std::vector<c128> drho_dt_e(MAIN_SIZE, {0.0, 0.0});
 
-    h_e->calc_diff_impl(&eng_e, drho_dt_e.data(), rho.data(),
+    h_e->calc_time_derivative(&eng_e, drho_dt_e.data(), rho.data(),
                         c128{1.0, 0.0}, c128{0.0, 0.0}, temp_e.data());
     delete h_e;
 
@@ -145,7 +145,7 @@ TEST(HeomDynamicsCuda, LiouvilleCUDAvsEigen)
     DevBuf<c128> d_drho_dt(MAIN_SIZE);
     DevBuf<c128> d_temp(temp_sz_c);
 
-    h_c->calc_diff_impl(&eng_c, d_drho_dt.ptr, d_rho.ptr,
+    h_c->calc_time_derivative(&eng_c, d_drho_dt.ptr, d_rho.ptr,
                         c128{1.0, 0.0}, c128{0.0, 0.0}, d_temp.ptr);
 
     std::vector<c128> drho_dt_c(MAIN_SIZE, {0.0, 0.0});
@@ -181,7 +181,7 @@ TEST(HeomDynamicsCuda, HilbertCUDAvsEigen)
     std::vector<c128> temp_e(temp_sz_e, {0.0, 0.0});
     std::vector<c128> drho_dt_e(MAIN_SIZE, {0.0, 0.0});
 
-    h_e->calc_diff_impl(&eng_e, drho_dt_e.data(), rho.data(),
+    h_e->calc_time_derivative(&eng_e, drho_dt_e.data(), rho.data(),
                         c128{1.0, 0.0}, c128{0.0, 0.0}, temp_e.data());
     delete h_e;
 
@@ -196,7 +196,7 @@ TEST(HeomDynamicsCuda, HilbertCUDAvsEigen)
     DevBuf<c128> d_drho_dt(MAIN_SIZE);
     DevBuf<c128> d_temp(temp_sz_c);
 
-    h_c->calc_diff_impl(&eng_c, d_drho_dt.ptr, d_rho.ptr,
+    h_c->calc_time_derivative(&eng_c, d_drho_dt.ptr, d_rho.ptr,
                         c128{1.0, 0.0}, c128{0.0, 0.0}, d_temp.ptr);
 
     std::vector<c128> drho_dt_c(MAIN_SIZE, {0.0, 0.0});
@@ -230,7 +230,7 @@ TEST(HeomDynamicsCuda, AdoCUDAvsEigen)
     // heom_ado::temp_size() == 0; pass nullptr.
     std::vector<c128> drho_dt_e(MAIN_SIZE, {0.0, 0.0});
 
-    h_e->calc_diff_impl(&eng_e, drho_dt_e.data(), rho.data(),
+    h_e->calc_time_derivative(&eng_e, drho_dt_e.data(), rho.data(),
                         c128{1.0, 0.0}, c128{0.0, 0.0}, nullptr);
     delete h_e;
 
@@ -244,7 +244,7 @@ TEST(HeomDynamicsCuda, AdoCUDAvsEigen)
     DevBuf<c128> d_drho_dt(MAIN_SIZE);
 
     // temp_size()==0; pass nullptr for temp_base.
-    h_c->calc_diff_impl(&eng_c, d_drho_dt.ptr, d_rho.ptr,
+    h_c->calc_time_derivative(&eng_c, d_drho_dt.ptr, d_rho.ptr,
                         c128{1.0, 0.0}, c128{0.0, 0.0}, nullptr);
 
     std::vector<c128> drho_dt_c(MAIN_SIZE, {0.0, 0.0});

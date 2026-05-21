@@ -4,7 +4,7 @@
  * This library is distributed under BSD 3-Clause License.
  * See LICENSE.txt for licence.
  *
- * Tests that calc_diff_impl produces bit-for-bit identical results
+ * Tests that calc_time_derivative produces bit-for-bit identical results
  * regardless of n_outer_threads (OMP parallel loop over hierarchy nodes)
  * and numerically identical results for n_inner_threads (Eigen::setNbThreads).
  *
@@ -71,7 +71,7 @@ static heom_liou_t* make_heom(eigen& eng, int n_outer, int n_inner = 1)
 }
 
 // ---------------------------------------------------------------------------
-// n_outer_threads: calc_diff_impl with 1 vs 4 threads must be bit-identical.
+// n_outer_threads: calc_time_derivative with 1 vs 4 threads must be bit-identical.
 //
 // The OMP parallel loop assigns each hierarchy node (lidx) to a thread.
 // Each thread writes only to drho_dt[lidx*n_level_2 .. (lidx+1)*n_level_2-1]
@@ -80,7 +80,7 @@ static heom_liou_t* make_heom(eigen& eng, int n_outer, int n_inner = 1)
 // many other threads are running concurrently.
 // ---------------------------------------------------------------------------
 
-TEST(ParallelEigen, NOuterThreadsGiveIdenticalCalcDiff) {
+TEST(ParallelEigen, NOuterThreadsGiveIdenticalDerivative) {
     eigen eng;
 
     auto* h1 = make_heom(eng, 1);
@@ -101,10 +101,10 @@ TEST(ParallelEigen, NOuterThreadsGiveIdenticalCalcDiff) {
     std::vector<c128> drho_dt_1(MAIN_SIZE, {0.0, 0.0});
     std::vector<c128> drho_dt_4(MAIN_SIZE, {0.0, 0.0});
 
-    h1->calc_diff_impl(&eng, drho_dt_1.data(), rho.data(),
+    h1->calc_time_derivative(&eng, drho_dt_1.data(), rho.data(),
                        c128{1.0, 0.0}, c128{0.0, 0.0}, temp_1.data());
 
-    h4->calc_diff_impl(&eng, drho_dt_4.data(), rho.data(),
+    h4->calc_time_derivative(&eng, drho_dt_4.data(), rho.data(),
                        c128{1.0, 0.0}, c128{0.0, 0.0}, temp_4.data());
 
     for (int i = 0; i < MAIN_SIZE; ++i) {
@@ -119,7 +119,7 @@ TEST(ParallelEigen, NOuterThreadsGiveIdenticalCalcDiff) {
 }
 
 // ---------------------------------------------------------------------------
-// n_inner_threads: calc_diff_impl with Eigen::setNbThreads(1) vs (4).
+// n_inner_threads: calc_time_derivative with Eigen::setNbThreads(1) vs (4).
 //
 // Inner thread count controls Eigen gemv/gemm parallelism.  For the small
 // 4x4 matrices in this test Eigen will likely use 1 thread regardless, but
@@ -128,7 +128,7 @@ TEST(ParallelEigen, NOuterThreadsGiveIdenticalCalcDiff) {
 // introduce sub-ULP differences on some platforms.
 // ---------------------------------------------------------------------------
 
-TEST(ParallelEigen, NInnerThreadsGiveConsistentCalcDiff) {
+TEST(ParallelEigen, NInnerThreadsGiveConsistentDerivative) {
     static constexpr double EPS = 1e-14;
     eigen eng;
 
@@ -143,11 +143,11 @@ TEST(ParallelEigen, NInnerThreadsGiveConsistentCalcDiff) {
     std::vector<c128> drho_dt_1(MAIN_SIZE, {0.0, 0.0});
     std::vector<c128> drho_dt_4(MAIN_SIZE, {0.0, 0.0});
 
-    h1->calc_diff_impl(&eng, drho_dt_1.data(), rho.data(),
+    h1->calc_time_derivative(&eng, drho_dt_1.data(), rho.data(),
                        c128{1.0, 0.0}, c128{0.0, 0.0}, temp.data());
 
     std::fill(temp.begin(), temp.end(), c128{0.0, 0.0});
-    h4->calc_diff_impl(&eng, drho_dt_4.data(), rho.data(),
+    h4->calc_time_derivative(&eng, drho_dt_4.data(), rho.data(),
                        c128{1.0, 0.0}, c128{0.0, 0.0}, temp.data());
 
     for (int i = 0; i < MAIN_SIZE; ++i) {
@@ -162,10 +162,10 @@ TEST(ParallelEigen, NInnerThreadsGiveConsistentCalcDiff) {
 }
 
 // ---------------------------------------------------------------------------
-// Sanity check: single-thread calc_diff_impl with all-zero rho gives zero.
+// Sanity check: single-thread calc_time_derivative with all-zero rho gives zero.
 // ---------------------------------------------------------------------------
 
-TEST(ParallelEigen, ZeroRhoGivesZeroCalcDiff) {
+TEST(ParallelEigen, ZeroRhoGivesZeroDerivative) {
     eigen eng;
     auto* h = make_heom(eng, 1);
 
@@ -174,7 +174,7 @@ TEST(ParallelEigen, ZeroRhoGivesZeroCalcDiff) {
     std::vector<c128> temp(temp_sz, {0.0, 0.0});
     std::vector<c128> drho_dt(MAIN_SIZE, {99.0, 0.0}); // pre-fill to detect errors
 
-    h->calc_diff_impl(&eng, drho_dt.data(), rho.data(),
+    h->calc_time_derivative(&eng, drho_dt.data(), rho.data(),
                       c128{1.0, 0.0}, c128{0.0, 0.0}, temp.data());
 
     for (int i = 0; i < MAIN_SIZE; ++i) {

@@ -4,7 +4,7 @@
  * This library is distributed under BSD 3-Clause License.
  * See LICENSE.txt for licence.
  *
- * Verifies that calc_diff_impl with the MKL engine produces results
+ * Verifies that calc_time_derivative with the MKL engine produces results
  * numerically consistent with the Eigen engine for heom_liou, heom_hilb,
  * and heom_ado.
  *
@@ -89,14 +89,14 @@ static std::vector<c128> make_rho()
     return rho;
 }
 
-// Run calc_diff_impl and return drho_dt for a host-side solver.
+// Run calc_time_derivative and return drho_dt for a host-side solver.
 template<typename Solver, typename Eng>
 static std::vector<c128> run_diff(Solver* h, Eng& eng,
                                   const std::vector<c128>& rho,
                                   c128* temp_buf)
 {
     std::vector<c128> drho_dt(MAIN_SIZE, {0.0, 0.0});
-    h->calc_diff_impl(&eng, drho_dt.data(),
+    h->calc_time_derivative(&eng, drho_dt.data(),
                       const_cast<c128*>(rho.data()),
                       c128{1.0, 0.0}, c128{0.0, 0.0},
                       temp_buf);

@@ -116,14 +116,14 @@ static std::vector<c128> make_rho()
     return rho;
 }
 
-// Run calc_diff_impl and return drho_dt
+// Run calc_time_derivative and return drho_dt
 template<typename Solver>
 static std::vector<c128> run_diff(Solver* h, eigen& eng, const std::vector<c128>& rho)
 {
     int temp_sz = h->temp_size();
     std::vector<c128> temp(temp_sz, {0.0, 0.0});
     std::vector<c128> drho_dt(MAIN_SIZE, {0.0, 0.0});
-    h->calc_diff_impl(&eng, drho_dt.data(),
+    h->calc_time_derivative(&eng, drho_dt.data(),
                       const_cast<c128*>(rho.data()),
                       c128{1.0, 0.0}, c128{0.0, 0.0},
                       temp.data());
