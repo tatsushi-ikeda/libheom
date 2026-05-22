@@ -5,7 +5,7 @@
 #  See LICENSE.txt for licence.
 # ------------------------------------------------------------------------*/
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
 
 # ---------------------------------------------------------------------------
 # Locate GoogleTest
@@ -27,16 +27,21 @@ if(NOT GTest_FOUND)
 endif()
 message(STATUS "GoogleTest ${GTEST_VERSION} found")
 
-# GTest may be built against a newer libstdc++ than the system compiler provides.
-# If so, add the virtual environment's lib dir to the linker search path and
-# embed it as an RPATH so the test binary finds the right libstdc++ at runtime.
-set(_venv_libdir "$ENV{VIRTUAL_ENV}/lib")
-if(EXISTS "${_venv_libdir}/libstdc++.so.6")
-    link_directories("${_venv_libdir}")
-    set(_gtest_rpath_flags "-Wl,-rpath,${_venv_libdir}")
-else()
-    set(_gtest_rpath_flags "")
-endif()
+# ---------------------------------------------------------------------------
+# Helper: link a test binary against the libstdc++ that ships with GTest.
+# GTest may be built against a newer libstdc++ than the system compiler
+# provides (its .so needs GLIBCXX_3.4.26+ symbols).  The matching libstdc++
+# sits in the same directory as the GTest shared library, so add that
+# directory to the link search path and embed it as an RPATH.  Using the
+# $<TARGET_FILE_DIR:GTest::gtest> generator expression works whether GTest
+# was found in module or config mode.
+# ---------------------------------------------------------------------------
+function(_libheom_gtest_link_fix test_name)
+    target_link_directories(${test_name} PRIVATE
+        "$<TARGET_FILE_DIR:GTest::gtest>")
+    target_link_options(${test_name} PRIVATE
+        "-Wl,-rpath,$<TARGET_FILE_DIR:GTest::gtest>")
+endfunction()
 
 # ---------------------------------------------------------------------------
 # Helper: create a GoogleTest executable and register it with CTest
@@ -52,10 +57,7 @@ function(add_libheom_gtest test_name source_file)
     # is enabled, but these .cc files are compiled by g++ and cannot include
     # CUDA runtime headers.  Undefine it at the target level.
     target_compile_options(${test_name} PRIVATE -UENABLE_CUDA)
-    # Embed RPATH so the test binary finds the virtual environment's libstdc++ at runtime
-    if(_gtest_rpath_flags)
-        target_link_options(${test_name} PRIVATE ${_gtest_rpath_flags})
-    endif()
+    _libheom_gtest_link_fix(${test_name})
     # Generated Jinja2 headers (linalg_engine_eigen.h etc.) must exist first
     add_dependencies(${test_name} generated_headers)
     add_test(NAME ${test_name} COMMAND ${test_name})
@@ -97,9 +99,7 @@ if(LIBHEOM_ENABLE_CUDA_INTERNAL)
         add_dependencies(${_cu_test} generated_headers)
         set_target_properties(${_cu_test}
             PROPERTIES CUDA_ARCHITECTURES "${CUDA_ARCH_LIST}")
-        if(_gtest_rpath_flags)
-            target_link_options(${_cu_test} PRIVATE ${_gtest_rpath_flags})
-        endif()
+        _libheom_gtest_link_fix(${_cu_test})
         add_test(NAME ${_cu_test} COMMAND ${_cu_test})
     endforeach()
 endif()
