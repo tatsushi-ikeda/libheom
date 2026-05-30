@@ -31,7 +31,6 @@ device_t<dtype,env>* new_dev (int size)
   return new_dev_impl<dtype,env,mirror>::func(size);
 }
 
-
 template <typename dtype, typename env, bool mirror> struct delete_dev_impl;
 template <typename dtype, typename env, bool mirror=false>
 void delete_dev(device_t<dtype,env>* ptr)
@@ -39,7 +38,6 @@ void delete_dev(device_t<dtype,env>* ptr)
   CALL_TRACE();
   delete_dev_impl<dtype,env,mirror>::func(ptr);
 }
-
 
 template <typename dtype, typename env> struct host2dev_impl;
 template <typename dtype, typename env>
@@ -49,7 +47,6 @@ void host2dev(dtype* const & ptr_host, device_t<dtype,env>*& ptr_dev, int size)
   return host2dev_impl<dtype,env>::func(ptr_host, ptr_dev, size);
 }
 
-
 template <typename dtype, typename env> struct dev2host_impl;
 template <typename dtype, typename env>
 void dev2host(device_t<dtype,env>*& ptr_dev, dtype* const & ptr_host, int size)
@@ -57,7 +54,6 @@ void dev2host(device_t<dtype,env>*& ptr_dev, dtype* const & ptr_host, int size)
   CALL_TRACE();
   return dev2host_impl<dtype,env>::func(ptr_dev, ptr_host, size);
 }
-
 
 }
 
@@ -76,7 +72,6 @@ template <> struct device_type<float32,   env_cpu> { typedef float value; };
 template <> struct device_type<float64,   env_cpu> { typedef double value; };
 template <> struct device_type<complex64, env_cpu> { typedef complex64 value; };
 template <> struct device_type<complex128,env_cpu> { typedef complex128 value; };
-
 
 template <>
 struct new_dev_impl<complex64,env_cpu,false>
@@ -108,7 +103,6 @@ struct new_dev_impl<dtype,env_cpu,true>
   }
 };
 
-
 template <typename dtype>
 struct delete_dev_impl<dtype,env_cpu,false>
 {
@@ -128,7 +122,6 @@ struct delete_dev_impl<dtype,env_cpu,true>
   }
 };
 
-
 template <typename dtype>
 struct host2dev_impl<dtype,env_cpu>
 {
@@ -139,7 +132,6 @@ struct host2dev_impl<dtype,env_cpu>
   }
 };
 
-
 template <typename dtype>
 struct dev2host_impl<dtype,env_cpu>
 {
@@ -148,7 +140,6 @@ struct dev2host_impl<dtype,env_cpu>
     CALL_TRACE();
   }
 };
-
 
 }
 

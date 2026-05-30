@@ -1,19 +1,15 @@
 /* -*- mode:cuda -*-
- * LibHEOM -- GoogleTest: CUDA heom_hilb/heom_liou/heom_ado dynamics vs Eigen
+ * LibHEOM
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
  * See LICENSE.txt for licence.
- *
- * Verifies that calc_time_derivative with the CUDA engine produces results
- * numerically consistent with the Eigen engine for heom_liou, heom_hilb,
- * and heom_ado.
- *
- * System: n_level=2, H=diag(1,0), V=Pauli-X
- *   Bath: 1 noise, 1 Matsubara pole
- *         gamma=-1.0, phi_0=1.0, sigma=0.5
- *         S=[[0.3]], A=[[0.1]], s_delta=0.0
- *   truncation_depth=2 -> n_hierarchy=3, main_size=12
  *------------------------------------------------------------------------*/
+
+// System: n_level=2, H=diag(1,0), V=Pauli-X
+//   Bath: 1 noise, 1 Matsubara pole
+//         gamma=-1.0, phi_0=1.0, sigma=0.5
+//         S=[[0.3]], A=[[0.1]], s_delta=0.0
+//   truncation_depth=2 -> n_hierarchy=3, main_size=12
 
 #include <gtest/gtest.h>
 #include "libheom.h"
@@ -130,7 +126,7 @@ TEST(HeomDynamicsCuda, LiouvilleCUDAvsEigen)
     std::vector<c128> drho_dt_e(MAIN_SIZE, {0.0, 0.0});
 
     h_e->calc_time_derivative(&eng_e, drho_dt_e.data(), rho.data(),
-                        c128{1.0, 0.0}, c128{0.0, 0.0}, temp_e.data());
+                              c128{1.0, 0.0}, c128{0.0, 0.0}, temp_e.data());
     delete h_e;
 
     // --- CUDA ---
@@ -146,7 +142,7 @@ TEST(HeomDynamicsCuda, LiouvilleCUDAvsEigen)
     DevBuf<c128> d_temp(temp_sz_c);
 
     h_c->calc_time_derivative(&eng_c, d_drho_dt.ptr, d_rho.ptr,
-                        c128{1.0, 0.0}, c128{0.0, 0.0}, d_temp.ptr);
+                              c128{1.0, 0.0}, c128{0.0, 0.0}, d_temp.ptr);
 
     std::vector<c128> drho_dt_c(MAIN_SIZE, {0.0, 0.0});
     d_drho_dt.to_host(drho_dt_c.data());
@@ -182,7 +178,7 @@ TEST(HeomDynamicsCuda, HilbertCUDAvsEigen)
     std::vector<c128> drho_dt_e(MAIN_SIZE, {0.0, 0.0});
 
     h_e->calc_time_derivative(&eng_e, drho_dt_e.data(), rho.data(),
-                        c128{1.0, 0.0}, c128{0.0, 0.0}, temp_e.data());
+                              c128{1.0, 0.0}, c128{0.0, 0.0}, temp_e.data());
     delete h_e;
 
     // --- CUDA ---
@@ -197,7 +193,7 @@ TEST(HeomDynamicsCuda, HilbertCUDAvsEigen)
     DevBuf<c128> d_temp(temp_sz_c);
 
     h_c->calc_time_derivative(&eng_c, d_drho_dt.ptr, d_rho.ptr,
-                        c128{1.0, 0.0}, c128{0.0, 0.0}, d_temp.ptr);
+                              c128{1.0, 0.0}, c128{0.0, 0.0}, d_temp.ptr);
 
     std::vector<c128> drho_dt_c(MAIN_SIZE, {0.0, 0.0});
     d_drho_dt.to_host(drho_dt_c.data());
@@ -231,7 +227,7 @@ TEST(HeomDynamicsCuda, AdoCUDAvsEigen)
     std::vector<c128> drho_dt_e(MAIN_SIZE, {0.0, 0.0});
 
     h_e->calc_time_derivative(&eng_e, drho_dt_e.data(), rho.data(),
-                        c128{1.0, 0.0}, c128{0.0, 0.0}, nullptr);
+                              c128{1.0, 0.0}, c128{0.0, 0.0}, nullptr);
     delete h_e;
 
     // --- CUDA ---
@@ -245,7 +241,7 @@ TEST(HeomDynamicsCuda, AdoCUDAvsEigen)
 
     // temp_size()==0; pass nullptr for temp_base.
     h_c->calc_time_derivative(&eng_c, d_drho_dt.ptr, d_rho.ptr,
-                        c128{1.0, 0.0}, c128{0.0, 0.0}, nullptr);
+                              c128{1.0, 0.0}, c128{0.0, 0.0}, nullptr);
 
     std::vector<c128> drho_dt_c(MAIN_SIZE, {0.0, 0.0});
     d_drho_dt.to_host(drho_dt_c.data());

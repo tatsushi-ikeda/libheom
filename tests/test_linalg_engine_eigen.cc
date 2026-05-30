@@ -1,5 +1,5 @@
 /* -*- mode:c++ -*-
- * LibHEOM -- unit tests for linalg_engine<eigen>: axpy, scal, gemv, gemm
+ * LibHEOM
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
  * See LICENSE.txt for licence.

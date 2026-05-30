@@ -34,7 +34,6 @@ struct dotu_impl<dynamic,dtype,nil>
   }
 };
 
-
 template<typename dtype, order_t order>
 struct axpym_impl<dynamic,dtype,lil_matrix,order,nil>
 {
@@ -47,14 +46,13 @@ struct axpym_impl<dynamic,dtype,lil_matrix,order,nil>
     CALL_TRACE();
     for (auto& x_ijv : x.data) {
       int i = x_ijv.first;
-      for (auto& x_jv: x_ijv.second) {
+      for (auto& x_jv : x_ijv.second) {
         int j = x_jv.first;
         y.data[i][j] += alpha*x_jv.second;
       }
     }
   }
 };
-
 
 template<typename dtype>
 struct gemm_impl<dynamic,dtype,lil_matrix,row_major,nil>
@@ -69,20 +67,20 @@ struct gemm_impl<dynamic,dtype,lil_matrix,row_major,nil>
   {
     for (auto& C_ijv : C.data) {
       int i = C_ijv.first;
-      for (auto& C_jv: C_ijv.second) {
+      for (auto& C_jv : C_ijv.second) {
         int j = C_jv.first;
         C.data[i][j] *= beta;
       }
     }
-    
+
     for (auto& A_ikv : A.data) {
       int i = A_ikv.first;
-      for (auto& A_kv: A_ikv.second) {
+      for (auto& A_kv : A_ikv.second) {
         int k = A_kv.first;
         dtype A_v = A_kv.second;
         typename lil_matrix<dynamic,dtype,row_major,nil>::lil_itr itr;
         if ((itr = B.data.find(k)) != B.data.end()) {
-          for (auto& B_jv: itr->second) {
+          for (auto& B_jv : itr->second) {
             int j = B_jv.first;
             dtype B_v = B_jv.second;
             C.data[i][j] += alpha*A_v*B_v;
@@ -108,20 +106,20 @@ struct gemm_impl<dynamic,dtype,lil_matrix,col_major,nil>
   {
     for (auto& C_jiv : C.data) {
       int j = C_jiv.first;
-      for (auto& C_iv: C_jiv.second) {
+      for (auto& C_iv : C_jiv.second) {
         int i = C_iv.first;
         C.data[j][i] *= beta;
       }
     }
-    
+
     for (auto& B_jkv : B.data) {
       int j = B_jkv.first;
-      for (auto& B_kv: B_jkv.second) {
+      for (auto& B_kv : B_jkv.second) {
         int k = B_kv.first;
         dtype B_v = B_kv.second;
         typename lil_matrix<dynamic,dtype,col_major,nil>::lil_itr itr;
         if ((itr = A.data.find(k)) != A.data.end()) {
-          for (auto& A_iv: itr->second) {
+          for (auto& A_iv : itr->second) {
             int i = A_iv.first;
             dtype A_v = A_iv.second;
             C.data[j][i] += alpha*A_v*B_v;
@@ -152,7 +150,7 @@ struct gemv_impl<dynamic,dtype,lil_matrix,{{order}},nil>
     }
     for (auto& A_ijv : A.data) {
       int i = A_ijv.first;
-      for (auto& A_jv: A_ijv.second) {
+      for (auto& A_jv : A_ijv.second) {
         int j = A_jv.first;
         dtype A_v = A_jv.second;
         {% set i, j = swap('i', 'j', order!='row_major') %}
@@ -162,7 +160,6 @@ struct gemv_impl<dynamic,dtype,lil_matrix,{{order}},nil>
   }
 };
 {% endfor %}
-
 
 {% for order, _ in orders %}
 template<typename dtype>
@@ -182,7 +179,7 @@ struct gevm_impl<dynamic,dtype,lil_matrix,{{order}},nil>
     }
     for (auto& A_ijv : A.data) {
       int i = A_ijv.first;
-      for (auto& A_jv: A_ijv.second) {
+      for (auto& A_jv : A_ijv.second) {
         int j = A_jv.first;
         dtype A_v = A_jv.second;
         {% set i, j = swap('i', 'j', order!='row_major') %}
@@ -192,7 +189,6 @@ struct gevm_impl<dynamic,dtype,lil_matrix,{{order}},nil>
   }
 };
 {% endfor %}
-
 
 {% for order_kron, _ in orders %}
 {%   for order, _ in orders %}
@@ -211,7 +207,7 @@ struct kron_x_1_impl<dynamic,dtype,lil_matrix,{{order}},{{order_kron}},nil>
       y.data.clear();
     } else {
       for (auto& y_ijv : y.data) {
-        for (auto& y_jv: y_ijv.second) {
+        for (auto& y_jv : y_ijv.second) {
           y_jv.second *= beta;
         }
       }
@@ -220,7 +216,7 @@ struct kron_x_1_impl<dynamic,dtype,lil_matrix,{{order}},{{order_kron}},nil>
     int n = std::get<0>(x.shape);
     for (auto& x_ijv : x.data) {
       int i = x_ijv.first;
-      for (auto& x_jv: x_ijv.second) {
+      for (auto& x_jv : x_ijv.second) {
         int j = x_jv.first;
         const dtype& val = x_jv.second;
         for (int k = 0; k < n; ++k) {
@@ -262,7 +258,7 @@ struct kron_1_x_T_impl<dynamic,dtype,lil_matrix,{{order}},{{order_kron}},nil>
       y.data.clear();
     } else {
       for (auto& y_ijv : y.data) {
-        for (auto& y_jv: y_ijv.second) {
+        for (auto& y_jv : y_ijv.second) {
           y_jv.second *= beta;
         }
       }
@@ -271,7 +267,7 @@ struct kron_1_x_T_impl<dynamic,dtype,lil_matrix,{{order}},{{order_kron}},nil>
     int n = std::get<0>(x.shape);
     for (auto& A_jkv : x.data) {
       int j = A_jkv.first;
-      for (auto& x_kv: A_jkv.second) {
+      for (auto& x_kv : A_jkv.second) {
         int k = x_kv.first;
         const dtype& val = x_kv.second;
         for (int i = 0; i < n; ++i) {
@@ -299,7 +295,6 @@ struct kron_1_x_T_impl<dynamic,dtype,lil_matrix,{{order}},{{order_kron}},nil>
 };
 {%   endfor %}
 {% endfor %}
-
 
 template<typename dtype, order_t order>
 struct lu_impl
@@ -334,16 +329,16 @@ struct lu_impl<dtype,row_major>
 
     pivot.resize(n_level);
     std::iota(pivot.begin(), pivot.end(), 0);
-  
+
     U.set_shape(n_level, n_level);
     for (auto& A_ijv : A.data) {
       int i = A_ijv.first;
-      for (auto& A_jv: A_ijv.second) {
+      for (auto& A_jv : A_ijv.second) {
         int j = A_jv.first;
         U.data[i][j] = A_jv.second;
       }
     }
-  
+
     for (int i = 0; i < n_level - 1; ++i) {
       real_t<dtype> max = std::abs(U.data[i][i]);
       int swap = -1;
@@ -362,7 +357,7 @@ struct lu_impl<dtype,row_major>
       if (max == zero<real_t<dtype>>()) {
         continue;
       }
-    
+
       for (int j = i + 1; j < n_level; ++j) {
         if (U.exists(j,i)) {
           U.data[j][i] /= U.data[i][i];
@@ -375,10 +370,10 @@ struct lu_impl<dtype,row_major>
       }
     }
 
-    L.set_shape(n_level, n_level);  
+    L.set_shape(n_level, n_level);
     for (auto& U_ijv : U.data) {
       int i = U_ijv.first;
-      for (auto& U_jv: U_ijv.second) {
+      for (auto& U_jv : U_ijv.second) {
         int j = U_jv.first;
         if (i > j) {
           L.data[i][j] = U_jv.second;
@@ -389,7 +384,6 @@ struct lu_impl<dtype,row_major>
     U.optimize();
   }
 };
-
 
 template<typename dtype>
 struct lu_impl<dtype,col_major>
@@ -405,17 +399,17 @@ struct lu_impl<dtype,col_major>
 
     pivot.resize(n_level);
     std::iota(pivot.begin(), pivot.end(), 0);
-  
+
     L.set_shape(n_level, n_level);
     for (auto& A_ijv : A.data) {
       int i = A_ijv.first;
-      for (auto& A_jv: A_ijv.second) {
+      for (auto& A_jv : A_ijv.second) {
         int j = A_jv.first;
         dtype v = A_jv.second;
         L.data[i][j] = v;
       }
     }
-  
+
     for (int i = 0; i < n_level - 1; ++i) {
       real_t<dtype> max = std::abs(L.data[i][i]);
       int swap = -1;
@@ -434,7 +428,7 @@ struct lu_impl<dtype,col_major>
       if (max == zero<real_t<dtype>>()) {
         continue;
       }
-    
+
       for (int j = i + 1; j < n_level; ++j) {
         if (L.exists(i,j)) {
           L.data[j][i] /= L.data[i][i];
@@ -447,10 +441,10 @@ struct lu_impl<dtype,col_major>
       }
     }
 
-    U.set_shape(n_level, n_level);  
+    U.set_shape(n_level, n_level);
     for (auto& L_ijv : L.data) {
       int i = L_ijv.first;
-      for (auto& L_jv: L_ijv.second) {
+      for (auto& L_jv : L_ijv.second) {
         int j = L_jv.first;
         if (i > j) {
           U.data[i][j] = L_jv.second;
@@ -461,7 +455,6 @@ struct lu_impl<dtype,col_major>
     L.optimize();
   }
 };
-
 
 template<typename dtype, order_t order>
 struct lu_solve_impl
@@ -501,13 +494,9 @@ struct lu_solve_impl<dtype,row_major>
         for (auto& L_jv : itr->second) {
           int j = L_jv.first;
           dtype L_v = L_jv.second;
-          // if (j < i) 
           y[i] -= L_v*y[j];
         }
       }
-      // for (int j = 0; j < i; ++j) {
-      //   y[i] -= L.data[i][j]*y[j];
-      // }
     }
 
     x.resize(n);
@@ -523,9 +512,6 @@ struct lu_solve_impl<dtype,row_major>
           }
         }
       }
-      // for (int j = i + 1; j < n; ++j) {
-      //   x[i] -= U.data[i][j]*x[j];
-      // }
       x[i] /= U.data[i][i];
     }
   }
@@ -543,9 +529,9 @@ struct lu_solve_impl<dtype,col_major>
     lil_matrix<dynamic,dtype,col_major,nil> L(n, n), U(n, n);
     vector<int> pivot(n);
     vector<dtype> y(n);
-    
+
     lu(A, pivot, L, U);
-    
+
     for (int i = 0; i < n; ++i) {
       y[i] = b[i];
     }
@@ -568,7 +554,7 @@ struct lu_solve_impl<dtype,col_major>
     for (int i = n - 1; i >= 0; --i) {
       x[pivot[i]] = y[i];
     }
-    
+
     for (int j = n - 1; j >= 0; --j) {
       typename decltype(U)::lil_itr itr;
       if ((itr = U.data.find(j)) != U.data.end()) {
@@ -581,87 +567,6 @@ struct lu_solve_impl<dtype,col_major>
     }
   }
 };
-
-// template<typename dtype>
-// struct axpy_impl<dtype, lil_matrix>
-// {
-//   static inline void func
-//   /**/(dtype alpha,
-//        const lil_matrix<dtype>& x,
-//        lil_matrix<dtype>& y)
-//   {
-//     for (auto& x_ijv : x.data) {
-//       int i = x_ijv.first;
-//       for (auto& x_jv: x_ijv.second) {
-//         int j = x_jv.first;
-//         y.data[i][j] += alpha*x_jv.second;
-//       }
-//     }
-//   }
-// };
-
-
-// template<typename dtype>
-// inline void gemm_lil_matrix_impl
-// /**/(dtype alpha,
-//      const lil_matrix<dtype>& A,
-//      const lil_matrix<dtype>& B,
-//      dtype beta,
-//      lil_matrix<dtype>& C)
-// {
-//   if (beta == zero<dtype>()) {
-//     C.data.clear();
-//   } else {
-//     for (auto& C_ijv : C.data) {
-//       for (auto& C_jv: C_ijv.second) {
-//         C_jv.second *= beta;
-//       }
-//     }
-//   }
-
-//   for (auto& A_ikv : A.data) {
-//     int i = A_ikv.first;
-//     for (auto& A_kv: A_ikv.second) {
-//       int k = A_kv.first;
-//       try {
-//         for (auto& B_jv: B.data.at(k)) {
-//           int j  = B_jv.first;
-//           C.data[i][j] += alpha*A_kv.second*B_jv.second;
-//         }
-//       } catch (std::out_of_range&) {}
-//     }
-//   }
-// }
-
-
-// template<>
-// struct gemm_impl<complex64, lil_matrix, lil_matrix, lil_matrix>
-// {
-//   static void func
-//   /**/(complex64 alpha,
-//        const lil_matrix<complex64>& A,
-//        const lil_matrix<complex64>& B,
-//        complex64 beta,
-//        lil_matrix<complex64>& C)
-//   {
-//     gemm_lil_matrix_impl(alpha, A, B, beta, C);
-//   }
-// };
-
-
-// template<>
-// struct gemm_impl<complex128, lil_matrix, lil_matrix, lil_matrix>
-// {
-//   static void func
-//   /**/(complex128 alpha,
-//        const lil_matrix<complex128>& A,
-//        const lil_matrix<complex128>& B,
-//        complex128 beta,
-//        lil_matrix<complex128>& C)
-//   {
-//     gemm_lil_matrix_impl(alpha, A, B, beta, C);
-//   }
-// };
 
 }
 

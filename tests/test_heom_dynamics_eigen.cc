@@ -1,27 +1,20 @@
 /* -*- mode:c++ -*-
- * LibHEOM -- GoogleTest: Eigen heom_hilb/heom_liou/heom_ado cross-space dynamics
+ * LibHEOM
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
  * See LICENSE.txt for licence.
- *
- * Tests that heom_hilb, heom_liou, and heom_ado produce identical drho_dt arrays
- * for the same input rho.  All three implement the same HEOM equations but via
- * different algorithms:
- *   heom_hilb:  gemm on n x n density matrices   (Hilbert space)
- *   heom_liou:  gemv on n^2-vectors              (Liouville space)
- *   heom_ado:   single global gemv on full R mat (ADO space)
- *
- * Physical system:
- *   n_level = 2, H = diag(1, 0), V = Pauli-X [[0,1],[1,0]]
- *   1 noise, 1 Matsubara pole: gamma = -1.0, phi_0 = 1.0, sigma = 0.5
- *   S = [[0.3]], A = [[0.1]], s_delta = 0.0
- *   truncation_depth = 2  ->  n_hierarchy = 3, main_size = 12
- *
- * Initial rho (non-trivial to exercise all hierarchy coupling terms):
- *   level 0: [[1, 0], [0, 0]]              -> rho[0..3]  = {1,0,0,0}
- *   level 1: [[0, 1], [1, 0]]              -> rho[4..7]  = {0,1,1,0}
- *   level 2: [[0.5,0.5],[0.5,0.5]]         -> rho[8..11] = {0.5,0.5,0.5,0.5}
  *------------------------------------------------------------------------*/
+
+// Physical system:
+//   n_level = 2, H = diag(1, 0), V = Pauli-X [[0,1],[1,0]]
+//   1 noise, 1 Matsubara pole: gamma = -1.0, phi_0 = 1.0, sigma = 0.5
+//   S = [[0.3]], A = [[0.1]], s_delta = 0.0
+//   truncation_depth = 2  ->  n_hierarchy = 3, main_size = 12
+//
+// Initial rho (non-trivial to exercise all hierarchy coupling terms):
+//   level 0: [[1, 0], [0, 0]]              -> rho[0..3]  = {1,0,0,0}
+//   level 1: [[0, 1], [1, 0]]              -> rho[4..7]  = {0,1,1,0}
+//   level 2: [[0.5,0.5],[0.5,0.5]]         -> rho[8..11] = {0.5,0.5,0.5,0.5}
 
 #include <gtest/gtest.h>
 #include "libheom.h"
@@ -124,7 +117,7 @@ static std::vector<c128> run_diff(Solver* h, eigen& eng, const std::vector<c128>
     std::vector<c128> temp(temp_sz, {0.0, 0.0});
     std::vector<c128> drho_dt(MAIN_SIZE, {0.0, 0.0});
     h->calc_time_derivative(&eng, drho_dt.data(),
-                      const_cast<c128*>(rho.data()),
+                            const_cast<c128*>(rho.data()),
                       c128{1.0, 0.0}, c128{0.0, 0.0},
                       temp.data());
     return drho_dt;

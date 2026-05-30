@@ -28,5 +28,4 @@ template <> struct mkl_type<complex128> { typedef MKL_Complex16 value; };
 
 }
 
-
 #endif

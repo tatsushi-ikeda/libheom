@@ -26,21 +26,21 @@ class redfield_liou : public redfield<dtype,order,linalg_engine>
 {
  public:
   constexpr static int n_level_c_2 = n_level_c*n_level_c;
-  
+
   using env = engine_env<linalg_engine>;
   lil_matrix<dynamic,dtype,order_liou,nil> L;
   lil_matrix<dynamic,dtype,order_liou,nil> R;
-  
+
   std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]> Phi;
   std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]> Theta;
 
   struct {
     matrix_base<n_level_c_2,dtype,order_liou,linalg_engine> R;
   } impl;
-  
+
   redfield_liou(): redfield<dtype,order,linalg_engine>()
   {};
-  
+
   int main_size()
   {
     CALL_TRACE();
@@ -57,14 +57,14 @@ class redfield_liou : public redfield<dtype,order,linalg_engine>
   {
     CALL_TRACE();
     redfield<dtype,order,linalg_engine>::set_param(obj);
-    
+
     this->L.set_shape(this->n_level_2, this->n_level_2);
     kron_x_1  <dynamic>(nilobj, +i_unit<dtype>(), this->H, zero<dtype>(), this->L);
     kron_1_x_T<dynamic>(nilobj, -i_unit<dtype>(), this->H,  one<dtype>(), this->L);
 
     this->Phi.reset(new lil_matrix<dynamic,dtype,order_liou,nil>[this->n_noise]);
     this->Theta.reset(new lil_matrix<dynamic,dtype,order_liou,nil>[this->n_noise]);
-    
+
     for (int s = 0; s < this->n_noise; ++s) {
       this->Phi[s].set_shape(this->n_level_2, this->n_level_2);
       kron_x_1  <dynamic>(nilobj, +i_unit<dtype>(), this->V[s], zero<dtype>(), this->Phi[s]);
@@ -76,8 +76,7 @@ class redfield_liou : public redfield<dtype,order,linalg_engine>
     }
 
     this->R.set_shape(this->n_level_2, this->n_level_2);
-    for (int s = 0; s < this->n_noise;
-         ++s) {
+    for (int s = 0; s < this->n_noise; ++s) {
       gemm<dynamic>(nilobj,
                     -one<dtype>(), this->Phi[s], this->Theta[s],
                     one<dtype>(), this->R, this->n_level_2);
@@ -89,11 +88,11 @@ class redfield_liou : public redfield<dtype,order,linalg_engine>
   }
 
   inline void calc_time_derivative(linalg_engine* linalg_engine_obj,
-                             device_t<dtype,env>* drho_dt,
-                             device_t<dtype,env>* rho,
-                             dtype alpha,
-                             dtype beta,
-                             device_t<dtype,env>* temp)
+                                   device_t<dtype,env>* drho_dt,
+                                   device_t<dtype,env>* rho,
+                                   dtype alpha,
+                                   dtype beta,
+                                   device_t<dtype,env>* temp)
   {
     CALL_TRACE();
     auto n_level_2 = this->n_level_2;

@@ -82,7 +82,7 @@ class dense_matrix<num_level,dtype,order,mkl>
     std::fill_n(this->data, std::get<0>(this->shape)*std::get<1>(this->shape), zero<dtype>());
     for (auto& data_ijv : src.data) {
       int i = data_ijv.first;
-      for (auto& data_jv: data_ijv.second) {
+      for (auto& data_jv : data_ijv.second) {
         int j = data_jv.first;
         this->data[i*this->major_stride + j] = data_jv.second;
       }
@@ -106,7 +106,7 @@ class dense_matrix<num_level,dtype,order,mkl>
     for (int i = 0; i < outer; ++i) {
       for (int j = 0; j < inner; ++j) {
         dest.data[i][j] = this->data[i*this->major_stride + j];
-      } 
+      }
     }
     dest.optimize();
   }

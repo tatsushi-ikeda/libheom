@@ -16,9 +16,6 @@
 
 namespace libheom {
 
-
 }
 
-
 #endif
-

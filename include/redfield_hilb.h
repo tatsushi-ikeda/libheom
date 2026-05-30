@@ -64,11 +64,11 @@ class redfield_hilb : public redfield<dtype,order,linalg_engine>
   }
 
   inline void calc_time_derivative(linalg_engine* obj,
-                             device_t<dtype,env>* drho_dt,
-                             device_t<dtype,env>* rho,
-                             dtype alpha,
-                             dtype beta,
-                             device_t<dtype,env>* temp)
+                                   device_t<dtype,env>* drho_dt,
+                                   device_t<dtype,env>* rho,
+                                   dtype alpha,
+                                   dtype beta,
+                                   device_t<dtype,env>* temp)
   {
     CALL_TRACE();
     auto n_level = this->n_level;
@@ -77,7 +77,7 @@ class redfield_hilb : public redfield<dtype,order,linalg_engine>
     auto& V = this->impl.V;
     auto& Lambda = this->impl.Lambda;
     auto& Lambda_dag = this->impl.Lambda_dag;
-    
+
     gemm<n_level_c>(obj, -i_unit<dtype>()*alpha, H, rho, beta,         drho_dt, n_level);
     gemm<n_level_c>(obj,  i_unit<dtype>()*alpha, rho, H, one<dtype>(), drho_dt, n_level);
     for (int s = 0; s < n_noise; ++s) {

@@ -21,7 +21,7 @@ namespace libheom
 
 class eigen : public linalg_engine_base
 {
- public:  
+ public:
   eigen(): linalg_engine_base() {
     CALL_TRACE();
     Eigen::initParallel();
@@ -34,7 +34,7 @@ class eigen : public linalg_engine_base
   ~eigen() {
     CALL_TRACE();
   }
-  
+
   eigen* create_child() override
   {
     CALL_TRACE();
@@ -266,7 +266,6 @@ template<{{n_level_template}}
   }
 };
 
-
 template<{{n_level_template}}
          typename dtype, order_t order>
     struct utb_impl<{{n_level}},dtype,dense_matrix,order,eigen>
@@ -284,9 +283,7 @@ template<{{n_level_template}}
   }
 };
 
-
 {% endfor %}
-
 
 }
 

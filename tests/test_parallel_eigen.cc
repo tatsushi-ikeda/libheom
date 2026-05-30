@@ -1,19 +1,15 @@
 /* -*- mode:c++ -*-
- * LibHEOM -- GoogleTest: parallel correctness for n_outer/n_inner threads
+ * LibHEOM
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
  * See LICENSE.txt for licence.
- *
- * Tests that calc_time_derivative produces bit-for-bit identical results
- * regardless of n_outer_threads (OMP parallel loop over hierarchy nodes)
- * and numerically identical results for n_inner_threads (Eigen::setNbThreads).
- *
- * System: 2-level, H = diag(1,0), V = Pauli-X
- *   Bath: 1 noise, 1 Matsubara pole (overdamped Drude approximation)
- *         gamma = -1.0, phi_0 = 1.0, sigma = 0.5
- *         S = [[0.3]], A = [[0.1]], s_delta = 0.0
- *   truncation_depth = 2 -> n_hierarchy = 3 (hierarchy states: {0}, {1}, {2})
  *------------------------------------------------------------------------*/
+
+// System: 2-level, H = diag(1,0), V = Pauli-X
+//   Bath: 1 noise, 1 Matsubara pole (overdamped Drude approximation)
+//         gamma = -1.0, phi_0 = 1.0, sigma = 0.5
+//         S = [[0.3]], A = [[0.1]], s_delta = 0.0
+//   truncation_depth = 2 -> n_hierarchy = 3 (hierarchy states: {0}, {1}, {2})
 
 #include <gtest/gtest.h>
 #include "libheom.h"
@@ -102,10 +98,10 @@ TEST(ParallelEigen, NOuterThreadsGiveIdenticalDerivative) {
     std::vector<c128> drho_dt_4(MAIN_SIZE, {0.0, 0.0});
 
     h1->calc_time_derivative(&eng, drho_dt_1.data(), rho.data(),
-                       c128{1.0, 0.0}, c128{0.0, 0.0}, temp_1.data());
+                             c128{1.0, 0.0}, c128{0.0, 0.0}, temp_1.data());
 
     h4->calc_time_derivative(&eng, drho_dt_4.data(), rho.data(),
-                       c128{1.0, 0.0}, c128{0.0, 0.0}, temp_4.data());
+                             c128{1.0, 0.0}, c128{0.0, 0.0}, temp_4.data());
 
     for (int i = 0; i < MAIN_SIZE; ++i) {
         EXPECT_EQ(drho_dt_1[i].real(), drho_dt_4[i].real())
@@ -144,11 +140,11 @@ TEST(ParallelEigen, NInnerThreadsGiveConsistentDerivative) {
     std::vector<c128> drho_dt_4(MAIN_SIZE, {0.0, 0.0});
 
     h1->calc_time_derivative(&eng, drho_dt_1.data(), rho.data(),
-                       c128{1.0, 0.0}, c128{0.0, 0.0}, temp.data());
+                             c128{1.0, 0.0}, c128{0.0, 0.0}, temp.data());
 
     std::fill(temp.begin(), temp.end(), c128{0.0, 0.0});
     h4->calc_time_derivative(&eng, drho_dt_4.data(), rho.data(),
-                       c128{1.0, 0.0}, c128{0.0, 0.0}, temp.data());
+                             c128{1.0, 0.0}, c128{0.0, 0.0}, temp.data());
 
     for (int i = 0; i < MAIN_SIZE; ++i) {
         EXPECT_NEAR(drho_dt_1[i].real(), drho_dt_4[i].real(), EPS)
@@ -175,7 +171,7 @@ TEST(ParallelEigen, ZeroRhoGivesZeroDerivative) {
     std::vector<c128> drho_dt(MAIN_SIZE, {99.0, 0.0}); // pre-fill to detect errors
 
     h->calc_time_derivative(&eng, drho_dt.data(), rho.data(),
-                      c128{1.0, 0.0}, c128{0.0, 0.0}, temp.data());
+                            c128{1.0, 0.0}, c128{0.0, 0.0}, temp.data());
 
     for (int i = 0; i < MAIN_SIZE; ++i) {
         EXPECT_NEAR(drho_dt[i].real(), 0.0, 1e-15) << "index " << i;

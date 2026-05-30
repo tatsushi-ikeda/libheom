@@ -72,7 +72,7 @@ class dense_matrix<{{n_level}},dtype,order,eigen>
 
     for (auto& data_ijv : src.data) {
       int i = data_ijv.first;
-      for (auto& data_jv: data_ijv.second) {
+      for (auto& data_jv : data_ijv.second) {
         int j = data_jv.first;
         this->data.coeffRef(i*this->major_stride + j) = data_jv.second;
       }
@@ -96,7 +96,7 @@ class dense_matrix<{{n_level}},dtype,order,eigen>
     for (int i = 0; i < outer; ++i) {
       for (int j = 0; j < inner; ++j) {
         dest.data[i][j] = this->data.coeffRef(i*this->major_stride + j);
-      } 
+      }
     }
     dest.optimize();
   }

@@ -35,7 +35,6 @@ std::map<cublasStatus_t,std::string> CUBLAS_ERR_MSG =
        "CUBLAS_STATUS_LICENSE_ERROR: The functionnality requested requires some license and an error was detected when trying to check the current licensing. This error can happen if the license is not present or is expired or if the environment variable NVIDIA_LICENSE_FILE is not set properly."}
     }};
 
-
 // The source of these messages is from https://docs.nvidia.com/cuda/cusparse/index.html.
 std::map<cusparseStatus_t,std::string> CUSPARSE_ERR_MSG =
   {{
@@ -58,7 +57,6 @@ std::map<cusparseStatus_t,std::string> CUSPARSE_ERR_MSG =
       {CUSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED,
        "CUSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED: The matrix type is not supported by this function. This is usually caused by passing an invalid matrix descriptor to the function."}
     }};
-
 
 // The source of these messages is https://docs.nvidia.com/cuda/cusolver/index.html
 std::map<cusolverStatus_t,std::string> CUSOLVER_ERR_MSG =

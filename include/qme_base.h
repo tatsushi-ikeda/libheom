@@ -31,22 +31,22 @@ class qme_base
 
   int n_level;
   int n_level_2;
-  
+
   lil_matrix<dynamic,dtype,order,nil> H;
 
   int n_noise;
-  
+
   std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> V;
 
   std::unique_ptr<int[]> len_gamma;
   std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> gamma;
   std::unique_ptr<vector<dtype>[]> phi_0;
   std::unique_ptr<vector<dtype>[]> sigma;
-  
+
   std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> s_mat;
   std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> a_mat;
   std::unique_ptr<dtype[]> s_delta;
-  
+
   virtual int main_size() { return 0; };
 
   virtual int temp_size() { return 0; };
@@ -54,13 +54,13 @@ class qme_base
   void alloc_noises(int n_noise)
   {
     this->n_noise = n_noise;
-  
+
     this->V.reset(new lil_matrix<dynamic,dtype,order,nil>[n_noise]);
     this->len_gamma.reset(new int [n_noise]);
     this->gamma.reset(new lil_matrix<dynamic,dtype,order,nil>[n_noise]);
     this->phi_0.reset(new vector<dtype>[n_noise]);
     this->sigma.reset(new vector<dtype>[n_noise]);
-  
+
     this->s_mat.reset(new lil_matrix<dynamic,dtype,order,nil>[n_noise]);
     this->s_delta.reset(new dtype [n_noise]);
     this->a_mat.reset(new lil_matrix<dynamic,dtype,order,nil>[n_noise]);
@@ -72,11 +72,11 @@ class qme_base
   }
 
   virtual inline void calc_time_derivative(linalg_engine* linalg_engine_obj,
-                                     device_t<dtype,env>* drho_dt,
-                                     device_t<dtype,env>* rho,
-                                     dtype alpha,
-                                     dtype beta,
-                                     device_t<dtype,env>* temp) {};
+                                           device_t<dtype,env>* drho_dt,
+                                           device_t<dtype,env>* rho,
+                                           dtype alpha,
+                                           dtype beta,
+                                           device_t<dtype,env>* temp) {};
 };
 
 }

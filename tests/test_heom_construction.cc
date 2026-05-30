@@ -1,6 +1,5 @@
 /* -*- mode:c++ -*-
- * LibHEOM -- unit tests for heom_liou superoperator construction:
- *   Phi, Psi, Xi, R_0 symmetries
+ * LibHEOM
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
  * See LICENSE.txt for licence.

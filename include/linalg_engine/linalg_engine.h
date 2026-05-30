@@ -25,11 +25,11 @@ constexpr int dynamic = 0;
 class linalg_engine_base
 {
  public:
-  
+
   int n_children;
   linalg_engine_base** children;
   int n_threads_old;
-  
+
   linalg_engine_base() : children(nullptr), n_children(0), n_threads_old(0)
   {
     CALL_TRACE();
@@ -47,7 +47,7 @@ class linalg_engine_base
   }
 
   virtual linalg_engine_base* create_child() = 0;
-  
+
   void create_children(int n)
   {
     CALL_TRACE();
@@ -56,11 +56,11 @@ class linalg_engine_base
       this->n_children = n;
       this->children = new linalg_engine_base*[n];
       for (int i = 0; i < n; ++i) {
-        this->children[i] = create_child ();
+        this->children[i] = create_child();
       }
     }
   }
-  
+
   void destroy_children()
   {
     CALL_TRACE();
@@ -118,7 +118,6 @@ template <> INLINE bool is_supported<nil>() { return true; }
 
 constexpr nil* nilobj = nullptr;
 
-
 class eigen;
 #ifdef ENABLE_EIGEN
 template <> struct engine_env_impl<eigen> { typedef env_cpu value; };
@@ -150,7 +149,6 @@ INLINE void nullify(linalg_engine* engine_obj,
   nullify_impl<n_level_c,dtype_dev,linalg_engine>::func(engine_obj, x, n_level);
 }
 
-
 template<int n_level_c, typename dtype_dev, typename linalg_engine = not_implemented>
 struct copy_impl;
 
@@ -164,7 +162,6 @@ INLINE void copy(linalg_engine* engine_obj,
   copy_impl<n_level_c,dtype_dev,linalg_engine>::func(engine_obj, x, y, n_level);
 }
 
-
 template<int n_level_c, typename dtype, typename linalg_engine = not_implemented>
 struct scal_impl;
 
@@ -177,7 +174,6 @@ INLINE void scal(linalg_engine* engine_obj,
   CALL_TRACE();
   scal_impl<n_level_c,dtype,linalg_engine>::func(engine_obj, a, y, n_level);
 }
-
 
 template<int n_level_c, typename dtype, typename linalg_engine = not_implemented>
 struct axpy_impl;
@@ -193,7 +189,6 @@ INLINE void axpy(linalg_engine* engine_obj,
   axpy_impl<n_level_c,dtype,linalg_engine>::func(engine_obj, a, x, y, n_level);
 }
 
-
 template<int n_level_c, typename dtype_dev, typename linalg_engine = not_implemented>
 struct dotc_impl;
 
@@ -207,7 +202,6 @@ INLINE dtype_dev dotc(linalg_engine* engine_obj,
   return dotc_impl<n_level_c,dtype_dev,linalg_engine>::func(engine_obj, x, y, n_level);
 }
 
-
 template<int n_level_c, typename dtype_dev, typename linalg_engine = not_implemented>
 struct dotu_impl;
 
@@ -220,7 +214,6 @@ INLINE dtype_dev dotu(linalg_engine* engine_obj,
   CALL_TRACE();
   return dotu_impl<n_level_c,dtype_dev,linalg_engine>::func(engine_obj, x, y, n_level);
 }
-
 
 template<int n_level_c, typename dtype_real, typename linalg_engine = not_implemented>
 struct errnrm1_impl;
@@ -296,7 +289,6 @@ INLINE void gemm(linalg_engine* engine_obj,
   gemm_impl<n_level_c,dtype,matrix_base,order,linalg_engine>::func(engine_obj, alpha, A, B, beta, C, n_level);
 }
 
-
 template<int n_level_c,
          typename dtype,
          template <int n_level_c_,
@@ -367,7 +359,6 @@ INLINE void gemv(linalg_engine* engine_obj,
   gemv_impl<n_level_c,dtype,matrix_base,order,linalg_engine>::func(engine_obj, alpha, A, x, beta, y, n_level);
 }
 
-
 template<int n_level_c,
          typename dtype,
          template <int n_level_c_,
@@ -398,7 +389,6 @@ INLINE void gevm(linalg_engine* engine_obj,
   gevm_impl<n_level_c,dtype,matrix_base,order,linalg_engine>::func(engine_obj, alpha, x, A, beta, y, n_level);
 }
 
-
 template<int n_level_c,
          typename dtype,
          template <int n_level_c_,
@@ -427,7 +417,6 @@ INLINE void eig(linalg_engine* engine_obj,
   eig_impl<n_level_c,dtype,matrix_base,order,linalg_engine>::func(engine_obj, A, w, v, n_level);
 }
 
-
 template<int n_level_c,
          typename dtype,
          template <int n_level_c_,
@@ -437,7 +426,6 @@ template<int n_level_c,
          order_t order,
          typename linalg_engine = not_implemented>
 struct utf_impl;
-
 
 template<int n_level_c,
          typename dtype,
@@ -457,7 +445,6 @@ INLINE void utf(linalg_engine* engine_obj,
   utf_impl<n_level_c,dtype,matrix_base,order,linalg_engine>::func(engine_obj, A, v, A_v, n_level);
 }
 
-
 template<int n_level_c,
          typename dtype,
          template <int n_level_c_,
@@ -467,7 +454,6 @@ template<int n_level_c,
          order_t order,
          typename linalg_engine = not_implemented>
 struct utb_impl;
-
 
 template<int n_level_c,
          typename dtype,
@@ -486,7 +472,6 @@ INLINE void utb(linalg_engine* engine_obj,
   CALL_TRACE();
   utb_impl<n_level_c,dtype,matrix_base,order,linalg_engine>::func(engine_obj, A_v, v, A, n_level);
 }
-
 
 template<int n_level_c,
          typename dtype,
@@ -565,7 +550,6 @@ INLINE void kron_1_x_T(linalg_engine* obj,
   CALL_TRACE();
   kron_1_x_T_impl<n_level_c,dtype,matrix_base,order,order_kron,linalg_engine>::func(obj,alpha, x, beta, y, conj);
 }
-
 
 }
 

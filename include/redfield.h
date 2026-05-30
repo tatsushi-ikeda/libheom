@@ -15,7 +15,6 @@
 namespace libheom
 {
 
-
 template<typename dtype, order_t order, typename linalg_engine>
 class redfield : public qme_base<dtype,order,linalg_engine>
 {
@@ -26,7 +25,7 @@ class redfield : public qme_base<dtype,order,linalg_engine>
   std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> I;
   std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> C;
   std::unique_ptr<vector<dtype>[]> sigma_T_C;
-  
+
   std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> Lambda;
   std::unique_ptr<lil_matrix<dynamic,dtype,order,nil>[]> Lambda_dag;
 
@@ -66,7 +65,7 @@ class redfield : public qme_base<dtype,order,linalg_engine>
            zero<dtype>(), &this->sigma_T_C[s][0],
            this->len_gamma[s]);
     }
-    
+
     this->Lambda.reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
     this->Lambda_dag.reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
 
@@ -74,10 +73,10 @@ class redfield : public qme_base<dtype,order,linalg_engine>
     dense_matrix<dynamic,dtype,order,linalg_engine> V_tmp;
     dense_matrix<dynamic,dtype,order,linalg_engine> Lambda_tmp;
     H_tmp.import(this->H);
-    
+
     vector<real_t<dtype>> w(this->n_level);
     device_t<real_t<dtype>,env>* w_dev = new_dev<real_t<dtype>,env,true>(this->n_level);
-    
+
     device_t<dtype,env>* v_dev = new_dev<dtype,env>(this->n_level*this->n_level);
 
     host2dev<real_t<dtype>,env>(&w[0], w_dev, this->n_level);
@@ -86,7 +85,7 @@ class redfield : public qme_base<dtype,order,linalg_engine>
 
     vector<dtype> Lambda_v(this->n_level*this->n_level);
     device_t<dtype,env>* Lambda_v_dev = new_dev<dtype,env,true>(this->n_level*this->n_level);
-    
+
     vector<dtype> V_v(this->n_level*this->n_level);
     device_t<dtype,env>* V_v_dev = new_dev<dtype,env,true>(this->n_level*this->n_level);
 

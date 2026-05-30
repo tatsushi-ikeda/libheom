@@ -59,7 +59,7 @@ class sparse_matrix<{{n_level}},dtype,order,eigen>
 
     for (auto& data_ijv : src.data) {
       int i = data_ijv.first;
-      for (auto& data_jv: data_ijv.second) {
+      for (auto& data_jv : data_ijv.second) {
         int j = data_jv.first;
         if constexpr (order == row_major) {
           this->data.coeffRef(i, j) = data_jv.second;

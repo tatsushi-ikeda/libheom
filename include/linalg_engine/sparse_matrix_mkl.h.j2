@@ -36,7 +36,6 @@ constexpr int mkl_sparse_base_int<row_major> = 0;
 template<>
 constexpr int mkl_sparse_base_int<col_major> = 1;
 
-
 template<typename dtype, order_t order>
 inline sparse_status_t mkl_sparse_create(sparse_matrix_t* hdl,
                                          sparse_index_base_t base,
@@ -112,7 +111,7 @@ class sparse_matrix<dynamic,dtype,order,mkl>
 
     for (auto& data_ijv : src.data) {
       int i = data_ijv.first;
-      for (auto& data_jv: data_ijv.second) {
+      for (auto& data_jv : data_ijv.second) {
         int j = data_jv.first;
 
         if (i != outer_old) {

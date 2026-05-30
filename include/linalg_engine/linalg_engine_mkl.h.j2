@@ -34,7 +34,7 @@ class mkl : public linalg_engine_base
   mkl(mkl* parent) : linalg_engine_base() {
     CALL_TRACE();
   }
-  
+
   ~mkl() {
     CALL_TRACE();
   }
@@ -44,7 +44,7 @@ class mkl : public linalg_engine_base
     CALL_TRACE();
     return new mkl (this);
   }
-  
+
   void set_n_inner_threads(int n) override
   {
     CALL_TRACE();
@@ -74,7 +74,6 @@ constexpr sparse_layout_t mkl_sparse_layout<row_major> = SPARSE_LAYOUT_ROW_MAJOR
 template<>
 constexpr sparse_layout_t mkl_sparse_layout<col_major> = SPARSE_LAYOUT_COLUMN_MAJOR;
 
-
 template<order_t order>
 constexpr sparse_layout_t mkl_sparse_layout_transpose = SPARSE_LAYOUT_COLUMN_MAJOR;
 
@@ -82,7 +81,6 @@ template<>
 constexpr sparse_layout_t mkl_sparse_layout_transpose<row_major> = SPARSE_LAYOUT_COLUMN_MAJOR;
 template<>
 constexpr sparse_layout_t mkl_sparse_layout_transpose<col_major> = SPARSE_LAYOUT_ROW_MAJOR;
-
 
 template<order_t order>
 constexpr sparse_operation_t mkl_sparse_operation = SPARSE_OPERATION_NON_TRANSPOSE;
@@ -92,7 +90,6 @@ constexpr sparse_operation_t mkl_sparse_operation<row_major> = SPARSE_OPERATION_
 template<>
 constexpr sparse_operation_t mkl_sparse_operation<col_major> = SPARSE_OPERATION_TRANSPOSE;
 
-
 template<order_t order>
 constexpr int lapack_layout = LAPACK_ROW_MAJOR;
 
@@ -100,7 +97,6 @@ template<>
 constexpr int lapack_layout<row_major> = LAPACK_ROW_MAJOR;
 template<>
 constexpr int lapack_layout<col_major> = LAPACK_COL_MAJOR;
-
 
 {% for dtype, T in types %}
 {% set T_real = real_type_char[T] %}
@@ -118,7 +114,6 @@ struct nullify_impl<dynamic,device_t<{{dtype}},env_cpu>,mkl>
                     (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(x)), 1);
   }
 };
-
 
 template<>
 struct copy_impl<dynamic,device_t<{{dtype}},env_cpu>,mkl>
@@ -233,7 +228,7 @@ struct gemm_impl<dynamic,{{dtype}},dense_matrix,order,mkl>
                     (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(B)), n_level,
                     (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta)),
                     (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(C)), n_level);
-#else    
+#else
     cblas_{{T}}gemm(mkl_order<order>,
                     CblasNoTrans, CblasNoTrans,
                     n_level, n_level, n_level,
@@ -263,7 +258,7 @@ struct gemm_impl<dynamic,{{dtype}},dense_matrix,order,mkl>
                     (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(A)), n_level,
                     (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(&beta)),
                     (reinterpret_cast<mkl_t<device_t<{{dtype}},env_cpu>>*>(C)), n_level);
-#else    
+#else
     cblas_{{T}}gemm(mkl_order<order>,
                     CblasNoTrans, CblasNoTrans,
                     n_level, n_level, n_level,

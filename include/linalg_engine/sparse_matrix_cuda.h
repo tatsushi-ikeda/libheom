@@ -37,7 +37,6 @@ constexpr cudaDataType_t cuda_type_const<float64>    = CUDA_R_64F;
 template <>
 constexpr cudaDataType_t cuda_type_const<complex128> = CUDA_C_64F;
 
-
 template<order_t order>
 constexpr cusparseOrder_t cusparse_order = CUSPARSE_ORDER_ROW;
 
@@ -46,7 +45,6 @@ constexpr cusparseOrder_t cusparse_order<row_major> = CUSPARSE_ORDER_ROW;
 template<>
 constexpr cusparseOrder_t cusparse_order<col_major> = CUSPARSE_ORDER_COL;
 
-
 template<order_t order>
 constexpr cusparseOrder_t cusparse_order_t = CUSPARSE_ORDER_COL;
 
@@ -54,7 +52,6 @@ template<>
 constexpr cusparseOrder_t cusparse_order_t<row_major> = CUSPARSE_ORDER_COL;
 template<>
 constexpr cusparseOrder_t cusparse_order_t<col_major> = CUSPARSE_ORDER_ROW;
-
 
 template<order_t order>
 constexpr cusparseSpMMAlg_t cusparse_alg = CUSPARSE_SPMM_CSR_ALG2;
@@ -119,7 +116,6 @@ class sparse_matrix<dynamic,dtype,order,cuda>
   device_t<int,env_gpu>*   outer_dev;
   cusparseSpMatDescr_t     dsc;
 
-
   sparse_matrix() : data_dev(nullptr), inner_dev(nullptr), outer_dev(nullptr)
   {
     CALL_TRACE();
@@ -153,7 +149,7 @@ class sparse_matrix<dynamic,dtype,order,cuda>
 
     for (auto& data_ijv : src.data) {
       int i = data_ijv.first;
-      for (auto& data_jv: data_ijv.second) {
+      for (auto& data_jv : data_ijv.second) {
         int j = data_jv.first;
 
         if (i != outer_old) {

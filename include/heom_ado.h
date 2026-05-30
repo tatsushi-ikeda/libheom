@@ -14,7 +14,6 @@
 namespace libheom
 {
 
-
 template<int n_level_c,
          typename dtype,
          template <int n_level_c_,
@@ -28,11 +27,11 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
 {
  public:
   constexpr static int n_level_c_2 = n_level_c*n_level_c;
-  
+
   using env = engine_env<linalg_engine>;
   using heom_liou<n_level_c,dtype,matrix_base,order,order_liou,linalg_engine>::heom_liou;
   int n_level_ado;
-  
+
   std::unique_ptr<std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]>[]> Theta;
 
   lil_matrix<dynamic,dtype,order_liou,nil> R;
@@ -42,11 +41,11 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
   } impl;
 
   heom_ado() = delete;
-  
+
   heom_ado(int truncation_depth, int n_inner_threads, int n_outer_threads)
       : heom_liou<n_level_c,dtype,matrix_base,order,order_liou,linalg_engine>(truncation_depth, n_inner_threads, n_outer_threads)
   {};
-  
+
   int main_size()
   {
     CALL_TRACE();
@@ -60,14 +59,14 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
     CALL_TRACE();
     return 0;
   }
-  
+
   virtual void set_param(linalg_engine* obj)
   {
     CALL_TRACE();
     heom_liou<n_level_c,dtype,matrix_base,order,order_liou,linalg_engine>::set_param(obj);
 
     this->Theta.reset(new std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]>[this->n_noise]);
-    
+
     for (int u = 0; u < this->n_noise; ++u) {
       this->Theta[u].reset(new lil_matrix<dynamic,dtype,order_liou,nil>[this->len_gamma[u]]);
       for (int k = 0; k < this->len_gamma[u]; ++k) {
@@ -80,17 +79,17 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
 
     this->n_level_ado = this->n_hierarchy*this->n_level_2;
     this->R.set_shape(n_level_ado, n_level_ado);
-    
+
     for (int lidx = 0; lidx < this->n_hierarchy; ++lidx) {
       for (int a = 0; a < this->n_level_2; ++a) {
         // -1 terms
         for (int u = 0; u < this->n_noise; ++u) {
           for (int k = 0; k < this->len_gamma[u]; ++k) {
-            int lidx_m1 = this->hs.ptr_m1[lidx][this->lk[u][k]]; 
+            int lidx_m1 = this->hs.ptr_m1[lidx][this->lk[u][k]];
            if (lidx_m1 == this->hs.ptr_void) continue;
             auto Theta_row = this->Theta[u][k].data.find(a);
             if (Theta_row != this->Theta[u][k].data.end()) {
-              for (auto& Theta_kv: Theta_row->second) {
+              for (auto& Theta_kv : Theta_row->second) {
                 int b = Theta_kv.first;
                 dtype v = Theta_kv.second;
 #ifdef LIBHEOM_SQRT_NORMALIZATION
@@ -113,16 +112,16 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
             }
           }
         }
-      
+
         // 0 terms
         this->R.push(lidx*this->n_level_2 + a,
                      lidx*this->n_level_2 + a,
                      this->n_gamma_diag[lidx]);
-      
+
         for (int u = 0; u < this->n_noise; ++u) {
           for (auto& gamma_jkv : this->gamma_offdiag[u].data) {
             int j = gamma_jkv.first;
-            for (auto& gamma_kv: gamma_jkv.second) {
+            for (auto& gamma_kv : gamma_jkv.second) {
               int k = gamma_kv.first;
               const dtype& v = gamma_kv.second;
               if constexpr (order == row_major) {
@@ -167,10 +166,10 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
             }
           }
         }
-      
+
         auto R_0_row = this->R_0.data.find(a);
         if (R_0_row != this->R_0.data.end()) {
-          for (auto& R_kv: R_0_row->second) {
+          for (auto& R_kv : R_0_row->second) {
             int b = R_kv.first;
             dtype v = R_kv.second;
             this->R.push(lidx*this->n_level_2 + a,
@@ -186,7 +185,7 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
             if (lidx_p1 == this->hs.ptr_void) continue;
             auto Phi_row = this->Phi[u].data.find(a);
             if (Phi_row != this->Phi[u].data.end()) {
-              for (auto& Phi_kv: Phi_row->second) {
+              for (auto& Phi_kv : Phi_row->second) {
                 int b = Phi_kv.first;
                 dtype v = Phi_kv.second;
 #ifdef LIBHEOM_SQRT_NORMALIZATION
@@ -215,11 +214,11 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
   }
 
   inline void calc_time_derivative(linalg_engine* obj,
-                             device_t<dtype,env>* drho_dt,
-                             device_t<dtype,env>* rho,
-                             dtype alpha,
-                             dtype beta,
-                             device_t<dtype,env>* temp_base)
+                                   device_t<dtype,env>* drho_dt,
+                                   device_t<dtype,env>* rho,
+                                   dtype alpha,
+                                   dtype beta,
+                                   device_t<dtype,env>* temp_base)
   {
     CALL_TRACE();
     obj->set_n_inner_threads(this->n_inner_threads);

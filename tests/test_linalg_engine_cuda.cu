@@ -1,6 +1,5 @@
 /* -*- mode:cuda -*-
- * LibHEOM -- unit tests for linalg_engine<cuda>: axpy, scal, gemv, gemm,
- *            sync_to_children / sync_from_children
+ * LibHEOM
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
  * See LICENSE.txt for licence.

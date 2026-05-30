@@ -46,15 +46,15 @@ class cuda : public linalg_engine_base
     cudaDeviceProp devprop;
     CUDA_CALL(cudaGetDeviceProperties(&devprop, device));
     std::cerr << devprop.name << std::endl;
-    
+
     CUDA_CALL(cudaStreamCreate(&this->stream));
 
     CUBLAS_CALL(cublasCreate(&this->blas));
     CUBLAS_CALL(cublasSetStream(this->blas, this->stream));
-    
+
     CUSPARSE_CALL(cusparseCreate(&this->sparse));
     CUSPARSE_CALL(cusparseSetStream(this->sparse, this->stream));
-    
+
     CUSOLVER_CALL(cusolverDnCreate(&this->solver));
   }
 
@@ -64,10 +64,10 @@ class cuda : public linalg_engine_base
 
     CUBLAS_CALL(cublasCreate(&this->blas));
     CUBLAS_CALL(cublasSetStream(this->blas, this->stream));
-    
+
     CUSPARSE_CALL(cusparseCreate(&this->sparse));
     CUSPARSE_CALL(cusparseSetStream(this->sparse, this->stream));
-    
+
     CUSOLVER_CALL(cusolverDnCreate(&this->solver));
   }
 
@@ -237,7 +237,7 @@ struct gemm_impl<dynamic,{{dtype}},dense_matrix,{{order}},cuda>
                                 B, n_level,
                                 reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&beta),
                                 C, n_level));
-#else    
+#else
     CUBLAS_CALL(cublas{{T}}gemm(obj->blas,
                                 CUBLAS_OP_N, CUBLAS_OP_N,
                                 n_level, n_level, n_level,
@@ -246,7 +246,7 @@ struct gemm_impl<dynamic,{{dtype}},dense_matrix,{{order}},cuda>
                                 {{"A.data_dev" if order == "row_major" else "B"}}, n_level,
                                 reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&beta),
                                 C, n_level));
-#endif    
+#endif
   }
 
   static inline void func(cuda* obj,
@@ -268,7 +268,7 @@ struct gemm_impl<dynamic,{{dtype}},dense_matrix,{{order}},cuda>
                                 A, n_level,
                                 reinterpret_cast<device_t<{{dtype}},env_gpu>*>(&beta),
                                 C, n_level));
-#else    
+#else
     CUBLAS_CALL(cublas{{T}}gemm(obj->blas,
                                 CUBLAS_OP_N, CUBLAS_OP_N,
                                 n_level, n_level, n_level,
@@ -575,7 +575,6 @@ struct gemv_impl<dynamic,dtype,sparse_matrix,order,cuda>
     CUDA_CALL(cudaFree(buffer));
   }
 };
-
 
 }
 

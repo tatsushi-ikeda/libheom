@@ -29,14 +29,13 @@ dtype calc_gcd(dtype m, dtype n)
   return m;
 }
 
-
 template<typename dtype>
 dtype calc_multicombination(dtype n, dtype r)
 {
   dtype num, den;
   num = 1;
   den = 1;
-  for(dtype i = 1; i <= r; ++i) {
+  for (dtype i = 1; i <= r; ++i) {
     num *= n + i - 1;
     den *= i;
     dtype gcd = calc_gcd(num, den);
@@ -46,12 +45,10 @@ dtype calc_multicombination(dtype n, dtype r)
   return num/den;
 }
 
-
 long long calc_hierarchy_element_count(int level, int dim)
 {
   return calc_multicombination<long long>(dim + 1, level);
 }
-
 
 void print_index(vector<int>& index, std::ostream& out)
 {
@@ -64,7 +61,6 @@ void print_index(vector<int>& index, std::ostream& out)
   }
   out << "]";
 }
-
 
 int alloc_hierarchy_space(hierarchy_space& hs,
                       int  truncation_depth,

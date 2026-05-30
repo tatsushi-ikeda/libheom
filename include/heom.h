@@ -17,13 +17,12 @@
 namespace libheom
 {
 
-
 template<typename dtype, order_t order, typename linalg_engine>
 class heom : public qme_base<dtype,order,linalg_engine>
 {
  public:
   using env = engine_env<linalg_engine>;
-  
+
   hierarchy_space hs;
   vector<vector<int>> lk;
 
@@ -35,12 +34,12 @@ class heom : public qme_base<dtype,order,linalg_engine>
   int truncation_depth;
   int n_inner_threads;
   int n_outer_threads;
-  
+
   int n_modes;
   int n_hierarchy;
 
   heom() = delete;
-  
+
   heom(int truncation_depth, int n_inner_threads, int n_outer_threads)
       : qme_base<dtype,order,linalg_engine>::qme_base()
   {
@@ -53,7 +52,7 @@ class heom : public qme_base<dtype,order,linalg_engine>
   {
     return n_hierarchy;
   }
-  
+
   virtual void set_param(linalg_engine* obj)
   {
     CALL_TRACE();
@@ -91,12 +90,12 @@ class heom : public qme_base<dtype,order,linalg_engine>
 
     // calculate gamma_offdiag
     this->gamma_offdiag.reset(new lil_matrix<dynamic,dtype,order,nil>[this->n_noise]);
-    
+
     for (int u = 0; u < this->n_noise; ++u) {
       this->gamma[u].set_shape(this->len_gamma[u], this->len_gamma[u]);
       for (auto& gamma_ijv : this->gamma[u].data) {
         int i = gamma_ijv.first;
-        for (auto& gamma_jv: gamma_ijv.second) {
+        for (auto& gamma_jv : gamma_ijv.second) {
           int j = gamma_jv.first;
           const dtype& v = gamma_jv.second;
           if (i != j) {

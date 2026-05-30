@@ -22,7 +22,6 @@ __global__ void errnorm1_c_kernel(device_t<complex_t<float32>,env_gpu>* e,
                                   int n,
                                   device_t<float32,env_gpu>* work)
 {
-  // return e[i]/(atol + rtol*x[i]);
   extern __shared__ float32 smem32[];
 
   unsigned int tid = threadIdx.x;
@@ -49,7 +48,7 @@ __global__ void errnorm1_c_kernel(device_t<complex_t<float32>,env_gpu>* e,
     __syncthreads();
   }
   if (tid < 32) {
-    if(blockDim.x >= 64) result += smem32[tid + 32];
+    if (blockDim.x >= 64) result += smem32[tid + 32];
     for (int offset = 32/2; offset>0; offset>>=1) {
       result += __shfl_down_sync(0xffffffff, result, offset);
     }
@@ -59,7 +58,6 @@ __global__ void errnorm1_c_kernel(device_t<complex_t<float32>,env_gpu>* e,
   }
 }
 
-
 __global__ void errnorm1_z_kernel(device_t<complex_t<float64>,env_gpu>* e,
                                   device_t<complex_t<float64>,env_gpu>* x_1,
                                   device_t<complex_t<float64>,env_gpu>* x_2,
@@ -68,7 +66,6 @@ __global__ void errnorm1_z_kernel(device_t<complex_t<float64>,env_gpu>* e,
                                   int n,
                                   device_t<float64,env_gpu>* work)
 {
-  // return e[i]/(atol + rtol*x[i]);
   extern __shared__ float64 smem64[];
 
   unsigned int tid = threadIdx.x;
@@ -95,7 +92,7 @@ __global__ void errnorm1_z_kernel(device_t<complex_t<float64>,env_gpu>* e,
     __syncthreads();
   }
   if (tid < 32) {
-    if(blockDim.x >= 64) result += smem64[tid + 32];
+    if (blockDim.x >= 64) result += smem64[tid + 32];
     for (int offset = 32/2; offset>0; offset>>=1) {
       result += __shfl_down_sync(0xffffffff, result, offset);
     }
@@ -104,7 +101,6 @@ __global__ void errnorm1_z_kernel(device_t<complex_t<float64>,env_gpu>* e,
     work[blockIdx.x] = result;
   }
 }
-
 
 float32 errnorm1_C(device_t<complex_t<float32>,env_gpu>* e,
                    device_t<complex_t<float32>,env_gpu>* x_1,
@@ -132,7 +128,6 @@ float32 errnorm1_C(device_t<complex_t<float32>,env_gpu>* e,
   return std::sqrt(result / n_level);
 }
 
-
 float64 errnorm1_Z(device_t<complex_t<float64>,env_gpu>* e,
                    device_t<complex_t<float64>,env_gpu>* x_1,
                    device_t<complex_t<float64>,env_gpu>* x_2,
@@ -147,7 +142,6 @@ float64 errnorm1_Z(device_t<complex_t<float64>,env_gpu>* e,
   device_t<float64,env_gpu>* work_dev;
   work = new float64 [grid];
   CUDA_CALL(cudaMalloc(&work_dev, grid*sizeof(float64)));
-  // std::cerr << "grid:" << grid << ", block:" << CUDA_BLOCK_SIZE << std::endl;
   errnorm1_z_kernel<<<grid,CUDA_BLOCK_SIZE,CUDA_BLOCK_SIZE*sizeof(float64)>>>(
       e, x_1, x_2, atol, rtol, n_level, work_dev);
   CUDA_CHECK_KERNEL_CALL();
@@ -159,6 +153,5 @@ float64 errnorm1_Z(device_t<complex_t<float64>,env_gpu>* e,
   delete [] work;
   return std::sqrt(result / n_level);
 }
-
 
 }

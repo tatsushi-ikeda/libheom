@@ -1,19 +1,15 @@
 /* -*- mode:c++ -*-
- * LibHEOM -- GoogleTest: MKL heom_hilb/heom_liou/heom_ado dynamics vs Eigen
+ * LibHEOM
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
  * See LICENSE.txt for licence.
- *
- * Verifies that calc_time_derivative with the MKL engine produces results
- * numerically consistent with the Eigen engine for heom_liou, heom_hilb,
- * and heom_ado.
- *
- * System: n_level=2, H=diag(1,0), V=Pauli-X
- *   Bath: 1 noise, 1 Matsubara pole
- *         gamma=-1.0, phi_0=1.0, sigma=0.5
- *         S=[[0.3]], A=[[0.1]], s_delta=0.0
- *   truncation_depth=2 -> n_hierarchy=3, main_size=12
  *------------------------------------------------------------------------*/
+
+// System: n_level=2, H=diag(1,0), V=Pauli-X
+//   Bath: 1 noise, 1 Matsubara pole
+//         gamma=-1.0, phi_0=1.0, sigma=0.5
+//         S=[[0.3]], A=[[0.1]], s_delta=0.0
+//   truncation_depth=2 -> n_hierarchy=3, main_size=12
 
 #include <gtest/gtest.h>
 #include "libheom.h"
@@ -97,7 +93,7 @@ static std::vector<c128> run_diff(Solver* h, Eng& eng,
 {
     std::vector<c128> drho_dt(MAIN_SIZE, {0.0, 0.0});
     h->calc_time_derivative(&eng, drho_dt.data(),
-                      const_cast<c128*>(rho.data()),
+                            const_cast<c128*>(rho.data()),
                       c128{1.0, 0.0}, c128{0.0, 0.0},
                       temp_buf);
     return drho_dt;

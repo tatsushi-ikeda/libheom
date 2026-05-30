@@ -54,7 +54,7 @@ class dense_matrix<dynamic,dtype,order,cuda>
     CUDA_CALL(cudaMalloc(&this->data_dev, std::get<0>(this->shape)*std::get<1>(this->shape)*sizeof(dtype)));
     CUDA_CALL(cudaMemset(this->data_dev, 0, std::get<0>(this->shape)*std::get<1>(this->shape)*sizeof(dtype)));
   }
-  
+
   void import(lil_matrix<dynamic,dtype,order,nil>& src)
   {
     CALL_TRACE();
@@ -67,7 +67,7 @@ class dense_matrix<dynamic,dtype,order,cuda>
     std::fill_n(data, std::get<0>(this->shape)*std::get<1>(this->shape), zero<dtype>());
     for (auto& data_ijv : src.data) {
       int i = data_ijv.first;
-      for (auto& data_jv: data_ijv.second) {
+      for (auto& data_jv : data_ijv.second) {
         int j = data_jv.first;
         data[i*this->major_stride + j] = data_jv.second;
       }
@@ -99,7 +99,7 @@ class dense_matrix<dynamic,dtype,order,cuda>
     for (int i = 0; i < outer; ++i) {
       for (int j = 0; j < inner; ++j) {
         dest.data[i][j] = data[i*this->major_stride + j];
-      } 
+      }
     }
     delete [] data;
     dest.optimize();

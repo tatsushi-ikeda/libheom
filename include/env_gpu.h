@@ -44,7 +44,6 @@ struct new_dev_impl<dtype,env_gpu,mirror>
   }
 };
 
-
 template <typename dtype, bool mirror>
 struct delete_dev_impl<dtype,env_gpu,mirror>
 {
@@ -54,7 +53,6 @@ struct delete_dev_impl<dtype,env_gpu,mirror>
     CUDA_CALL(cudaFree(ptr));
   }
 };
-
 
 template <typename dtype>
 struct host2dev_impl<dtype,env_gpu>
@@ -66,7 +64,6 @@ struct host2dev_impl<dtype,env_gpu>
   }
 };
 
-
 template <typename dtype>
 struct dev2host_impl<dtype,env_gpu>
 {
@@ -76,7 +73,6 @@ struct dev2host_impl<dtype,env_gpu>
     CUDA_CALL(cudaMemcpy(ptr_host, ptr_dev, size*sizeof(dtype), cudaMemcpyDeviceToHost));
   }
 };
-
 
 }
 

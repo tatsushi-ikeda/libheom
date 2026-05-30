@@ -53,10 +53,10 @@ class solver_base
   }
 
   void calc_time_derivative(qme_base<dtype,order,linalg_engine>* qme,
-                 dtype* drho_dt,
-                 dtype* rho,
-                 real_t<dtype> alpha,
-                 real_t<dtype> beta)
+                            dtype* drho_dt,
+                            dtype* rho,
+                            real_t<dtype> alpha,
+                            real_t<dtype> beta)
   {
     CALL_TRACE();
   }

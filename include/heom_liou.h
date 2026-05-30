@@ -14,7 +14,6 @@
 namespace libheom
 {
 
-
 template<int n_level_c,
          typename dtype,
          template <int n_level_c_,
@@ -47,12 +46,12 @@ class heom_liou : public heom<dtype,order,linalg_engine>
   } impl;
 
   heom_liou() = delete;
-  
+
   heom_liou(int truncation_depth, int n_inner_threads, int n_outer_threads)
       : heom<dtype,order,linalg_engine>(truncation_depth, n_inner_threads, n_outer_threads)
   {
   };
-  
+
   int main_size()
   {
     CALL_TRACE();
@@ -64,7 +63,7 @@ class heom_liou : public heom<dtype,order,linalg_engine>
     CALL_TRACE();
     return this->n_level*this->n_level*n_temp_per_thread*this->n_outer_threads;
   }
-  
+
   virtual void set_param(linalg_engine* obj)
   {
     CALL_TRACE();
@@ -73,22 +72,22 @@ class heom_liou : public heom<dtype,order,linalg_engine>
     this->L.set_shape(this->n_level_2, this->n_level_2);
     kron_x_1  <dynamic>(nilobj, +i_unit<dtype>(), this->H, zero<dtype>(), this->L);
     kron_1_x_T<dynamic>(nilobj, -i_unit<dtype>(), this->H,  one<dtype>(), this->L);
-    
+
     this->Phi.reset(new lil_matrix<dynamic,dtype,order_liou,nil>[this->n_noise]);
     this->Psi.reset(new lil_matrix<dynamic,dtype,order_liou,nil>[this->n_noise]);
     this->Xi.reset (new lil_matrix<dynamic,dtype,order_liou,nil>[this->n_noise]);
-    
+
     for (int u = 0; u < this->n_noise; ++u) {
       this->Phi[u].set_shape(this->n_level_2, this->n_level_2);
       kron_x_1  <dynamic>(nilobj, +i_unit<dtype>(), this->V[u], zero<dtype>(), this->Phi[u]);
       kron_1_x_T<dynamic>(nilobj, -i_unit<dtype>(), this->V[u],  one<dtype>(), this->Phi[u]);
       this->Phi[u].optimize();
-      
+
       this->Psi[u].set_shape(this->n_level_2, this->n_level_2);
       kron_x_1  <dynamic>(nilobj, +one<dtype>(), this->V[u], zero<dtype>(), this->Psi[u]);
       kron_1_x_T<dynamic>(nilobj, +one<dtype>(), this->V[u],  one<dtype>(), this->Psi[u]);
       this->Psi[u].optimize();
-      
+
       this->Xi[u].set_shape(this->n_level_2, this->n_level_2);
       gemm<dynamic>(nilobj, -this->s_delta[u], this->Phi[u], this->Phi[u], zero<dtype>(), this->Xi[u], this->n_level_2);
       this->Xi[u].optimize();
@@ -111,23 +110,23 @@ class heom_liou : public heom<dtype,order,linalg_engine>
   }
 
   inline void calc_time_derivative(linalg_engine* obj_base,
-                             device_t<dtype,env>* drho_dt,
-                             device_t<dtype,env>* rho,
-                             dtype alpha,
-                             dtype beta,
-                             device_t<dtype,env>* temp_base)
+                                   device_t<dtype,env>* drho_dt,
+                                   device_t<dtype,env>* rho,
+                                   dtype alpha,
+                                   dtype beta,
+                                   device_t<dtype,env>* temp_base)
   {
     CALL_TRACE();
     ++this->count;
-    
+
     auto n_hierarchy        = this->n_hierarchy;
     auto n_level_2      = this->n_level_2;
     auto n_noise        = this->n_noise;
-    
+
     auto& R_0           = this->impl.R_0;
     auto& Phi           = this->impl.Phi;
     auto& Psi           = this->impl.Psi;
-    
+
     auto& n_gamma_diag   = this->n_gamma_diag;
     auto& n             = this->hs.n;
     auto& ptr_m1        = this->hs.ptr_m1;
@@ -147,13 +146,13 @@ class heom_liou : public heom<dtype,order,linalg_engine>
       int thread_id = omp_get_thread_num();
       linalg_engine* obj = static_cast<linalg_engine*>(obj_base->get_child(thread_id));
       obj->switch_thread(thread_id);
-      
+
       auto rho_n     = &rho[lidx*n_level_2];
 
       auto drho_dt_n = &temp_base[(n_temp_per_thread*thread_id+0)*n_level_2];
       auto temp_Phi  = &temp_base[(n_temp_per_thread*thread_id+1)*n_level_2];
       auto temp_Psi  = &temp_base[(n_temp_per_thread*thread_id+2)*n_level_2];
-      
+
       // 0 terms
       gemv<n_level_c_2>(obj, one<dtype>(), R_0, rho_n, zero<dtype>(), drho_dt_n, n_level_2);
       axpy<n_level_c_2>(obj, n_gamma_diag[lidx], rho_n, drho_dt_n, n_level_2);
@@ -166,10 +165,9 @@ class heom_liou : public heom<dtype,order,linalg_engine>
         auto& s_u             = this->s_vec[u];
         auto& a_u             = this->a_vec[u];
 
-        
         for (auto& gamma_jkv : gamma_offdiag_u.data) {
           int j = gamma_jkv.first;
-          for (auto& gamma_kv: gamma_jkv.second) {
+          for (auto& gamma_kv : gamma_jkv.second) {
             int k = gamma_kv.first;
             const dtype& v = gamma_kv.second;
             // LIBHEOM_SQRT_NORMALIZATION selects the hierarchy normalization
@@ -180,49 +178,49 @@ class heom_liou : public heom<dtype,order,linalg_engine>
             if constexpr (order == row_major) {
               int lidx_m1j    = ptr_m1[lidx][lk_u[j]];
               int lidx_m1jp1k = ptr_p1[lidx_m1j][lk_u[k]];
-            
+
               if (lidx_m1j != ptr_void && lidx_m1jp1k != ptr_void) {
                 auto rho_m1jp1k = &rho[lidx_m1jp1k*n_level_2];
                 auto n_j_float = static_cast<real_t<dtype>>(n[lidx][lk_u[j]]);
-#ifdef LIBHEOM_SQRT_NORMALIZATION            
+#ifdef LIBHEOM_SQRT_NORMALIZATION
                 auto n_k_float = static_cast<real_t<dtype>>(n[lidx][lk_u[k]]);
-                
+
                 axpy<n_level_c_2>(obj, std::sqrt(n_j_float*(n_k_float + 1))*v, rho_m1jp1k, drho_dt_n, n_level_2);
-#else            
+#else
                 axpy<n_level_c_2>(obj, n_j_float*v, rho_m1jp1k, drho_dt_n, n_level_2);
 #endif
               }
             } else {
               int lidx_m1k    = ptr_m1[lidx][lk_u[k]];
               int lidx_m1kp1j = ptr_p1[lidx_m1k][lk_u[j]];
-            
+
               if (lidx_m1k != ptr_void && lidx_m1kp1j != ptr_void) {
                 auto rho_m1kp1j = &rho[lidx_m1kp1j*n_level_2];
                 auto n_k_float = static_cast<real_t<dtype>>(n[lidx][lk_u[k]]);
-#ifdef LIBHEOM_SQRT_NORMALIZATION            
+#ifdef LIBHEOM_SQRT_NORMALIZATION
                 auto n_j_float = static_cast<real_t<dtype>>(n[lidx][lk_u[j]]);
-              
+
                 axpy<n_level_c_2>(obj, std::sqrt(n_k_float*(n_j_float + 1))*v, rho_m1kp1j, drho_dt_n, n_level_2);
-#else            
+#else
                 axpy<n_level_c_2>(obj, n_k_float*v, rho_m1kp1j, drho_dt_n, n_level_2);
 #endif
               }
             }
           }
         }
-        
+
         nullify<n_level_c_2>(obj, temp_Phi, n_level_2);
         nullify<n_level_c_2>(obj, temp_Psi, n_level_2);
-        
+
         // +1 terms
         for (int k = 0; k < len_gamma_u; ++k) {
           int lidx_p1 = ptr_p1[lidx][lk_u[k]];
           if (lidx_p1 != ptr_void) {
             auto rho_np1 = &rho[lidx_p1*n_level_2];
-#ifdef LIBHEOM_SQRT_NORMALIZATION            
+#ifdef LIBHEOM_SQRT_NORMALIZATION
             auto n_float = static_cast<real_t<dtype>>(n[lidx][lk_u[k]]);
             axpy<n_level_c_2>(obj, sigma_u[k]*std::sqrt(n_float + 1), rho_np1, temp_Phi, n_level_2);
-#else        
+#else
             axpy<n_level_c_2>(obj, sigma_u[k],                        rho_np1, temp_Phi, n_level_2);
 #endif
           }
@@ -237,17 +235,16 @@ class heom_liou : public heom<dtype,order,linalg_engine>
 #ifdef LIBHEOM_SQRT_NORMALIZATION
             axpy<n_level_c_2>(obj,  s_u[k]*std::sqrt(n_float), rho_nm1, temp_Phi, n_level_2);
             axpy<n_level_c_2>(obj, -a_u[k]*std::sqrt(n_float), rho_nm1, temp_Psi, n_level_2);
-#else        
+#else
             axpy<n_level_c_2>(obj,  s_u[k]*n_float,            rho_nm1, temp_Phi, n_level_2);
             axpy<n_level_c_2>(obj, -a_u[k]*n_float,            rho_nm1, temp_Psi, n_level_2);
 #endif
           }
         }
-        
+
         gemv<n_level_c_2>(obj,  one<dtype>(), Phi[u], temp_Phi, one<dtype>(), drho_dt_n, n_level_2);
         gemv<n_level_c_2>(obj,  one<dtype>(), Psi[u], temp_Psi, one<dtype>(), drho_dt_n, n_level_2);
 
-        
       }
       scal<n_level_c_2>(obj, beta, &drho_dt[lidx*n_level_2], n_level_2);
       axpy<n_level_c_2>(obj, -alpha, drho_dt_n, &drho_dt[lidx*n_level_2], n_level_2);
