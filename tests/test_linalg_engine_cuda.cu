@@ -2,7 +2,7 @@
  * LibHEOM
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
- * See LICENSE.txt for licence.
+ * See LICENSE.txt for license.
  *------------------------------------------------------------------------*/
 
 #include <gtest/gtest.h>
@@ -216,7 +216,7 @@ TEST_F(CudaEngineFixture, Gemm_AlphaBeta) {
 // ---------------------------------------------------------------------------
 
 TEST_F(CudaEngineFixture, SyncChildrenRoundtrip) {
-    // Parent initialises y=[0,0] on GPU.
+    // Parent initializes y=[0,0] on GPU.
     // Child performs axpy: y += 1*x with x=[3,7].
     // After sync_from_children, parent reads y and asserts y=[3,7].
     eng.create_children(1);
@@ -226,7 +226,7 @@ TEST_F(CudaEngineFixture, SyncChildrenRoundtrip) {
     c128 h_y[2] = {{0.0,0},{0.0,0}};
     DevBuf<c128> dx(h_x, 2), dy(h_y, 2);
 
-    // Parent initialises dx on its stream; child must not start before this.
+    // Parent initializes dx on its stream; child must not start before this.
     eng.sync_to_children();
 
     axpy<dynamic>(child, c128{1.0,0}, dx.ptr, dy.ptr, 2);

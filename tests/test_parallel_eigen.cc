@@ -2,7 +2,7 @@
  * LibHEOM
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
- * See LICENSE.txt for licence.
+ * See LICENSE.txt for license.
  *------------------------------------------------------------------------*/
 
 // System: 2-level, H = diag(1,0), V = Pauli-X
@@ -31,7 +31,7 @@ static constexpr int MAIN_SIZE = N_LEVEL_2 * N_HRCHY; // 12
 
 // ---------------------------------------------------------------------------
 // Build a minimal heom_liou with the given n_outer_threads.
-// Call set_param() so the internal Liouvillian matrices are initialised.
+// Call set_param() so the internal Liouvillian matrices are initialized.
 // ---------------------------------------------------------------------------
 
 static heom_liou_t* make_heom(eigen& eng, int n_outer, int n_inner = 1)

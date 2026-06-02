@@ -2,7 +2,7 @@
  * LibHEOM
  * Copyright (c) Tatsushi Ikeda
  * This library is distributed under BSD 3-Clause License.
- * See LICENSE.txt for licence.
+ * See LICENSE.txt for license.
  *------------------------------------------------------------------------*/
 
 // Physical system:
@@ -67,7 +67,7 @@ static void fill_params(QME* h)
     h->s_delta[0] = {0.0, 0.0};
 }
 
-// Build and initialise a solver object; caller owns the pointer.
+// Build and initialize a solver object; caller owns the pointer.
 static heom_hilb_t* make_hilb(eigen& eng, int n_outer=1, int n_inner=1)
 {
     auto* h = new heom_hilb_t(MAX_DEPTH, n_inner, n_outer);
