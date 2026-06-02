@@ -71,9 +71,15 @@ class solver_base
     CALL_TRACE();
     for (int i = 0; i < n_t - 1; ++i) {
       callback(t_list[i]);
-      host2dev<dtype,env>(rho, rho_dev, this->main_size);
-      solve_1(qme, rho_dev, t_list[i], t_list[i+1], kwargs);
-      dev2host<dtype,env>(rho_dev, rho, this->main_size);
+      // Skip a zero-span interval (t_list[i+1] == t_list[i]): rho is unchanged at
+      // that time and the callback still fires. This stops the adaptive solver
+      // from clamping its step to 0 and stalling. A decreasing grid is rejected
+      // earlier by the Python solve() wrapper, so only the equal case reaches here.
+      if (t_list[i+1] > t_list[i]) {
+        host2dev<dtype,env>(rho, rho_dev, this->main_size);
+        solve_1(qme, rho_dev, t_list[i], t_list[i+1], kwargs);
+        dev2host<dtype,env>(rho_dev, rho, this->main_size);
+      }
     }
     callback(t_list[n_t-1]);
   }
