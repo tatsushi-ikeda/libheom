@@ -54,25 +54,14 @@ class eigen : public linalg_engine_base
   }
 };
 
+// All Eigen Map<> wrappers below use Unaligned access. The buffers they wrap
+// (real eigenvalue arrays, numpy-provided H/V, device buffers) are NOT
+// guaranteed to sit on a 32/64-byte boundary, so promising Aligned32/64 made
+// Eigen emit aligned AVX load/stores (e.g. _mm256_store_pd) that segfault on
+// misaligned data in AVX-enabled release builds (the manylinux gcc crash).
+// Unaligned access is correct on any alignment and produces identical results.
 template<typename dtype>
 constexpr Eigen::AlignmentType eigen_align = Eigen::Unaligned;
-
-#if (defined __NVCC__ && defined __GNUC__)
-// nvcc with g++ doesn't work well with Eigen::Aligned32 on Eigen 3.4
-template <>
-constexpr Eigen::AlignmentType eigen_align<complex64> = Eigen::Aligned16;
-#else
-template <>
-constexpr Eigen::AlignmentType eigen_align<complex64> = Eigen::Aligned32;
-#endif
-
-#if defined(__ICC)
-template <>
-constexpr Eigen::AlignmentType eigen_align<complex128> = Eigen::Aligned64;
-#else
-template <>
-constexpr Eigen::AlignmentType eigen_align<complex128> = Eigen::Aligned32;
-#endif
 
 {% for dynamic, n_level, n_level_template, eigen_n_level in eigen_dynamic_param %}
 template<{{n_level_template}}typename dtype_dev>

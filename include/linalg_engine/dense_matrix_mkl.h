@@ -52,7 +52,7 @@ class dense_matrix<num_level,dtype,order,mkl>
   {
     CALL_TRACE();
     if (data != nullptr) {
-      delete [] data;
+      ::operator delete[](data, std::align_val_t{align_val<dtype>});  // aligned new[] -> aligned delete[]
     }
   }
 
@@ -63,7 +63,7 @@ class dense_matrix<num_level,dtype,order,mkl>
     std::get<1>(shape) = cols;
     this->major_stride = std::get<shape_index<order>>(this->shape);
     if (this->data != nullptr) {
-      delete [] this->data;
+      ::operator delete[](this->data, std::align_val_t{align_val<dtype>});  // aligned new[] -> aligned delete[]
     }
     this->data = new (std::align_val_t{align_val<dtype>}) dtype [std::get<0>(this->shape)*std::get<1>(this->shape)];
     std::fill_n(this->data, std::get<0>(this->shape)*std::get<1>(this->shape), zero<dtype>());
@@ -76,7 +76,7 @@ class dense_matrix<num_level,dtype,order,mkl>
     this->major_stride = std::get<shape_index<order>>(this->shape);
 
     if (data != nullptr) {
-      delete [] data;
+      ::operator delete[](data, std::align_val_t{align_val<dtype>});  // aligned new[] -> aligned delete[]
     }
     this->data = new (std::align_val_t{align_val<dtype>}) dtype [std::get<0>(this->shape)*std::get<1>(this->shape)];
     std::fill_n(this->data, std::get<0>(this->shape)*std::get<1>(this->shape), zero<dtype>());

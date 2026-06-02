@@ -76,7 +76,7 @@ class dense_matrix<dynamic,dtype,order,cuda>
     CUDA_CALL(cudaMalloc(&this->data_dev, std::get<0>(this->shape)*std::get<1>(this->shape)*sizeof(dtype)));
     CUDA_CALL(cudaMemcpy(this->data_dev, data, std::get<0>(this->shape)*std::get<1>(this->shape)*sizeof(dtype), cudaMemcpyHostToDevice));
 
-    delete [] data;
+    ::operator delete[](data, std::align_val_t{align_val<dtype>});  // aligned new[] -> aligned delete[]
   }
 
   void dump(lil_matrix<dynamic,dtype,order,nil>& dest)
@@ -101,7 +101,7 @@ class dense_matrix<dynamic,dtype,order,cuda>
         dest.data[i][j] = data[i*this->major_stride + j];
       }
     }
-    delete [] data;
+    ::operator delete[](data, std::align_val_t{align_val<dtype>});  // aligned new[] -> aligned delete[]
     dest.optimize();
   }
 

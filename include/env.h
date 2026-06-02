@@ -109,7 +109,11 @@ struct delete_dev_impl<dtype,env_cpu,false>
   inline static void func(device_t<dtype,env_cpu>* ptr)
   {
     CALL_TRACE();
-    delete [] ptr;
+    // The buffer was allocated with the aligned operator new[]
+    // (std::align_val_t{align_val<dtype>}); a plain delete[] would call the
+    // non-aligned operator delete[] and corrupt the heap. Free with the
+    // matching aligned operator delete[].
+    ::operator delete[](ptr, std::align_val_t{align_val<dtype>});
   }
 };
 
