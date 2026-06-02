@@ -65,6 +65,8 @@ For MKL, CUDA, and all CMake options see [`docs/installation.md`](docs/installat
    ISSN = {0021-9606},
    DOI = {10.1063/5.0007327},
    url = {https://doi.org/10.1063/5.0007327},
+   eprint = {2003.06134},
+   archivePrefix = {arXiv},
    year = {2020},
    type = {Journal Article}
 }
