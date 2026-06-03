@@ -76,9 +76,9 @@ lil_matrix<...> H;     // Hamiltonian
 // Call alloc_noises(n_noise) first, then for each noise source u:
 lil_matrix<...> V[u];        // system-bath coupling operator
 lil_matrix<...> gamma[u];    // exponential decay matrix (K x K)
-vector<dtype>   phi_0[u];    // left amplitude vector (length K)
-vector<dtype>   sigma[u];    // right amplitude vector (length K)
-lil_matrix<...> s_mat[u];    // real part of C(t): S in C(t)=phi^T exp(-gamma t)(s_mat-i*a_mat)sigma
+vector<dtype>   phi_0[u];    // initial vector of phi(t)=exp(-gamma t)*phi_0, on the right of C(t) (length K)
+vector<dtype>   sigma[u];    // constant coefficient vector, applied as sigma^T on the left of C(t) (length K)
+lil_matrix<...> s_mat[u];    // real part of C(t): S in C(t)=sigma^T (s_mat+i*a_mat) exp(-gamma t) phi_0
 lil_matrix<...> a_mat[u];    // imaginary part of C(t)
 dtype           s_delta[u];  // delta-function weight
 ```
