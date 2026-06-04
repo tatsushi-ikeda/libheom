@@ -108,8 +108,8 @@ class sparse_matrix<dynamic,dtype,order,cuda>
     : public matrix_base<dynamic,dtype,order,cuda>
 {
  public:
-  std::tuple<int, int> shape;
-  int major_stride;
+  std::tuple<std::size_t, std::size_t> shape;
+  std::size_t major_stride;
   const int base = 0;
   device_t<dtype,env_gpu>* data_dev;
   device_t<int,env_gpu>*   inner_dev;

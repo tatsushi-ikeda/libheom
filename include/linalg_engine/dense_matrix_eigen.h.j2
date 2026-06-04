@@ -32,8 +32,8 @@ class dense_matrix<{{n_level}},dtype,order,eigen>
     : public matrix_base<{{n_level}},dtype,order,eigen>
 {
  public:
-  std::tuple<int, int> shape;
-  int major_stride;
+  std::tuple<std::size_t, std::size_t> shape;
+  std::size_t major_stride;
   Eigen::Matrix<device_t<dtype,env_cpu>,{{eigen_n_level}},{{eigen_n_level}},eigen_order<order>> data;
 
   dense_matrix()
@@ -47,7 +47,7 @@ class dense_matrix<{{n_level}},dtype,order,eigen>
     CALL_TRACE();
   }
 
-  void set_shape(int rows, int cols)
+  void set_shape(std::size_t rows, std::size_t cols)
   {
     CALL_TRACE();
     std::get<0>(shape) = rows;

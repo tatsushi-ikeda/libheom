@@ -30,7 +30,7 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
 
   using env = engine_env<linalg_engine>;
   using heom_liou<n_level_c,dtype,matrix_base,order,order_liou,linalg_engine>::heom_liou;
-  int n_level_ado;
+  std::size_t n_level_ado;
 
   std::unique_ptr<std::unique_ptr<lil_matrix<dynamic,dtype,order_liou,nil>[]>[]> Theta;
 
@@ -77,7 +77,7 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
       }
     }
 
-    this->n_level_ado = this->n_hierarchy*this->n_level_2;
+    this->n_level_ado = static_cast<std::size_t>(this->n_hierarchy)*this->n_level_2;
     this->R.set_shape(n_level_ado, n_level_ado);
 
     for (int lidx = 0; lidx < this->n_hierarchy; ++lidx) {
@@ -224,7 +224,7 @@ class heom_ado : public heom_liou<n_level_c,dtype,matrix_base,order,order_liou,l
     obj->set_n_inner_threads(this->n_inner_threads);
     auto n_level_ado = this->n_level_ado;
     auto& R          = this->impl.R;
-    gemv<dynamic>(obj, -alpha, R, rho, beta, drho_dt, n_level_ado);
+    gemv<dynamic>(obj, -alpha, R, rho, beta, drho_dt, static_cast<int>(n_level_ado));
     obj->set_n_inner_threads(-1);
   }
 };

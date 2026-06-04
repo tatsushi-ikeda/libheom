@@ -25,8 +25,8 @@ class dense_matrix<dynamic,dtype,order,cuda>
     : public matrix_base<dynamic,dtype,order,cuda>
 {
  public:
-  std::tuple<int, int> shape;
-  int major_stride;
+  std::tuple<std::size_t, std::size_t> shape;
+  std::size_t major_stride;
   device_t<dtype,env_gpu>* data_dev;
 
   dense_matrix() : data_dev(nullptr)
@@ -42,7 +42,7 @@ class dense_matrix<dynamic,dtype,order,cuda>
     }
   }
 
-  void set_shape(int rows, int cols)
+  void set_shape(std::size_t rows, std::size_t cols)
   {
     CALL_TRACE();
     std::get<0>(shape) = rows;

@@ -33,8 +33,8 @@ class sparse_matrix<{{n_level}},dtype,order,eigen>
     : public matrix_base<{{n_level}},dtype,order,eigen>
 {
  public:
-  std::tuple<int, int> shape;
-  int major_stride;
+  std::tuple<std::size_t, std::size_t> shape;
+  std::size_t major_stride;
   Eigen::SparseMatrix<device_t<dtype,env_cpu>,eigen_order<order>> data;
 
   sparse_matrix()

@@ -38,8 +38,8 @@ class dense_matrix<num_level,dtype,order,mkl>
     : public matrix_base<num_level,dtype,order,mkl>
 {
  public:
-  std::tuple<int, int> shape;
-  int major_stride;
+  std::tuple<std::size_t, std::size_t> shape;
+  std::size_t major_stride;
   dtype* data;
 
   dense_matrix() : data(nullptr)
@@ -56,7 +56,7 @@ class dense_matrix<num_level,dtype,order,mkl>
     }
   }
 
-  void set_shape(int rows, int cols)
+  void set_shape(std::size_t rows, std::size_t cols)
   {
     CALL_TRACE();
     std::get<0>(shape) = rows;
