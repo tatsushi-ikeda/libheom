@@ -8,6 +8,8 @@
 #ifndef LIBHEOM_UTILITY_GPU_H
 #define LIBHEOM_UTILITY_GPU_H
 
+#include <new>
+
 namespace libheom
 {
 
@@ -19,6 +21,9 @@ namespace libheom
                 << cudaGetErrorString(err) << " "                          \
                 << "(error code: " << err << ") "                          \
                 << "at " << __FILE__ << " line " << __LINE__ << std::endl; \
+      if (err == cudaErrorMemoryAllocation) {                              \
+        throw std::bad_alloc();                                            \
+      }                                                                    \
       std::exit(1);                                                        \
     }                                                                      \
   }
